@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
 import { ChatService } from '@/lib/chat-service'
@@ -94,6 +94,16 @@ const scrollToBottom = async () => {
   }
 }
 
+// 聚焦输入框
+const focusInput = () => {
+  nextTick(() => {
+    const inputElement = document.getElementById('chat-main-input')
+    if (inputElement) {
+      inputElement.focus()
+    }
+  })
+}
+
 // 监听消息变化，自动滚动
 watch(
   () => messages.value.length,
@@ -101,6 +111,19 @@ watch(
     scrollToBottom()
   }
 )
+
+// 监听对话切换，自动聚焦输入框
+watch(
+  () => chatStore.activeConversationId,
+  () => {
+    focusInput()
+  }
+)
+
+// 页面加载完成后聚焦输入框
+onMounted(() => {
+  focusInput()
+})
 
 // 发送消息
 const sendMessage = async () => {
@@ -259,8 +282,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
     <!-- 输入区域 -->
     <div class="border-t border-gray-200 dark:border-gray-700 p-3">
       <InputGroup>
-        <InputGroupTextarea v-model="inputText" :placeholder="t('chat.inputPlaceholder')" @keydown="handleKeyDown"
-          class="min-h-16 max-h-50 resize-none" />
+        <InputGroupTextarea id="chat-main-input" v-model="inputText" :placeholder="t('chat.inputPlaceholder')"
+          @keydown="handleKeyDown" class="min-h-16 max-h-50 resize-none" />
         <InputGroupAddon align="block-end" class="justify-end">
           <!-- 设置按钮 -->
           <TooltipProvider>
