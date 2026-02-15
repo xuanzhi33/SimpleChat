@@ -317,11 +317,20 @@ const handleKeyDown = (event: KeyboardEvent) => {
           <Separator orientation="vertical" class="h-4! mx-1" />
 
           <!-- 发送/停止按钮 -->
-          <InputGroupButton v-if="!isGenerating" variant="default" class="rounded-full" size="icon-xs"
-            @click="sendMessage" :disabled="!inputText.trim()">
-            <ArrowUp class="size-4" />
-            <span class="sr-only">{{ t('chat.send') }}</span>
-          </InputGroupButton>
+          <TooltipProvider v-if="!isGenerating">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <InputGroupButton variant="default" class="rounded-full" size="icon-xs" @click="sendMessage"
+                  :disabled="!inputText.trim()">
+                  <ArrowUp class="size-4" />
+                  <span class="sr-only">{{ t('chat.send') }}</span>
+                </InputGroupButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                {{ t('chat.sendTooltip') }}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <InputGroupButton v-else variant="destructive" class="rounded-full" size="icon-xs" @click="stopGenerating">
             <StopCircle class="size-4" />
