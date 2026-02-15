@@ -18,6 +18,7 @@ export interface Conversation {
   title: string
   messages: Message[]
   modelId?: string // 关联的模型ID
+  systemPrompt?: string // 系统提示词
   createdAt: number
   updatedAt: number
 }

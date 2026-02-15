@@ -4,7 +4,9 @@ import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
 import { ChatService } from '@/lib/chat-service'
 import MessageItem from './MessageItem.vue'
+import ConversationConfig from './ConversationConfig.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import {
   InputGroup,
   InputGroupAddon,
@@ -37,7 +39,7 @@ import {
 } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import SettingsDialog from '@/views/SettingsView.vue'
-import { StopCircle, Trash2, AlertCircle, Bot, Cpu, ArrowUp, Settings } from 'lucide-vue-next'
+import { StopCircle, Trash2, AlertCircle, Bot, Cpu, ArrowUp, Settings, Sliders } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 
@@ -51,6 +53,7 @@ const error = ref<string>('')
 const modelManagementOpen = ref(false)
 const clearDialogOpen = ref(false)
 const settingsOpen = ref(false)
+const conversationConfigOpen = ref(false)
 
 const messages = computed(() => chatStore.activeConversation?.messages || [])
 const isGenerating = computed(() => chatStore.isGenerating)
@@ -174,6 +177,20 @@ const sendMessage = async () => {
       messagesToSend = messagesToSend.slice(-contextLength)
     }
 
+    // 如果配置了系统提示词，添加到消息列表最前面
+    const systemPrompt = chatStore.activeConversation?.systemPrompt
+    if (systemPrompt && systemPrompt.trim()) {
+      messagesToSend = [
+        {
+          id: 'system-prompt',
+          role: 'system' as const,
+          content: systemPrompt.trim(),
+          timestamp: Date.now(),
+        },
+        ...messagesToSend,
+      ]
+    }
+
     await chatService.sendMessage(
       messagesToSend,
       (content, reasoningContent) => {
@@ -275,6 +292,25 @@ const handleKeyDown = (event: KeyboardEvent) => {
         </div>
       </div>
 
+      <!-- 系统提示词显示 -->
+      <div v-if="chatStore.activeConversation?.systemPrompt && chatStore.activeConversation.systemPrompt.trim()"
+        class="mb-6 flex gap-3">
+        <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 mt-7">
+          <Settings class="w-5 h-5 text-white" />
+        </div>
+        <div class="flex-1">
+          <div class="mb-1">
+            <Badge variant="secondary" class="text-xs">
+              {{ t('chat.systemPrompt') }}
+            </Badge>
+          </div>
+          <div
+            class="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-sm whitespace-pre-wrap">
+            {{ chatStore.activeConversation.systemPrompt }}
+          </div>
+        </div>
+      </div>
+
       <MessageItem v-for="(message, index) in messages" :key="message.id" :message="message"
         :is-in-context="isMessageInContext(index)" />
     </div>
@@ -310,6 +346,21 @@ const handleKeyDown = (event: KeyboardEvent) => {
               </TooltipTrigger>
               <TooltipContent>
                 {{ t('chat.clearConversation') }}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <!-- 对话配置按钮 -->
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <InputGroupButton variant="ghost" size="icon-xs" @click="conversationConfigOpen = true"
+                  :disabled="isGenerating">
+                  <Sliders class="size-4" />
+                </InputGroupButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                {{ t('chat.conversationConfig') }}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -369,6 +420,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
   <!-- 模型管理弹窗 -->
   <ModelManagement v-model:open="modelManagementOpen" />
+
+  <!-- 对话配置弹窗 -->
+  <ConversationConfig v-model:open="conversationConfigOpen" />
 
   <!-- 清空对话确认对话框 -->
   <AlertDialog v-model:open="clearDialogOpen">
