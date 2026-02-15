@@ -230,7 +230,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
 <template>
   <div class="flex flex-col h-full">
     <!-- 错误提示 -->
-    <Alert v-if="error" variant="destructive">
+    <Alert v-if="error" variant="destructive" class="p-4 pl-14">
       <AlertCircle class="h-4 w-4" />
       <AlertDescription>{{ error }}</AlertDescription>
     </Alert>
@@ -259,8 +259,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
     <!-- 输入区域 -->
     <div class="border-t border-gray-200 dark:border-gray-700 p-4">
       <InputGroup>
-        <InputGroupTextarea v-model="inputText" :placeholder="t('chat.inputPlaceholder')" :disabled="isGenerating"
-          @keydown="handleKeyDown" class="min-h-20 max-h-50 resize-none" />
+        <InputGroupTextarea v-model="inputText" :placeholder="t('chat.inputPlaceholder')" @keydown="handleKeyDown"
+          class="min-h-16 max-h-50 resize-none" />
         <InputGroupAddon align="block-end" class="justify-end">
           <!-- 设置按钮 -->
           <TooltipProvider>
