@@ -1,6 +1,6 @@
 {
   "common": {
-    "title": "Vue 项目模板"
+    "title": "SimpleChat"
   },
   "settings": {
     "title": "设置",
@@ -17,6 +17,98 @@
         "en": "英语 - English",
         "zh": "简体中文 - Chinese (Simplified)"
       }
+    },
+    "api": {
+      "title": "API 设置",
+      "contextLength": "上下文长度",
+      "selectContextLength": "选择上下文长度",
+      "contextLengthDescription": "控制发送给 AI 的历史对话轮数。较长的上下文能让 AI 记住更早之前的对话内容，但会消耗更多 token 并可能超出模型的上下文窗口限制。建议从标准设置开始。",
+      "contextOptions": {
+        "veryShort": "较短（5 轮）",
+        "standard": "标准（10 轮）",
+        "long": "较长（25 轮）",
+        "veryLong": "极长（100 轮）",
+        "unlimited": "无限制",
+        "single": "无上下文（1 轮）"
+      }
+    },
+    "models": {
+      "section": "模型管理",
+      "title": "模型管理",
+      "manage": "管理模型",
+      "manageDescription": "配置和管理对话使用的 AI 模型",
+      "addNew": "添加新模型",
+      "addModel": "添加模型",
+      "editModel": "编辑模型",
+      "modelUrl": "模型 URL",
+      "modelUrlPlaceholder": "例如: http://localhost:11456/model-01/v1",
+      "modelUrlDescription": "从 LLM Gate 软件中获取的模型 Base URL",
+      "modelName": "模型名称",
+      "modelNamePlaceholder": "例如: GPT-4",
+      "modelNameDescription": "仅用于展示，不会用于接口调用",
+      "default": "默认",
+      "setDefault": "设为默认",
+      "save": "保存",
+      "cancel": "取消",
+      "delete": "删除",
+      "confirmDelete": "确定要删除这个模型吗？",
+      "confirmDeleteDescription": "删除后，使用此模型的对话将改用默认模型。",
+      "nameRequired": "请输入模型名称",
+      "urlRequired": "请输入模型 URL",
+      "addSuccess": "模型添加成功",
+      "updateSuccess": "模型更新成功",
+      "deleteSuccess": "模型删除成功",
+      "defaultSet": "已设为默认模型",
+      "cannotDeleteLast": "无法删除最后一个模型"
+    },
+    "data": {
+      "title": "数据管理",
+      "clearAllData": "清空所有数据",
+      "clearAllDataDescription": "删除所有对话和设置，此操作不可撤销",
+      "confirmClearAll": "确定要清空所有数据吗？",
+      "confirmClearAllDescription": "此操作将删除所有对话记录和设置，且不可恢复。",
+      "cancel": "取消",
+      "confirm": "确认清空"
+    }
+  },
+  "chat": {
+    "title": "对话",
+    "newChat": "新建对话",
+    "newConversation": "新对话",
+    "emptyState": "开始新的对话吧！",
+    "inputPlaceholder": "输入消息... (Enter 发送, Shift+Enter 换行)",
+    "currentModel": "当前模型",
+    "selectModel": "选择模型",
+    "manageModels": "管理模型",
+    "send": "发送",
+    "stop": "停止",
+    "messages": "条消息",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "天前",
+    "noConversations": "暂无对话",
+    "clearConversation": "清空对话",
+    "confirmClear": "确定要清空当前对话吗？",
+    "confirmClearDescription": "此操作将删除当前对话的所有消息，且不可恢复。",
+    "cancel": "取消",
+    "confirm": "确认",
+    "confirmDelete": "确定要删除这个对话吗？",
+    "deleted": "对话已删除",
+    "undo": "撤销",
+    "outOfContext": "超出上下文",
+    "thinking": "思考",
+    "thinkingInProgress": "思考中...",
+    "thinkingComplete": "思考完成",
+    "collapseSidebar": "收起侧边栏",
+    "expandSidebar": "展开侧边栏",
+    "features": {
+      "markdown": "支持 Markdown 格式",
+      "codeHighlight": "代码语法高亮"
+    },
+    "errors": {
+      "noModel": "没有可用的模型，请在设置中添加模型",
+      "noGateway": "请先在设置中配置网关地址",
+      "sendFailed": "发送消息失败"
     }
   }
 }

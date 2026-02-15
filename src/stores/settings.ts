@@ -1,8 +1,8 @@
-import { usePreferredDark, usePreferredLanguages } from '@vueuse/core'
+import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { Model } from '@/types/chat'
 
 export type ColorMode = 'light' | 'dark' | 'system'
 
@@ -17,23 +17,65 @@ export const useSettingsStore = defineStore('settings', () => {
     browserLanguages.value.some((lang) => lang.startsWith('zh') || lang.startsWith('cn')),
   )
 
-  const language = ref(
-    localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'language') || (preferZh.value ? 'zh' : 'en'),
-  )
-  const colorMode = ref(
-    (localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + 'color-mode') as ColorMode) || 'system',
+  // 使用 useStorage 自动持久化
+  const language = useStorage(LOCAL_STORAGE_KEY_PREFIX + 'language', preferZh.value ? 'zh' : 'en')
+
+  const colorMode = useStorage<ColorMode>(LOCAL_STORAGE_KEY_PREFIX + 'color-mode', 'system')
+
+  // 上下文长度（发送给LLM的历史记录条数，0表示不限制）
+  const contextLength = useStorage<number>(LOCAL_STORAGE_KEY_PREFIX + 'context-length', 10)
+
+  // 模型列表
+  const models = useStorage<Model[]>(LOCAL_STORAGE_KEY_PREFIX + 'models', [
+    {
+      id: 'default',
+      name: '默认模型',
+      baseUrl: 'http://localhost:11456/simplechat/v1',
+    },
+  ])
+
+  // 默认模型ID
+  const defaultModelId = useStorage<string>(
+    LOCAL_STORAGE_KEY_PREFIX + 'default-model-id',
+    'default',
   )
 
-  const persist = (key: string, value: string) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + key, value)
+  // 获取默认模型
+  const defaultModel = computed(() => {
+    return models.value.find((m) => m.id === defaultModelId.value) || models.value[0]
+  })
+
+  // 添加模型
+  const addModel = (name: string, baseUrl: string) => {
+    const newModel: Model = {
+      id: Date.now().toString(),
+      name,
+      baseUrl,
+    }
+    models.value.push(newModel)
+    return newModel
   }
 
-  const saveSettings = () => {
-    persist('color-mode', colorMode.value)
-    persist('language', language.value)
+  // 更新模型
+  const updateModel = (id: string, name: string, baseUrl: string) => {
+    const model = models.value.find((m) => m.id === id)
+    if (model) {
+      model.name = name
+      model.baseUrl = baseUrl
+    }
   }
 
-  watch([colorMode, language], saveSettings)
+  // 删除模型
+  const deleteModel = (id: string) => {
+    const index = models.value.findIndex((m) => m.id === id)
+    if (index !== -1) {
+      models.value.splice(index, 1)
+      // 如果删除的是默认模型，选择第一个作为默认模型
+      if (defaultModelId.value === id && models.value.length > 0) {
+        defaultModelId.value = models.value[0]?.id || ''
+      }
+    }
+  }
 
   const isDarkMode = computed(() => {
     if (colorMode.value === 'dark') return true
@@ -51,13 +93,38 @@ export const useSettingsStore = defineStore('settings', () => {
     locale.value = language.value
     document.title = t('common.title')
   }
+
   watch(language, applyLanguage)
+
+  const resetSettings = () => {
+    colorMode.value = 'system'
+    language.value = preferZh.value ? 'zh' : 'en'
+    contextLength.value = 10
+    models.value = [
+      {
+        id: 'default',
+        name: '默认模型',
+        baseUrl: 'http://localhost:11456/simplechat/v1',
+      },
+    ]
+    defaultModelId.value = 'default'
+    applyColorMode()
+    applyLanguage()
+  }
 
   return {
     colorMode,
     isDarkMode,
     language,
+    contextLength,
+    models,
+    defaultModelId,
+    defaultModel,
+    addModel,
+    updateModel,
+    deleteModel,
     applyColorMode,
     applyLanguage,
+    resetSettings,
   }
 })

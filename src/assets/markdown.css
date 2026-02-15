@@ -1,0 +1,143 @@
+/* Markdown 样式 */
+
+.markdown-body {
+  color: var(--foreground);
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+
+/* 标题 */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+}
+.markdown-body h2 {
+  font-size: 1.5em;
+}
+.markdown-body h3 {
+  font-size: 1.25em;
+}
+.markdown-body h4 {
+  font-size: 1em;
+}
+.markdown-body h5 {
+  font-size: 0.875em;
+}
+.markdown-body h6 {
+  font-size: 0.85em;
+  color: var(--muted-foreground);
+}
+
+/* 段落 */
+.markdown-body p {
+  margin: 0 0 1em;
+}
+
+/* 链接 */
+.markdown-body a {
+  color: var(--primary);
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+/* 行内代码 */
+.markdown-body code {
+  background-color: var(--muted);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* 代码块 */
+.markdown-body pre {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.markdown-body pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+/* 引用块 */
+.markdown-body blockquote {
+  border-left: 4px solid var(--border);
+  color: var(--muted-foreground);
+  padding: 0.5em 1em;
+  margin: 1em 0;
+}
+
+/* 列表 */
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+  margin: 0 0 1em;
+}
+
+.markdown-body ul {
+  list-style-type: disc;
+}
+.markdown-body ol {
+  list-style-type: decimal;
+}
+.markdown-body li {
+  margin-bottom: 0.25em;
+}
+
+/* 表格 */
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 0.5em 1em;
+  text-align: left;
+}
+
+.markdown-body th {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+/* 分割线 */
+.markdown-body hr {
+  border: 0;
+  height: 1px;
+  background-color: var(--border);
+  margin: 1.5em 0;
+}
+
+/* 图片 */
+.markdown-body img {
+  max-width: 100%;
+}
+
+/* 首尾边距处理 */
+.markdown-body > :first-child {
+  margin-top: 0 !important;
+}
+.markdown-body > :last-child {
+  margin-bottom: 0 !important;
+}
