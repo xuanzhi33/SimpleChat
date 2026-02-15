@@ -257,7 +257,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     </div>
 
     <!-- 输入区域 -->
-    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+    <div class="border-t border-gray-200 dark:border-gray-700 p-3">
       <InputGroup>
         <InputGroupTextarea v-model="inputText" :placeholder="t('chat.inputPlaceholder')" @keydown="handleKeyDown"
           class="min-h-16 max-h-50 resize-none" />

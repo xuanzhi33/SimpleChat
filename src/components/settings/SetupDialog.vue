@@ -35,7 +35,6 @@ const emit = defineEmits<{
 }>()
 
 const modelUrl = ref('')
-const modelName = ref('')
 
 const isOpen = computed({
   get: () => props.open,
@@ -54,7 +53,7 @@ const handleComplete = () => {
     return
   }
 
-  const name = modelName.value.trim() || t('settings.models.modelNamePlaceholder')
+  const name = t('setup.defaultModelName')
   const url = modelUrl.value.trim()
 
   const newModel = settingsStore.addModel(name, url)
@@ -145,18 +144,12 @@ const handleSkip = () => {
                 <Input id="model-url" v-model="modelUrl" :placeholder="t('setup.modelUrlPlaceholder')"
                   @keyup.enter="handleComplete" />
               </div>
-
-              <div class="space-y-2">
-                <Label for="model-name">{{ t('setup.modelName') }}</Label>
-                <Input id="model-name" v-model="modelName" :placeholder="t('setup.modelNamePlaceholder')"
-                  @keyup.enter="handleComplete" />
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <DialogFooter class="flex flex-col-reverse sm:flex-row gap-2">
+      <DialogFooter>
         <Button @click="handleSkip" variant="outline">
           {{ t('setup.skip') }}
         </Button>
