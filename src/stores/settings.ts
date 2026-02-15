@@ -26,19 +26,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const contextLength = useStorage<number>(LOCAL_STORAGE_KEY_PREFIX + 'context-length', 10)
 
   // 模型列表
-  const models = useStorage<Model[]>(LOCAL_STORAGE_KEY_PREFIX + 'models', [
-    {
-      id: 'default',
-      name: '默认模型',
-      baseUrl: 'http://localhost:11456/simplechat/v1',
-    },
-  ])
+  const models = useStorage<Model[]>(LOCAL_STORAGE_KEY_PREFIX + 'models', [])
 
   // 默认模型ID
-  const defaultModelId = useStorage<string>(
-    LOCAL_STORAGE_KEY_PREFIX + 'default-model-id',
-    'default',
-  )
+  const defaultModelId = useStorage<string>(LOCAL_STORAGE_KEY_PREFIX + 'default-model-id', '')
 
   // 获取默认模型
   const defaultModel = computed(() => {
@@ -100,14 +91,8 @@ export const useSettingsStore = defineStore('settings', () => {
     colorMode.value = 'system'
     language.value = preferZh.value ? 'zh' : 'en'
     contextLength.value = 10
-    models.value = [
-      {
-        id: 'default',
-        name: '默认模型',
-        baseUrl: 'http://localhost:11456/simplechat/v1',
-      },
-    ]
-    defaultModelId.value = 'default'
+    models.value = []
+    defaultModelId.value = ''
     applyColorMode()
     applyLanguage()
   }

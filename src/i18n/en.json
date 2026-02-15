@@ -2,6 +2,25 @@
   "common": {
     "title": "SimpleChat"
   },
+  "setup": {
+    "title": "Welcome to SimpleChat",
+    "description": "SimpleChat is a pure frontend application with all data stored in your browser. To interact with AI models, you need to configure your own LLM interface.",
+    "language": "Language / 语言",
+    "step1": "Step 1: Download and Install LLM Gate",
+    "step1Description": "LLM Gate is a local LLM API gateway that supports Windows and macOS. It provides SimpleChat with the interface to communicate with AI models.",
+    "downloadButton": "Download LLM Gate",
+    "step2": "Step 2: Configure a Model in LLM Gate",
+    "step2Description": "Open the LLM Gate software and use the 'Quick Add Wizard' to configure your desired AI model. After configuration, return to the home page and copy the model's Base URL.",
+    "step3": "Step 3: Paste Model URL",
+    "modelUrl": "Model URL",
+    "modelUrlPlaceholder": "e.g., http://localhost:11456/model-01/v1",
+    "modelName": "Model Name (Optional)",
+    "modelNamePlaceholder": "e.g., My First Model",
+    "completeSetup": "Complete Setup",
+    "skip": "Skip",
+    "urlRequired": "Please enter model URL",
+    "setupSuccess": "Setup successful! You can now start chatting."
+  },
   "settings": {
     "title": "Settings",
     "interface": {

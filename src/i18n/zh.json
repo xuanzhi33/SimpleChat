@@ -2,6 +2,25 @@
   "common": {
     "title": "SimpleChat"
   },
+  "setup": {
+    "title": "欢迎使用 SimpleChat",
+    "description": "SimpleChat 是一个纯前端应用，所有数据都存储在您的浏览器中。为了与 AI 模型交互，您需要自行配置大模型接口。",
+    "language": "语言 / Language",
+    "step1": "步骤 1：下载并安装 LLM Gate",
+    "step1Description": "LLM Gate 是一个本地 LLM API 网关，支持 Windows 和 macOS。它为 SimpleChat 提供与 AI 模型通信的接口。",
+    "downloadButton": "下载 LLM Gate",
+    "step2": "步骤 2：在 LLM Gate 中配置模型",
+    "step2Description": "打开 LLM Gate 软件，使用「快速添加向导」配置您想要使用的 AI 模型。配置完成后，返回主页，复制对应模型的 Base URL。",
+    "step3": "步骤 3：粘贴模型 URL",
+    "modelUrl": "模型 URL",
+    "modelUrlPlaceholder": "例如: http://localhost:11456/model-01/v1",
+    "modelName": "模型名称（可选）",
+    "modelNamePlaceholder": "例如: 我的第一个模型",
+    "completeSetup": "完成设置",
+    "skip": "跳过",
+    "urlRequired": "请输入模型 URL",
+    "setupSuccess": "设置成功！您现在可以开始聊天了。"
+  },
   "settings": {
     "title": "设置",
     "interface": {
