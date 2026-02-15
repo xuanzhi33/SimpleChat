@@ -9,7 +9,6 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarTrigger,
-  SidebarRail
 } from '@/components/ui/sidebar'
 import ConversationList from '@/components/chat/ConversationList.vue'
 import ChatPanel from '@/components/chat/ChatPanel.vue'
@@ -28,7 +27,7 @@ const createNew = () => {
 <template>
   <SidebarProvider class="h-screen">
     <!-- 左侧对话列表 -->
-    <Sidebar>
+    <Sidebar variant="inset">
       <SidebarHeader class="flex items-center justify-between flex-row">
         <h1 class="text-lg font-semibold px-2 py-1">{{ t('common.title') }}</h1>
         <Tooltip>
@@ -45,7 +44,6 @@ const createNew = () => {
       <SidebarContent>
         <ConversationList />
       </SidebarContent>
-      <SidebarRail />
     </Sidebar>
 
     <!-- 右侧主内容区域 -->
