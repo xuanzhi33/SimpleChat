@@ -87,6 +87,12 @@
       "confirmClearAllDescription": "This will permanently delete all conversations and settings. This action cannot be undone.",
       "cancel": "Cancel",
       "confirm": "Confirm Clear"
+    },
+    "about": {
+      "title": "About",
+      "version": "Version",
+      "repo": "Code Repo",
+      "reportIssue": "Report Bug"
     }
   },
   "chat": {

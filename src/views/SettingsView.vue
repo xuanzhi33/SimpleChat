@@ -6,9 +6,11 @@ import { useChatStore } from '@/stores/chat'
 import SettingsItem from '@/components/settings/SettingsItem.vue'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import { computed, ref } from 'vue'
-import { AppWindow, Languages, Settings, SunMoon, Cpu, Trash2, Database, MessageSquare } from 'lucide-vue-next'
+import { AppWindow, Languages, Settings, SunMoon, Cpu, Trash2, Database, MessageSquare, Info, GitBranch, Bug } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { ButtonGroup } from '@/components/ui/button-group'
 import {
   Select,
   SelectContent,
@@ -33,6 +35,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+
+import packageJson from '../../package.json'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -75,6 +79,13 @@ const localeOptions = computed(() => availableLocales.map(loc => ({
 })))
 
 const sectionTitleClass = 'font-semibold text-muted-foreground border-b pt-3 pb-2'
+
+const repo = 'https://github.com/xuanzhi33/SimpleChat'
+const currentVersion = packageJson.version
+
+const openUrl = (url: string) => {
+  window.open(url, '_blank')
+}
 
 const clearAllData = async () => {
   // 清空所有对话
@@ -177,6 +188,43 @@ const clearAllData = async () => {
           <p class="text-sm text-muted-foreground">
             {{ t('settings.data.clearAllDataDescription') }}
           </p>
+        </div>
+      </section>
+
+      <section class="space-y-3">
+        <h2 :class="sectionTitleClass" class="flex items-center">
+          <Info class="mr-2" />
+          {{ t('settings.about.title') }}
+        </h2>
+        <div class="flex items-center justify-between">
+          <div>
+            <p>
+              {{ t('common.title') }}
+              <Badge variant="secondary">
+                {{ t('settings.about.version') }}
+                {{ currentVersion }}
+              </Badge>
+            </p>
+            <p class="text-sm text-muted-foreground">
+              Created by
+              <Button variant="link" size="sm" @click="openUrl('https://github.com/xuanzhi33')">
+                @xuanzhi33
+              </Button>
+            </p>
+            <p class="text-xs text-muted-foreground">
+              Licensed under AGPL-3.0
+            </p>
+            <ButtonGroup class="mt-2">
+              <Button variant="outline" size="sm" @click="openUrl(repo)">
+                <GitBranch />
+                {{ t('settings.about.repo') }}
+              </Button>
+              <Button variant="outline" size="sm" @click="openUrl(repo + '/issues')">
+                <Bug />
+                {{ t('settings.about.reportIssue') }}
+              </Button>
+            </ButtonGroup>
+          </div>
         </div>
       </section>
     </DialogScrollContent>

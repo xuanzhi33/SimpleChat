@@ -87,6 +87,12 @@
       "confirmClearAllDescription": "此操作将删除所有对话记录和设置，且不可恢复。",
       "cancel": "取消",
       "confirm": "确认清空"
+    },
+    "about": {
+      "title": "关于",
+      "version": "版本",
+      "repo": "源代码仓库",
+      "reportIssue": "反馈 Bug"
     }
   },
   "chat": {
