@@ -14,7 +14,7 @@ Vue 3.5 · TypeScript · Pinia · VueUse · Tailwind CSS 4 · Shadcn-vue · Dexi
 
 - 使用 Fetch API 而非 EventSource（需要发送 POST 请求体）
 - 通过 ReadableStream 读取响应流，逐行解析 `data:` 开头的 SSE 事件
-- 从 `delta.content` 和 `delta.reasoning_content` 提取内容
+- 从 `delta.content` 和 `delta.reasoning_content`（回退 `delta.reasoning`）提取内容
 
 ### 多模型管理
 
@@ -30,7 +30,9 @@ Vue 3.5 · TypeScript · Pinia · VueUse · Tailwind CSS 4 · Shadcn-vue · Dexi
 
 ### 关键字段
 
-**⚠️ Thinking 字段名为 `reasoning_content`（不是 `thinking`）**
+**⚠️ Thinking 字段优先读 `reasoning_content`，回退到 `reasoning`（不是 `thinking`）**
+
+不同网关字段名不一致：DeepSeek/SGLang/多数国内网关用 `reasoning_content`，vLLM 新版、OpenRouter、Ollama 的 OpenAI 兼容端点用 `reasoning`。解析时两者都读，内部统一存为 `reasoning_content`。
 
 ```typescript
 interface Message {
@@ -52,7 +54,7 @@ interface Message {
 
 **请求**: `POST {baseUrl}/chat/completions` 发送 `messages` 数组和 `stream: true`
 
-**响应**: SSE 流返回 `delta.content` 和 `delta.reasoning_content`
+**响应**: SSE 流返回 `delta.content` 和思考内容（`delta.reasoning_content` 或 `delta.reasoning`）
 
 ## 核心流程
 
@@ -65,7 +67,7 @@ App 启动时调用 `chatStore.initializeStore()` 从 IndexedDB 加载会话
 1. 添加用户消息
 2. 创建助手占位消息（`isStreaming: true`）
 3. 根据对话的 `modelId` 获取模型配置
-4. ChatService 流式接收并累加 `content` 和 `reasoning_content`
+4. ChatService 流式接收并累加 `content` 和思考内容（`reasoning_content` / `reasoning`）
 5. 完成后设置 `isStreaming: false`
 
 ## localStorage 键
@@ -77,6 +79,6 @@ App 启动时调用 `chatStore.initializeStore()` 从 IndexedDB 加载会话
 
 ## 常见错误
 
-1. **字段名错误**：使用 `reasoning_content` 而非 `thinking`
+1. **字段名错误**：思考内容读 `reasoning_content`，并回退 `reasoning`；不要用 `thinking`
 2. **未初始化**：使用 chatStore 前必须调用 `initializeStore()`
 3. **手动存储**：用 `useStorage()` 而非手动操作 localStorage

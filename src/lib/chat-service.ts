@@ -74,7 +74,8 @@ export class ChatService {
               const delta = chunk.choices[0]?.delta
               if (delta) {
                 const content = delta.content || ''
-                const reasoningContent = delta.reasoning_content
+                // 兼容两种字段名：多数网关用 reasoning_content，vLLM/OpenRouter/Ollama 等用 reasoning
+                const reasoningContent = delta.reasoning_content || delta.reasoning
 
                 if (content || reasoningContent) {
                   onChunk(content, reasoningContent)

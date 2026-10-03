@@ -34,6 +34,7 @@ export interface ChatCompletionChunk {
       role?: string
       content?: string
       reasoning_content?: string
+      reasoning?: string
     }
     finish_reason: string | null
   }>
