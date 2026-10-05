@@ -3,6 +3,8 @@ export interface Message {
   role: 'user' | 'assistant' | 'system'
   content: string
   reasoning_content?: string
+  /** 思考耗时（毫秒），从请求发出到最后一个思考增量 */
+  reasoningDurationMs?: number
   timestamp: number
   isStreaming?: boolean
 }

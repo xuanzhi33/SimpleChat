@@ -45,7 +45,7 @@ const createNew = () => {
 <template>
   <!-- 顶部胶囊：边栏开关（+折叠时的新对话）+ 当前对话标题；悬停向右展开并浮现编辑图标 -->
   <div
-    class="group absolute top-3 left-4 flex items-center gap-1.5 rounded-full border bg-background/80 py-1 pr-2.5 pl-2 shadow-sm backdrop-blur"
+    class="group absolute top-3 left-4 flex items-center gap-1.5 rounded-full border bg-background/50 py-1 pr-2.5 pl-2 shadow-sm backdrop-blur-md"
   >
     <SidebarTrigger class="rounded-full" />
 

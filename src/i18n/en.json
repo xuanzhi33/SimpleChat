@@ -209,6 +209,7 @@
     "thinking": "Thinking",
     "thinkingInProgress": "Thinking...",
     "thinkingComplete": "Thinking Complete",
+    "thinkingDuration": "Took {seconds}s",
     "copy": "Copy",
     "copied": "Copied",
     "renameTitle": "Rename title",

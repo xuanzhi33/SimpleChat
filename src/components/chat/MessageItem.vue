@@ -65,6 +65,13 @@ const renderedReasoningContent = computed(() => {
   return props.message.reasoning_content ? renderMarkdown(props.message.reasoning_content) : ''
 })
 
+// 思考耗时（秒，保留一位小数；不足 0.1 秒也显示 0.1）
+const thinkingSeconds = computed(() =>
+  props.message.reasoningDurationMs
+    ? Math.max(0.1, props.message.reasoningDurationMs / 1000).toFixed(1)
+    : '',
+)
+
 // thinking内容容器引用
 const thinkingContentRef = ref<HTMLElement | null>(null)
 
@@ -131,6 +138,13 @@ watch(
           <span>
             {{ message.isStreaming ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
           </span>
+          <Badge
+            v-if="!message.isStreaming && thinkingSeconds"
+            variant="secondary"
+            class="px-1.5 py-0 text-[11px] font-normal"
+          >
+            {{ t('chat.thinkingDuration', { seconds: thinkingSeconds }) }}
+          </Badge>
           <ChevronDown
             class="ml-1.5 size-3.5 shrink-0 transition-transform"
             :class="thinkingCollapsed && '-rotate-90'"
@@ -150,10 +164,10 @@ watch(
         </div>
       </div>
 
-      <!-- 用户消息：淡色气泡 -->
+      <!-- 用户消息：淡色气泡（全圆角，上下内边距收紧） -->
       <Card
         v-if="isUser"
-        class="p-3 bg-blue-100 text-blue-950 border-blue-100 dark:bg-blue-900/60 dark:text-blue-50 dark:border-blue-900/40"
+        class="rounded-full px-3 py-1.5 bg-blue-100 text-blue-950 border-blue-100 dark:bg-blue-900/60 dark:text-blue-50 dark:border-blue-900/40"
       >
         <div class="text-base whitespace-pre-wrap wrap-break-word">
           {{ message.content }}

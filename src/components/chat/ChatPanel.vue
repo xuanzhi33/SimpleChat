@@ -176,6 +176,9 @@ const sendMessage = async () => {
   )
   let fullContent = ''
   let fullReasoningContent = ''
+  // 思考耗时：从请求发出到最后一个思考增量
+  const thinkingStartedAt = Date.now()
+  let thinkingEndedAt = 0
 
   let hasScrolledOnStart = false
 
@@ -210,11 +213,14 @@ const sendMessage = async () => {
         }
         if (reasoningContent) {
           fullReasoningContent += reasoningContent
+          thinkingEndedAt = Date.now()
         }
 
         chatStore.updateMessage(assistantMessage.id, {
           content: fullContent,
           reasoning_content: fullReasoningContent || undefined,
+          reasoningDurationMs:
+            thinkingEndedAt > thinkingStartedAt ? thinkingEndedAt - thinkingStartedAt : undefined,
           isStreaming: true,
         })
 
