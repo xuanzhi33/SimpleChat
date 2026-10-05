@@ -20,6 +20,8 @@ import TitleBar from '@/components/chat/TitleBar.vue'
 import SettingsDialog from '@/views/SettingsView.vue'
 import { useChatStore } from '@/stores/chat'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useEventListener } from '@vueuse/core'
+import { isNewChatShortcut, newChatShortcutLabel } from '@/lib/shortcuts'
 
 const { t } = useI18n()
 
@@ -30,6 +32,13 @@ const settingsOpen = ref(false)
 const createNew = () => {
   chatStore.createConversation(t('chat.newConversation'))
 }
+
+// Ctrl/Cmd + J 新建对话（createConversation 会切会话，ChatPanel 的 watch 会跟着聚焦输入框）
+useEventListener(window, 'keydown', (event: KeyboardEvent) => {
+  if (!isNewChatShortcut(event)) return
+  event.preventDefault()
+  createNew()
+})
 </script>
 
 <template>
@@ -46,6 +55,11 @@ const createNew = () => {
           </TooltipTrigger>
           <TooltipContent>
             <p>{{ t('chat.newConversation') }}</p>
+            <kbd
+              class="rounded border border-current/25 px-1 py-0.5 font-sans text-[10px] leading-none opacity-70"
+            >
+              {{ newChatShortcutLabel }}
+            </kbd>
           </TooltipContent>
         </Tooltip>
       </SidebarHeader>

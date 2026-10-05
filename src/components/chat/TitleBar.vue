@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MessageSquarePlus, Pencil } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useChatStore } from '@/stores/chat'
+import { newChatShortcutLabel } from '@/lib/shortcuts'
 
 const { t } = useI18n()
 const chatStore = useChatStore()
@@ -37,6 +38,13 @@ const cancelRename = () => {
   isRenaming.value = false
 }
 
+// 换了会话（点列表、快捷键新建）就退出重命名：草稿里还是上一个会话的标题，
+// 继续保存会把新会话改成旧标题
+watch(
+  () => chatStore.activeConversationId,
+  () => cancelRename(),
+)
+
 const createNew = () => {
   chatStore.createConversation(t('chat.newConversation'))
 }
@@ -57,6 +65,11 @@ const createNew = () => {
       </TooltipTrigger>
       <TooltipContent>
         <p>{{ t('chat.newConversation') }}</p>
+        <kbd
+          class="rounded border border-current/25 px-1 py-0.5 font-sans text-[10px] leading-none opacity-70"
+        >
+          {{ newChatShortcutLabel }}
+        </kbd>
       </TooltipContent>
     </Tooltip>
 
