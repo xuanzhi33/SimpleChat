@@ -24,7 +24,7 @@ export interface SettingsItemProps {
   icon?: Component
 }
 
-const props = withDefaults(defineProps<SettingsItemProps>(), {
+withDefaults(defineProps<SettingsItemProps>(), {
   type: 'input',
 })
 
@@ -46,11 +46,11 @@ const modelValue = defineModel<string>()
       <Select v-model="modelValue">
         <SelectTrigger :id="label">
           <SelectValue>
-            {{options?.find(opt => opt.value === modelValue)?.label || placeholder}}
+            {{ options?.find((opt) => opt.value === modelValue)?.label || placeholder }}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem v-for="opt in options" :value="opt.value">
+          <SelectItem v-for="opt in options" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </SelectItem>
         </SelectContent>

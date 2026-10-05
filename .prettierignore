@@ -1,0 +1,11 @@
+# shadcn-vue 生成的基础组件，保持原样不做格式化
+src/components/ui/
+
+# 构建 / 产物
+dist/
+dist-ssr/
+coverage/
+node_modules/
+
+# 锁文件
+pnpm-lock.yaml
