@@ -67,6 +67,9 @@ describe('MessageItem 渲染', () => {
     expect(thinking.text()).toContain(i18n.global.t('chat.thinkingInProgress'))
     expect(thinking.get('button[aria-expanded]').attributes('aria-expanded')).toBe('true')
     expect(thinking.find('.animate-pulse').exists()).toBe(true)
+    // 思考中自动展开是限高的（配合自动跟到底看最新几行）
+    const thinkingBody = thinking.get('.thinking-md').element.parentElement!
+    expect(thinkingBody.className).toMatch(/max-h-25.*overflow-y-auto/)
 
     const answering = await render({
       content: '正文',
@@ -91,7 +94,7 @@ describe('MessageItem 渲染', () => {
     await wrapper.get('button[aria-expanded]').trigger('click')
     expect(wrapper.get('button[aria-expanded]').attributes('aria-expanded')).toBe('true')
 
-    // 内容不再被裁进一个限高的小框里（之前是 max-h-25 overflow-y-auto）
+    // 手动展开不限高（只有思考中自动展开才限高）
     const body = wrapper.get('.thinking-md').element.parentElement!
     expect(body.className).not.toMatch(/max-h-|overflow-y-/)
     expect(body.textContent).toContain('第一步')

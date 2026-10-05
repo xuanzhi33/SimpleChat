@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import type { Message } from '@/types/chat'
 import { Card } from '@/components/ui/card'
@@ -65,6 +65,24 @@ const thinkingCollapsed = ref(!isThinking.value)
 watch(isThinking, (thinking) => {
   thinkingCollapsed.value = !thinking
 })
+
+// 思考内容容器：只有「思考中自动展开」这一种情形是限高的（靠它 + 自动跟到底看最新几行），
+// 用户手动展开已完成的思考时整段铺开，不限高
+const thinkingContentRef = ref<HTMLElement | null>(null)
+
+// 限高时监听thinking内容变化，自动滚动到底部
+watch(
+  () => props.message.reasoning_content,
+  () => {
+    if (props.message.reasoning_content && thinkingContentRef.value) {
+      nextTick(() => {
+        if (thinkingContentRef.value) {
+          thinkingContentRef.value.scrollTop = thinkingContentRef.value.scrollHeight
+        }
+      })
+    }
+  },
+)
 </script>
 
 <template>
@@ -121,8 +139,11 @@ watch(isThinking, (thinking) => {
               <div class="flex w-4 shrink-0 justify-center">
                 <div class="w-px bg-border"></div>
               </div>
-              <!-- 不加限高 / overflow：整段思考直接铺开，不用内部滚动条 -->
-              <div class="min-w-0 flex-1 text-muted-foreground">
+              <div
+                ref="thinkingContentRef"
+                class="min-w-0 flex-1 text-muted-foreground"
+                :class="isThinking && 'max-h-25 overflow-y-auto'"
+              >
                 <MarkdownRender
                   class="thinking-md"
                   mode="chat"
