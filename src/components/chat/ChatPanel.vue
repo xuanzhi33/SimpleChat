@@ -321,24 +321,17 @@ const handleKeyDown = (event: KeyboardEvent) => {
           chatStore.activeConversation?.systemPrompt &&
           chatStore.activeConversation.systemPrompt.trim()
         "
-        class="mb-6 flex gap-3"
+        class="mb-6"
       >
-        <div
-          class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 mt-7"
-        >
-          <Settings class="w-5 h-5 text-white" />
+        <div class="mb-1">
+          <Badge variant="secondary" class="text-xs">
+            {{ t('chat.systemPrompt') }}
+          </Badge>
         </div>
-        <div class="flex-1">
-          <div class="mb-1">
-            <Badge variant="secondary" class="text-xs">
-              {{ t('chat.systemPrompt') }}
-            </Badge>
-          </div>
-          <div
-            class="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-sm whitespace-pre-wrap"
-          >
-            {{ chatStore.activeConversation.systemPrompt }}
-          </div>
+        <div
+          class="border-l-2 border-border pl-3 text-sm text-muted-foreground whitespace-pre-wrap"
+        >
+          {{ chatStore.activeConversation.systemPrompt }}
         </div>
       </div>
 
