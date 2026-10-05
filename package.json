@@ -9,13 +9,16 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
+    "verify": "run-p type-check lint:check format:check test:unit:run",
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:unit:run": "vitest run",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
-    "format": "prettier --write --experimental-cli src/"
+    "lint:check": "eslint . --cache",
+    "format": "prettier --write --experimental-cli src/",
+    "format:check": "prettier --check src/"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

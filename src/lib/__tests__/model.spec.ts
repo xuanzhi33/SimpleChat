@@ -1,3 +1,4 @@
+// @vitest-environment node（纯逻辑，不需要 jsdom，省掉环境启动开销）
 import { describe, it, expect } from 'vitest'
 import { modelKind, modelRequestOptions } from '@/lib/model'
 import type { Model } from '@/types/chat'

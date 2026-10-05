@@ -1,3 +1,4 @@
+// @vitest-environment node（纯逻辑，不需要 jsdom，省掉环境启动开销）
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { HttpError } from '@/lib/errors'

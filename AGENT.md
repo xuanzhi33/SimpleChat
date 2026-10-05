@@ -45,6 +45,15 @@ interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsMa
 - **编辑重发**：`MessageItem` 只 `emit('edit', id)`；`ChatPanel.editingMessageId` 非空时在该消息上方插分割线，发送时先 `truncateFrom(id)`（删掉这条**及其之后**全部消息）再 `addMessage`，之后走普通发送流程（上下文裁剪、自动标题都会照常触发）
 - **持久化**：会话在 IndexedDB（Dexie），配置在 localStorage 且一律用 `useStorage()`（不要手写 localStorage）；启动时 `chatStore.initializeStore()`
 
+## 本地检查
+
+一轮验证就跑 **`pnpm verify`**（`run-p` 并行 type-check / lint:check / format:check / test:unit:run，约 12~14s）。
+**只有要看产物、CSS 体积或分包才 `pnpm build`**（并行版约 20s；`vue-tsc --build && vite build` 串行要 26s；逐个直连 `node_modules/.bin/*` 最慢，约 37s）。
+
+- `vue-tsc --build` 每次都是全量（`@vue/tsconfig` 的 `noEmit` 让 `--build` 永远认为“输出文件不存在”，`tsbuildinfo` 白写），约 11s，别指望增量
+- `lint` / `format` **会改文件**（`--fix` / `--write`），验证用只读的 `lint:check` / `format:check`
+- `src/lib/__tests__/*` 是纯逻辑，文件头 `// @vitest-environment node` 免掉 jsdom 启动开销；用到 pinia/localStorage 的 `src/stores/__tests__/*` 必须留 jsdom。没有 `vitest.setup.ts`，每个 spec 自己 stub（如 reka 要的 `ResizeObserver`）
+
 ## 目录
 
 - `src/components/chat/` - ChatPanel（发送 / 编辑 / 流式）、MessageItem、ConversationList、TitleBar、SystemPromptBlock
