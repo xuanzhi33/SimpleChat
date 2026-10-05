@@ -60,6 +60,16 @@ describe('chat store', () => {
     expect(store.activeConversation?.title).toBe('new title')
   })
 
+  it('自动标题不覆盖用户手动重命名', () => {
+    const store = useChatStore()
+    const c = store.createConversation('old')
+    store.applyAutoTitle(c.id, 'AI 生成的标题')
+    expect(store.activeConversation?.title).toBe('AI 生成的标题')
+    store.renameConversation('手动标题')
+    store.applyAutoTitle(c.id, 'AI 又来一次')
+    expect(store.activeConversation?.title).toBe('手动标题')
+  })
+
   it('通过 dbOperations 持久化', () => {
     useChatStore().createConversation('saved')
     expect(dbOperations.saveConversation).toHaveBeenCalled()

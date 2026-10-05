@@ -19,6 +19,14 @@ Vue 3.5 · TypeScript · Pinia · VueUse · Tailwind CSS 4 · Shadcn-vue · Dexi
 - 导出 `isLikelyCorsError(err)`：`fetch` 被浏览器拦截 / 断网 / DNS 失败都只会抛 `TypeError`，**无法互相区分**，所以文案必须写“疑似”并建议改用 LLM Gate
 - 非 2xx 抛 `HttpError(status, detail)`（`src/lib/errors.ts`），`detail` 从响应体的 `error.message` / `message` 里取；网关返回 HTML 错误页时丢弃
 - 错误文案统一走 `describeError(err, t)`（多行：原因 + 服务端原文 + 解决方法）和 `summarizeError(err, t)`（单行，适合 toast）；状态码 → 文案的对照表在 `i18n` 的 `errors.http.*`，未收录的状态码走 `errors.http.other`
+- `complete(messages)`：非流式的一次性补全，返回回复文本，失败抛 `HttpError`（`testConnection()` 和自动标题都走它）
+
+### 自动标题
+
+- 刚建会话时用首条用户消息前 30 字当标题（`chat.ts` 的 `addMessage`）
+- 第一轮问答结束后，`ChatPanel.maybeGenerateTitle()` 再让模型起一个更合适的标题；只在 `messages.length === 2` 时触发一次，提示词与清洗在 `src/lib/title.ts`
+- `Conversation.titleIsManual` 标记手动改过的标题，`renameConversation` 会置位，`applyAutoTitle` 遇到它就不覆盖
+- 起标题失败只 `console.error`，不改标题也不弹 toast
 
 ### 多模型管理
 

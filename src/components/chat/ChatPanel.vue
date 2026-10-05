@@ -5,6 +5,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
 import { modelRequestOptions } from '@/lib/model'
+import { buildTitlePrompt, cleanTitle } from '@/lib/title'
 import MessageItem from './MessageItem.vue'
 import ConversationConfig from './ConversationConfig.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -163,6 +164,8 @@ const sendMessage = async () => {
 
   if (!assistantMessage) return
 
+  const conversationId = chatStore.activeConversation?.id
+
   // 开始生成
   chatStore.isGenerating = true
   abortControllerRef.value = new AbortController()
@@ -228,6 +231,7 @@ const sendMessage = async () => {
         })
         chatStore.isGenerating = false
         abortControllerRef.value = null
+        if (conversationId) maybeGenerateTitle(conversationId, fullContent)
       },
       (err) => {
         // 错误
@@ -268,6 +272,41 @@ const stopGenerating = () => {
     abortControllerRef.value = null
   }
   chatStore.isGenerating = false
+}
+
+/**
+ * 第一轮问答结束后，让模型给这轮对话起个标题。
+ * 只在「一条用户消息 + 一条 AI 回复」时触发一次，失败就静默保留原标题。
+ */
+const maybeGenerateTitle = async (conversationId: string, assistantContent: string) => {
+  const conversation = chatStore.conversations.find((c) => c.id === conversationId)
+  const userMessage = conversation?.messages[0]?.content
+
+  if (
+    !conversation ||
+    conversation.messages.length !== 2 ||
+    conversation.titleIsManual ||
+    !userMessage ||
+    !assistantContent
+  ) {
+    return
+  }
+
+  // 用这个会话自己的模型，而不是当前选中的，避免用户中途切了对话
+  const model =
+    settingsStore.models.find((m) => m.id === conversation.modelId) || settingsStore.defaultModel
+  if (!model) return
+
+  try {
+    const service = new ChatService(model.baseUrl, modelRequestOptions(model))
+    const title = cleanTitle(
+      await service.complete(buildTitlePrompt(userMessage, assistantContent)),
+    )
+    if (title) chatStore.applyAutoTitle(conversationId, title)
+  } catch (err) {
+    // 标题只是锦上添花，失败不打扰用户
+    console.error('Failed to generate title:', err)
+  }
 }
 
 // 清空对话

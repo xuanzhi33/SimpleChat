@@ -168,11 +168,24 @@ export const useChatStore = defineStore('chat', () => {
     persistConversation(conversation)
   }
 
-  // 重命名当前会话
+  // 重命名会话；标记为用户手动设置，之后不再自动生成标题
   const renameConversation = (title: string) => {
     const conversation = activeConversation.value
     const trimmed = title.trim()
     if (!conversation || !trimmed || trimmed === conversation.title) return
+
+    conversation.title = trimmed
+    conversation.titleIsManual = true
+    conversation.updatedAt = Date.now()
+    // 异步保存到 IndexedDB
+    persistConversation(conversation)
+  }
+
+  // 模型生成的标题：只在用户没手动改过时生效
+  const applyAutoTitle = (conversationId: string, title: string) => {
+    const conversation = conversations.value.find((c) => c.id === conversationId)
+    const trimmed = title.trim()
+    if (!conversation || !trimmed || conversation.titleIsManual) return
 
     conversation.title = trimmed
     conversation.updatedAt = Date.now()
@@ -196,5 +209,6 @@ export const useChatStore = defineStore('chat', () => {
     deleteMessage,
     clearMessages,
     renameConversation,
+    applyAutoTitle,
   }
 })

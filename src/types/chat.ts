@@ -26,6 +26,8 @@ export interface Conversation {
   messages: Message[]
   modelId?: string // 关联的模型ID
   systemPrompt?: string // 系统提示词
+  /** 标题由用户手动改过，之后不再让模型自动生成 */
+  titleIsManual?: boolean
   createdAt: number
   updatedAt: number
 }

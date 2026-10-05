@@ -1,5 +1,6 @@
 import type { Message, ChatCompletionChunk } from '@/types/chat'
 import { HttpError } from '@/lib/errors'
+import type { CompletionMessage } from '@/lib/title'
 
 export interface ChatServiceOptions {
   /** 请求体中的 model 字段（仅 API 模式需要；Gate 模式留空） */
@@ -154,15 +155,15 @@ export class ChatService {
   }
 
   /**
-   * 测试连通性：让模型只回复 "OK"。
-   * 成功返回模型回复内容，失败抛 HttpError（调用方用 describeError 转成用户文案）
+   * 非流式的一次性补全，返回模型回复的文本。
+   * 失败抛 HttpError（调用方用 describeError 转成用户文案）
    */
-  async testConnection(): Promise<string> {
+  async complete(messages: CompletionMessage[]): Promise<string> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: this.buildHeaders(),
       body: this.buildBody({
-        messages: [{ role: 'user', content: 'Reply with exactly "OK" and nothing else.' }],
+        messages,
         stream: false,
       }),
     })
@@ -173,5 +174,13 @@ export class ChatService {
 
     const data = await response.json()
     return data?.choices?.[0]?.message?.content ?? ''
+  }
+
+  /**
+   * 测试连通性：让模型只回复 "OK"。
+   * 成功返回模型回复内容，失败抛 HttpError（调用方用 describeError 转成用户文案）
+   */
+  async testConnection(): Promise<string> {
+    return this.complete([{ role: 'user', content: 'Reply with exactly "OK" and nothing else.' }])
   }
 }
