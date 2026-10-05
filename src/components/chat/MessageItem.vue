@@ -87,6 +87,7 @@ watch(
 <template>
   <div
     class="flex mb-4"
+    :data-message-id="message.id"
     :class="[
       isUser ? 'justify-end' : 'justify-start',
       !isInContext && 'opacity-50',

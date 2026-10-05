@@ -5,6 +5,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
 import { modelRequestOptions } from '@/lib/model'
+import { pinMessageToTop } from '@/lib/scroll'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
 import MessageItem from './MessageItem.vue'
 import SystemPromptBlock from './SystemPromptBlock.vue'
@@ -38,6 +39,8 @@ const messagesContainerRef = ref<HTMLElement>()
 const abortControllerRef = ref<AbortController | null>(null)
 const modelManagementOpen = ref(false)
 const conversationConfigOpen = ref(false)
+/** 流式期间用户自己滚动过：之后的增量不再抢滚动位置 */
+const userScrolledDuringStream = ref(false)
 /** 正在编辑的消息 id；非空时输入框里是这条消息的内容，发送时会从这条开始截断 */
 const editingMessageId = ref<string | null>(null)
 
@@ -81,6 +84,22 @@ const scrollToBottom = async () => {
   if (messagesContainerRef.value) {
     messagesContainerRef.value.scrollTop = messagesContainerRef.value.scrollHeight
   }
+}
+
+/**
+ * 流式期间把刚发出的用户消息钉在列表顶部：正文不足一屏时只能跟着滚到底，
+ * 超过一屏后气泡被顶到最顶端就不再动。用户自己滚动过（handleUserScroll）就不再抢他的位置。
+ */
+const pinToUserMessage = (messageId: string) => {
+  if (userScrolledDuringStream.value) return
+  const container = messagesContainerRef.value
+  if (!container) return
+  nextTick(() => pinMessageToTop(container, messageId))
+}
+
+// 滚轮 / 触摸是用户自己的滚动意图（程序改 scrollTop 不会触发这两个事件）
+const handleUserScroll = () => {
+  userScrolledDuringStream.value = true
 }
 
 // 聚焦输入框
@@ -141,6 +160,8 @@ const sendMessage = async () => {
   }
 
   inputText.value = ''
+  // 新一轮生成重新接管滚动
+  userScrolledDuringStream.value = false
 
   // 编辑模式：丢弃被编辑消息及其之后的内容，然后把新内容当成普通消息发出去
   if (editingMessageId.value) {
@@ -182,8 +203,6 @@ const sendMessage = async () => {
   let thinkingEndedAt = 0
   // 思考阶段结束的标记：正文一到就算结束（单向，模型偶尔交替输出思考/正文也不回头）
   let thinkingDone = false
-
-  let hasScrolledOnStart = false
 
   try {
     // 根据上下文长度设置截取历史消息
@@ -229,11 +248,8 @@ const sendMessage = async () => {
           isStreaming: true,
         })
 
-        // 仅在开始回答时滚动一次，之后用户可自行滚动阅读
-        if (!hasScrolledOnStart) {
-          hasScrolledOnStart = true
-          scrollToBottom()
-        }
+        // 流式期间把这条用户消息钉在顶部：正文长过一屏后它被顶到最顶端，视图就不再动
+        if (userMessage) pinToUserMessage(userMessage.id)
       },
       () => {
         // 完成
@@ -355,7 +371,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
   <div class="flex flex-col h-full">
     <!-- 消息列表：底边比输入框顶边低 24px（= rounded-3xl 的圆角半径），
          滚动的文字会从输入框圆角下面滑过，形成被盖住的悬浮感 -->
-    <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-6 py-6 -mb-6">
+    <div
+      ref="messagesContainerRef"
+      class="flex-1 overflow-y-auto px-6 py-6 -mb-6"
+      @wheel="handleUserScroll"
+      @touchstart="handleUserScroll"
+    >
       <div
         v-if="messages.length === 0"
         class="flex flex-col items-center justify-center min-h-full text-center"

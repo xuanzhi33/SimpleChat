@@ -43,6 +43,7 @@ interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsMa
 - **错误展示**：不再有顶部错误条（`error` ref 已删）。发送失败时详情写进 AI 消息的 `Message.error`，由 `MessageItem` 用 `text-destructive` 红色就地显示（有半截正文时接在正文下面），toast 只留一行摘要；同时自动 `startEdit(用户消息)`进入编辑模式，用户全选后回车即重发。无可用模型这种“发之前”的校验只弹 toast，不占 AI 位置
 - **`complete(messages)`**：非流式补全，返回文本；`testConnection()`（要求回复 "OK"）和自动标题都走它
 - **快捷键**：Ctrl/Cmd+J 新建对话。判定与展示标签在 `src/lib/shortcuts.ts`，监听放在 `HomeView`（`useEventListener(window, 'keydown')`，`createConversation` 后 ChatPanel 的 watch 会自己聚焦输入框）。改键位只改那一个文件；注意 Ctrl+J 是 Chrome/Firefox 自带的「下载」快捷键，浏览器可能抢在前头
+- **流式滚动**：每个增量都调 `pinToUserMessage(刚发的用户消息)`（判定在 `src/lib/scroll.ts`），把这条气泡钉在列表顶部 —— scrollTop 超范围时浏览器会夹在底部，所以正文不足一屏时依旧跟到底，超过一屏后气泡正好顶到最顶端就不再动。用户自己滚过（`handleUserScroll` 监听 wheel/touchstart）就本次生成不再抡
 - **自动标题**：`addMessage` 先用首条用户消息前 30 字当标题；第一轮问答结束（`messages.length === 2`）后 `maybeGenerateTitle()` 再让模型起一个，提示词与清洗在 `src/lib/title.ts`。`titleIsManual` 一旦手动改过就不再覆盖，失败只 `console.error`
 - **编辑重发**：`MessageItem` 只 `emit('edit', id)`；`ChatPanel.editingMessageId` 非空时在该消息上方插分割线，发送时先 `truncateFrom(id)`（删掉这条**及其之后**全部消息）再 `addMessage`，之后走普通发送流程（上下文裁剪、自动标题都会照常触发）
 - **时间戳**：一律走 vue-i18n 的 `d(ts, 'time' | 'dateTime' | 'dateTimeWithYear' | 'date')`，别自己拼 `toLocaleString`；`datetimeFormats` 的 key 必须 zh/en 成对。消息 footer 只分三档（`src/lib/time.ts` 的 `dayBucket`）：今天给钟点、昨天加「昨天」、更早一律带年份；**不挂定时器**（跨午夜靠下一次重渲染），悬停 tooltip 始终给完整日期时间。判定天差用 `dayDiff`（按本地日历天，别拿时间差除 86400000，“昨天 23:00”会被算成今天）

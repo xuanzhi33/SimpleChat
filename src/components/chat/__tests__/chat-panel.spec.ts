@@ -47,6 +47,15 @@ import { useChatStore } from '@/stores/chat'
 import { HttpError, describeError } from '@/lib/errors'
 import { toast } from 'vue-sonner'
 
+/** 第 2 个参数是 onDelta：拿在手里，由用例决定何时喂增量 */
+const streamWith = () => {
+  let emit: ((content: string, reasoning?: string) => void) | undefined
+  sendMessageMock.mockImplementation((...args: unknown[]) => {
+    emit = args[1] as typeof emit
+  })
+  return (content: string, reasoning?: string) => emit?.(content, reasoning)
+}
+
 /** 第 4 个参数是 onError，按需在请求里调用它 */
 const failWith = (error: Error) => {
   sendMessageMock.mockImplementation((...args: unknown[]) => {
@@ -142,5 +151,31 @@ describe('ChatPanel 发送失败', () => {
     expect(toast.error).toHaveBeenCalledWith(i18n.global.t('chat.errors.noModel'))
     expect(useChatStore().activeConversation?.messages ?? []).toHaveLength(0)
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+  })
+
+  it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {
+    await setup()
+    const emit = streamWith()
+    await send()
+
+    // jsdom 没有布局，容器和消息的 rect 都要假装一下（容器顶边 100、用户消息顶边 300）
+    const userMessage = wrapper.get('[data-message-id]').element as HTMLElement
+    // 消息列表容器就是消息节点的父节点（ChatPanel 模板是多根 Fragment，包装元素不是它）
+    const container = userMessage.parentElement as HTMLElement
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({ top: 100 } as DOMRect)
+    vi.spyOn(userMessage, 'getBoundingClientRect').mockReturnValue({ top: 300 } as DOMRect)
+
+    emit('你好')
+    await nextTick()
+    await nextTick()
+    expect(container.scrollTop).toBe(200)
+
+    // 用户自己滚动（滚轮）后，后续增量不再把视图拉回去
+    container.scrollTop = 0
+    container.dispatchEvent(new WheelEvent('wheel'))
+    emit(' 世界')
+    await nextTick()
+    await nextTick()
+    expect(container.scrollTop).toBe(0)
   })
 })
