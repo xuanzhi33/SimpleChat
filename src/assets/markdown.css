@@ -1,7 +1,7 @@
 /* Markdown 样式 */
 
 .markdown-body {
-  color: var(--foreground);
+  /* 不写死颜色：继承父级（正文是 --foreground，思考内容则是 --muted-foreground） */
   line-height: 1.7;
   overflow-wrap: break-word;
 }

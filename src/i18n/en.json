@@ -209,6 +209,8 @@
     "thinking": "Thinking",
     "thinkingInProgress": "Thinking...",
     "thinkingComplete": "Thinking Complete",
+    "copy": "Copy",
+    "copied": "Copied",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "features": {

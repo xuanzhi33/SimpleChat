@@ -209,6 +209,8 @@
     "thinking": "思考",
     "thinkingInProgress": "思考中...",
     "thinkingComplete": "思考完成",
+    "copy": "复制",
+    "copied": "已复制",
     "collapseSidebar": "收起侧边栏",
     "expandSidebar": "展开侧边栏",
     "features": {

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
+import { useClipboard } from '@vueuse/core'
 import type { Message } from '@/types/chat'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { User, Lightbulb } from 'lucide-vue-next'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { User, Lightbulb, Copy, Check } from 'lucide-vue-next'
 import { renderMarkdown } from '@/lib/markdown'
 import { useI18n } from 'vue-i18n'
 
@@ -14,6 +17,12 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const isUser = computed(() => props.message.role === 'user')
+
+// 复制消息原文（AI 消息即 Markdown 源码）；legacy 回退兼容没有 navigator.clipboard 的 http 环境
+const { copy, copied } = useClipboard({
+  source: () => props.message.content,
+  legacy: true,
+})
 
 const formattedTime = computed(() => {
   return new Date(props.message.timestamp).toLocaleTimeString('zh-CN', {
@@ -96,22 +105,25 @@ watch(
         </Badge>
       </div>
 
-      <!-- Thinking 内容 (如果有)：左侧细线 + 灰字，不用卡片 -->
-      <div v-if="message.reasoning_content" class="mb-2 space-y-1">
-        <div class="flex items-center gap-2">
+      <!-- Thinking 内容 (如果有)：灯泡与细线同列居中，整体灰色 -->
+      <div v-if="message.reasoning_content" class="mb-2 flex gap-2">
+        <div class="flex shrink-0 flex-col items-center">
           <Lightbulb
-            class="w-4 h-4 text-amber-600 dark:text-amber-400"
+            class="w-4 h-4 text-muted-foreground"
             :class="message.isStreaming && 'animate-pulse'"
           />
-          <Badge variant="outline" class="text-xs border-amber-300 dark:border-amber-700">
-            {{ message.isStreaming ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
-          </Badge>
+          <div class="mt-1 w-px flex-1 bg-border"></div>
         </div>
-        <div
-          ref="thinkingContentRef"
-          class="text-sm text-muted-foreground markdown-body max-h-25 overflow-y-auto border-l-2 border-amber-200 pl-3 dark:border-amber-800"
-          v-html="renderedReasoningContent"
-        ></div>
+        <div class="min-w-0 flex-1">
+          <div class="text-xs leading-4 text-muted-foreground">
+            {{ message.isStreaming ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
+          </div>
+          <div
+            ref="thinkingContentRef"
+            class="markdown-body text-sm text-muted-foreground max-h-25 overflow-y-auto"
+            v-html="renderedReasoningContent"
+          ></div>
+        </div>
       </div>
 
       <!-- 用户消息：淡色气泡 -->
@@ -131,9 +143,29 @@ watch(
       <!-- AI 回复：无气泡，只剩文字 -->
       <div v-else class="text-base markdown-body" v-html="renderedContent"></div>
 
-      <!-- 时间戳 -->
-      <div class="text-xs text-gray-400 mt-1 px-1" :class="isUser ? 'text-right' : 'text-left'">
-        {{ formattedTime }}
+      <!-- 时间戳 + 复制 -->
+      <div
+        class="mt-1 flex items-center gap-1 px-1 text-xs text-gray-400"
+        :class="isUser && 'justify-end'"
+      >
+        <span>{{ formattedTime }}</span>
+        <TooltipProvider v-if="message.content">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                class="size-6 text-gray-400 hover:text-foreground"
+                :aria-label="copied ? t('chat.copied') : t('chat.copy')"
+                @click="copy()"
+              >
+                <Check v-if="copied" class="size-3.5" />
+                <Copy v-else class="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   </div>
