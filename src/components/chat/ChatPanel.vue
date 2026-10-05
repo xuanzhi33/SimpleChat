@@ -170,6 +170,8 @@ const sendMessage = async () => {
   // 思考耗时：从请求发出到最后一个思考增量
   const thinkingStartedAt = Date.now()
   let thinkingEndedAt = 0
+  // 思考阶段结束的标记：正文一到就算结束（单向，模型偶尔交替输出思考/正文也不回头）
+  let thinkingDone = false
 
   let hasScrolledOnStart = false
 
@@ -201,6 +203,7 @@ const sendMessage = async () => {
         // 流式更新
         if (content) {
           fullContent += content
+          thinkingDone = true
         }
         if (reasoningContent) {
           fullReasoningContent += reasoningContent
@@ -212,6 +215,7 @@ const sendMessage = async () => {
           reasoning_content: fullReasoningContent || undefined,
           reasoningDurationMs:
             thinkingEndedAt > thinkingStartedAt ? thinkingEndedAt - thinkingStartedAt : undefined,
+          thinkingDone: thinkingDone || undefined,
           isStreaming: true,
         })
 

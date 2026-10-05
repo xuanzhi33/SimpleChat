@@ -5,6 +5,8 @@ export interface Message {
   reasoning_content?: string
   /** 思考耗时（毫秒），从请求发出到最后一个思考增量 */
   reasoningDurationMs?: number
+  /** 已收到正文增量，思考阶段结束（单向：一旦为真不再回头） */
+  thinkingDone?: boolean
   timestamp: number
   isStreaming?: boolean
 }

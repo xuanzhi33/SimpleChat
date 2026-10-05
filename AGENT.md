@@ -7,10 +7,11 @@
 - **不要动 `src/components/ui/`**：shadcn 生成物（已从 eslint/prettier 排除），要改样式就在调用处传 `class`（`cn()` 会做 tw-merge 覆盖）
 - **i18n 中英必须成对**：键集合不一致不会报错，界面只会显示原始 key
 - **思考内容字段**：优先 `delta.reasoning_content`，回退 `delta.reasoning`（**不是** `thinking`），内部统一存 `reasoning_content`。DeepSeek/SGLang 用前者，vLLM 新版/OpenRouter/Ollama 用后者
+- **“思考结束”= 收到首个正文增量**：SSE 没有 thinking 结束事件，唯一信号是 `delta.content` 到来，所以 `ChatPanel` 用单向 latch 写成 `message.thinkingDone`（模型偶尔思考/正文交替也不回头）。思考块的标题/脉动/自动收起/`:final` 全看 `isThinking = isStreaming && !thinkingDone`，而不是整条消息的 `isStreaming`（否则正文开始后还一直显示“思考中...”）
 - **CORS 无法确诊**：`fetch` 被拦 / 断网 / DNS 失败都只抛 `TypeError`，文案只能写“疑似”并建议改用 LLM Gate（`isLikelyCorsError(err)`）
 - **主题是绿色**：`src/assets/main.css` 末尾还有第二段 `:root`（绿色主题），它覆盖了前面的中性色，所以 `--primary` / `--ring` 都是绿的；想让某个控件不发光得在控件上调 `class` 覆盖
 - **`Textarea` 字号**：基础类是 `text-base md:text-sm`，要改字号必须带 `md:` 前缀才压得住
-- **Markdown 只走 `markstream-vue`**：`<MarkdownRender mode="chat" :content :final="!message.isStreaming" :is-dark>`，用户在消息里贴的 HTML 绝不自己 `v-html`；不要再引 marked / DOMPurify（已删）
+- **Markdown 只走 `markstream-vue`**：`<MarkdownRender mode="chat" :content :final="!message.isStreaming" :is-dark>`（思考块传 `:final="!isThinking"`），用户在消息里贴的 HTML 绝不自己 `v-html`；不要再引 marked / DOMPurify（已删）
 - **它的 CSS 落在 `components` 层**：`@import 'markstream-vue/index.css' layer(components)`（官配写法，能被我们的 utility 压住）。要改它内部样式只能改 `--ms-*` 令牌（思考块就靠 `.thinking-md.markstream-vue` 把 `--ms-text-body` 调小），Tailwind 类打不进去
 - **模型输出里的 HTML 由它自己净化**：`htmlPolicy` 默认 `safe`（白名单标签、剥 `on*`/`style`、校验 URL、禁 script），这就是卸掉 DOMPurify 的原因；想要的更狠就改 `escape`（HTML 当纯文本显示）
 - **它的界面文案不跟语言走**：库只提供“替换文案”钩子，`src/i18n/markstream.ts` 把 i18n 的 `markstream` 段灌进 reactive map，`i18n/config.ts` 里 watch locale 刷新
@@ -31,7 +32,7 @@
 ```ts
 interface Model { id; name; baseUrl; kind?; model?; apiKey? }
 // name 只是展示名（两种模式都不参与请求），model 才是真正发出去的模型 ID（仅 api 模式）
-interface Message { role: 'user' | 'assistant' | 'system'; content; reasoning_content?; reasoningDurationMs?; timestamp; isStreaming? }
+interface Message { role: 'user' | 'assistant' | 'system'; content; reasoning_content?; reasoningDurationMs?; thinkingDone?; timestamp; isStreaming? }
 interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsManual?; createdAt; updatedAt }
 ```
 

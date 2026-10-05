@@ -47,6 +47,29 @@ describe('MessageItem 渲染', () => {
     expect(wrapper.find('.paragraph-node').element.textContent).toContain('\n')
   })
 
+  it('收到正文增量（thinkingDone）后思考块立即收起、改状态、亮出耗时', async () => {
+    const thinking = await render({
+      reasoning_content: '先想一想',
+      reasoningDurationMs: 1500,
+      isStreaming: true,
+    })
+    expect(thinking.text()).toContain(i18n.global.t('chat.thinkingInProgress'))
+    expect(thinking.get('button[aria-expanded]').attributes('aria-expanded')).toBe('true')
+    expect(thinking.find('.animate-pulse').exists()).toBe(true)
+
+    const answering = await render({
+      content: '正文',
+      reasoning_content: '先想一想',
+      reasoningDurationMs: 1500,
+      isStreaming: true,
+      thinkingDone: true,
+    })
+    expect(answering.text()).toContain(i18n.global.t('chat.thinkingComplete'))
+    expect(answering.text()).toContain('1.5')
+    expect(answering.get('button[aria-expanded]').attributes('aria-expanded')).toBe('false')
+    expect(answering.find('.animate-pulse').exists()).toBe(false)
+  })
+
   it('AI 消息里的 HTML 被净化（script / onerror 都进不来）', async () => {
     const wrapper = await render({
       content: '<script>alert(1)</script>\n\n<img src=x onerror=alert(1)>',

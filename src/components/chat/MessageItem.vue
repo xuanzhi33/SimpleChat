@@ -49,16 +49,16 @@ const thinkingSeconds = computed(() =>
 // thinking内容容器引用
 const thinkingContentRef = ref<HTMLElement | null>(null)
 
-// 思考内容默认折叠：历史消息直接收起，正在思考的消息展开
-const thinkingCollapsed = ref(!props.message.isStreaming)
+// 思考阶段：有思考内容且还没开始输出正文（收到首个正文增量就算结束）
+const isThinking = computed(() => !!props.message.isStreaming && !props.message.thinkingDone)
 
-// 思考中展开，思考结束自动收起（只跟随 isStreaming 变化，之后手动展开不会被覆盖）
-watch(
-  () => props.message.isStreaming,
-  (streaming) => {
-    thinkingCollapsed.value = !streaming
-  },
-)
+// 思考内容默认折叠：历史消息直接收起，正在思考的消息展开
+const thinkingCollapsed = ref(!isThinking.value)
+
+// 思考中展开，思考一结束（正文开始）自动收起；之后手动展开不会被覆盖
+watch(isThinking, (thinking) => {
+  thinkingCollapsed.value = !thinking
+})
 
 // 监听thinking内容变化，自动滚动到底部
 watch(
@@ -101,15 +101,12 @@ watch(
           :aria-expanded="!thinkingCollapsed"
           @click="thinkingCollapsed = !thinkingCollapsed"
         >
-          <Lightbulb
-            class="w-4 h-4 mr-3 shrink-0"
-            :class="message.isStreaming && 'animate-pulse'"
-          />
+          <Lightbulb class="w-4 h-4 mr-3 shrink-0" :class="isThinking && 'animate-pulse'" />
           <span>
-            {{ message.isStreaming ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
+            {{ isThinking ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
           </span>
           <Badge
-            v-if="!message.isStreaming && thinkingSeconds"
+            v-if="!isThinking && thinkingSeconds"
             variant="secondary"
             class="ml-1.5 px-1.5 py-0 text-[11px] font-normal"
           >
@@ -140,7 +137,7 @@ watch(
                   mode="chat"
                   fade
                   :content="message.reasoning_content!"
-                  :final="!message.isStreaming"
+                  :final="!isThinking"
                   :is-dark="settingsStore.isDarkMode"
                 />
               </div>
