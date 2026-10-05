@@ -35,4 +35,15 @@ describe('settings store', () => {
     store.addModel('only', 'http://a')
     expect(store.defaultModel?.name).toBe('only')
   })
+
+  it('保存 api 模式字段，切回 gate 时清除', () => {
+    const store = useSettingsStore()
+    const m = store.addModel('GPT', 'http://a', { kind: 'api', model: 'gpt-4o', apiKey: 'sk-1' })
+    expect(store.models[0]).toMatchObject({ kind: 'api', model: 'gpt-4o', apiKey: 'sk-1' })
+
+    store.updateModel(m.id, 'GPT', 'http://a', { kind: 'gate' })
+    expect(store.models[0]?.kind).toBe('gate')
+    expect(store.models[0]?.model).toBeUndefined()
+    expect(store.models[0]?.apiKey).toBeUndefined()
+  })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { ChatService } from '@/lib/chat-service'
+import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 
 const encoder = new TextEncoder()
 
@@ -36,6 +36,38 @@ describe('ChatService.sendMessage', () => {
     const onChunk = vi.fn()
     await new ChatService('http://x/v1').sendMessage([], onChunk, vi.fn(), vi.fn())
     expect(onChunk).toHaveBeenCalledWith('', 'r')
+  })
+
+  it('api 模式发送 model 与 Authorization', async () => {
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<unknown>>(async () =>
+      sseResponse('data: [DONE]\n\n'),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    await new ChatService('http://x/v1', { model: 'gpt-4o', apiKey: 'sk-1' }).sendMessage(
+      [],
+      vi.fn(),
+      vi.fn(),
+      vi.fn(),
+    )
+    const init = fetchMock.mock.calls[0]![1]
+    expect(init.headers).toMatchObject({ Authorization: 'Bearer sk-1' })
+    expect(JSON.parse(String(init.body))).toMatchObject({ model: 'gpt-4o' })
+  })
+
+  it('gate 模式不发 model 与 Authorization', async () => {
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<unknown>>(async () =>
+      sseResponse('data: [DONE]\n\n'),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    await new ChatService('http://x/v1').sendMessage([], vi.fn(), vi.fn(), vi.fn())
+    const init = fetchMock.mock.calls[0]![1]
+    expect(init.headers).not.toHaveProperty('Authorization')
+    expect(JSON.parse(String(init.body))).not.toHaveProperty('model')
+  })
+
+  it('isLikelyCorsError 只认 TypeError', () => {
+    expect(isLikelyCorsError(new TypeError('Failed to fetch'))).toBe(true)
+    expect(isLikelyCorsError(new Error('HTTP 401'))).toBe(false)
   })
 
   it('abort 走 onComplete 而非 onError', async () => {
