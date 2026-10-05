@@ -51,6 +51,15 @@ describe('chat store', () => {
     expect(store.activeConversation?.messages).toHaveLength(0)
   })
 
+  it('重命名会话：去掉首尾空白并忽略空标题', () => {
+    const store = useChatStore()
+    store.createConversation('old')
+    store.renameConversation('  new title  ')
+    expect(store.activeConversation?.title).toBe('new title')
+    store.renameConversation('   ')
+    expect(store.activeConversation?.title).toBe('new title')
+  })
+
   it('通过 dbOperations 持久化', () => {
     useChatStore().createConversation('saved')
     expect(dbOperations.saveConversation).toHaveBeenCalled()

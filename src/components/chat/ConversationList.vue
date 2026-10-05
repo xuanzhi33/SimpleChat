@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useChatStore } from '@/stores/chat'
-import { MessageSquare, Trash2 } from 'lucide-vue-next'
+import { Trash2 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
 import type { Conversation } from '@/types/chat'
@@ -11,7 +11,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
 } from '@/components/ui/sidebar'
 
 const { t } = useI18n()
@@ -77,10 +76,10 @@ const formatDate = (timestamp: number) => {
         <SidebarMenuItem v-for="conversation in conversations" :key="conversation.id">
           <SidebarMenuButton
             size="lg"
+            class="pr-8"
             :data-active="activeId === conversation.id"
             @click="selectConversation(conversation.id)"
           >
-            <MessageSquare class="h-4 w-4" />
             <div class="grid flex-1 text-left text-sm leading-tight">
               <span class="truncate font-medium">{{ conversation.title }}</span>
               <span class="truncate text-xs text-muted-foreground">
@@ -89,12 +88,15 @@ const formatDate = (timestamp: number) => {
               </span>
             </div>
           </SidebarMenuButton>
-          <SidebarMenuAction
-            show-on-hover
+          <!-- 删除：默认灰，悬停变红；桌面端悬停整行才淡入 -->
+          <button
+            type="button"
+            class="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden md:pointer-events-none md:opacity-0 group-hover/menu-item:pointer-events-auto group-hover/menu-item:opacity-100 group-focus-within/menu-item:pointer-events-auto group-focus-within/menu-item:opacity-100"
+            :aria-label="t('chat.deleteConversation')"
             @click="(e: Event) => deleteConversation(conversation.id, e)"
           >
-            <Trash2 />
-          </SidebarMenuAction>
+            <Trash2 class="size-4" />
+          </button>
         </SidebarMenuItem>
 
         <div

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
-import { MessageSquarePlus, Settings } from 'lucide-vue-next'
+import { MessageSquarePlus, Pencil, Settings } from 'lucide-vue-next'
 import {
   SidebarProvider,
   Sidebar,
@@ -26,6 +26,30 @@ const { t } = useI18n()
 const chatStore = useChatStore()
 
 const settingsOpen = ref(false)
+
+const currentTitle = computed(() => chatStore.activeConversation?.title ?? '')
+
+// 标题重命名（就地编辑）
+const isRenaming = ref(false)
+const titleDraft = ref('')
+const titleInputRef = ref<HTMLInputElement>()
+
+const startRename = async () => {
+  titleDraft.value = currentTitle.value
+  isRenaming.value = true
+  await nextTick()
+  titleInputRef.value?.select()
+}
+
+const saveTitle = () => {
+  if (!isRenaming.value) return
+  isRenaming.value = false
+  chatStore.renameConversation(titleDraft.value)
+}
+
+const cancelRename = () => {
+  isRenaming.value = false
+}
 
 const createNew = () => {
   chatStore.createConversation(t('chat.newConversation'))
@@ -71,8 +95,42 @@ const createNew = () => {
         <ChatPanel />
       </div>
 
-      <!-- 顶部导航栏 -->
-      <SidebarTrigger class="bg-background absolute top-3 left-4" />
+      <!-- 顶部胶囊：边栏开关 + 当前对话标题，悬停出现重命名按钮 -->
+      <div
+        class="group absolute top-3 left-4 flex items-center gap-1 rounded-full border bg-background/80 py-0.5 pl-0.5 shadow-sm backdrop-blur"
+        :class="currentTitle || isRenaming ? 'pr-2' : 'pr-0.5'"
+      >
+        <SidebarTrigger />
+
+        <input
+          v-if="isRenaming"
+          ref="titleInputRef"
+          v-model="titleDraft"
+          class="h-6 w-40 rounded-full bg-transparent px-2 text-sm outline-none focus:bg-muted/60"
+          @keydown.enter="saveTitle"
+          @keydown.esc="cancelRename"
+          @blur="saveTitle"
+        />
+
+        <template v-else-if="currentTitle">
+          <span class="max-w-[40vw] truncate text-sm font-medium">{{ currentTitle }}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                class="rounded-full p-1 text-muted-foreground transition-opacity md:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                :aria-label="t('chat.renameTitle')"
+                @click="startRename"
+              >
+                <Pencil class="size-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{{ t('chat.renameTitle') }}</p>
+            </TooltipContent>
+          </Tooltip>
+        </template>
+      </div>
     </SidebarInset>
 
     <!-- 设置弹窗 -->

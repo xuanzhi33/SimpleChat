@@ -168,6 +168,18 @@ export const useChatStore = defineStore('chat', () => {
     persistConversation(conversation)
   }
 
+  // 重命名当前会话
+  const renameConversation = (title: string) => {
+    const conversation = activeConversation.value
+    const trimmed = title.trim()
+    if (!conversation || !trimmed || trimmed === conversation.title) return
+
+    conversation.title = trimmed
+    conversation.updatedAt = Date.now()
+    // 异步保存到 IndexedDB
+    persistConversation(conversation)
+  }
+
   return {
     conversations,
     activeConversationId,
@@ -183,5 +195,6 @@ export const useChatStore = defineStore('chat', () => {
     updateMessage,
     deleteMessage,
     clearMessages,
+    renameConversation,
   }
 })

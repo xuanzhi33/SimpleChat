@@ -96,8 +96,8 @@ watch(
       <User class="w-5 h-5 text-blue-700 dark:text-blue-100" />
     </div>
 
-    <!-- 消息内容：宽度随文字伸缩，最多 80% -->
-    <div class="w-fit max-w-[80%]">
+    <!-- 消息内容：用户气泡随文字伸缩（最多 80%），AI 回复占满 -->
+    <div :class="isUser ? 'w-fit max-w-[80%]' : 'min-w-0 flex-1'">
       <!-- 超出上下文标识 -->
       <div v-if="!isInContext" class="mb-1">
         <Badge variant="outline" class="text-xs text-muted-foreground">
@@ -106,7 +106,7 @@ watch(
       </div>
 
       <!-- Thinking 内容 (如果有)：灯泡与细线同列居中，整体灰色 -->
-      <div v-if="message.reasoning_content" class="mb-2 flex gap-2">
+      <div v-if="message.reasoning_content" class="mb-2 flex gap-3">
         <div class="flex shrink-0 flex-col items-center">
           <Lightbulb
             class="w-4 h-4 text-muted-foreground"
@@ -115,7 +115,7 @@ watch(
           <div class="mt-1 w-px flex-1 bg-border"></div>
         </div>
         <div class="min-w-0 flex-1">
-          <div class="text-xs leading-4 text-muted-foreground">
+          <div class="mb-1.5 text-xs leading-4 text-muted-foreground">
             {{ message.isStreaming ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
           </div>
           <div

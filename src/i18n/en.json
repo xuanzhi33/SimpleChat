@@ -211,6 +211,8 @@
     "thinkingComplete": "Thinking Complete",
     "copy": "Copy",
     "copied": "Copied",
+    "renameTitle": "Rename title",
+    "deleteConversation": "Delete conversation",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "features": {

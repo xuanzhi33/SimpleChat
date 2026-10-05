@@ -211,6 +211,8 @@
     "thinkingComplete": "思考完成",
     "copy": "复制",
     "copied": "已复制",
+    "renameTitle": "重命名标题",
+    "deleteConversation": "删除对话",
     "collapseSidebar": "收起侧边栏",
     "expandSidebar": "展开侧边栏",
     "features": {
