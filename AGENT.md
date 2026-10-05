@@ -32,7 +32,7 @@
 ```ts
 interface Model { id; name; baseUrl; kind?; model?; apiKey? }
 // name 只是展示名（两种模式都不参与请求），model 才是真正发出去的模型 ID（仅 api 模式）
-interface Message { role: 'user' | 'assistant' | 'system'; content; reasoning_content?; reasoningDurationMs?; thinkingDone?; timestamp; isStreaming? }
+interface Message { role: 'user' | 'assistant' | 'system'; content; reasoning_content?; reasoningDurationMs?; thinkingDone?; error?; timestamp; isStreaming? }
 interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsManual?; createdAt; updatedAt }
 ```
 
@@ -40,6 +40,7 @@ interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsMa
 
 - **发送**：`ChatPanel.sendMessage()` → `ChatService.sendMessage()`，`POST {baseUrl}/chat/completions`，body 为 `messages` + `stream: true`；用 Fetch（不是 EventSource）读 ReadableStream 逐行解析 `data:`；非 2xx 抛 `HttpError(status, detail)`
 - **错误文案**：`describeError(err, t)`（多行：原因 + 服务端原文 + 解法）、`summarizeError(err, t)`（单行，给 toast）；状态码对照表在 `i18n.errors.http.*`，未收录走 `other`
+- **错误展示**：不再有顶部错误条（`error` ref 已删）。发送失败时详情写进 AI 消息的 `Message.error`，由 `MessageItem` 用 `text-destructive` 红色就地显示（有半截正文时接在正文下面），toast 只留一行摘要；同时自动 `startEdit(用户消息)`进入编辑模式，用户全选后回车即重发。无可用模型这种“发之前”的校验只弹 toast，不占 AI 位置
 - **`complete(messages)`**：非流式补全，返回文本；`testConnection()`（要求回复 "OK"）和自动标题都走它
 - **自动标题**：`addMessage` 先用首条用户消息前 30 字当标题；第一轮问答结束（`messages.length === 2`）后 `maybeGenerateTitle()` 再让模型起一个，提示词与清洗在 `src/lib/title.ts`。`titleIsManual` 一旦手动改过就不再覆盖，失败只 `console.error`
 - **编辑重发**：`MessageItem` 只 `emit('edit', id)`；`ChatPanel.editingMessageId` 非空时在该消息上方插分割线，发送时先 `truncateFrom(id)`（删掉这条**及其之后**全部消息）再 `addMessage`，之后走普通发送流程（上下文裁剪、自动标题都会照常触发）

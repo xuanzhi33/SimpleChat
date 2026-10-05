@@ -165,15 +165,25 @@ watch(
         </div>
       </Card>
 
-      <!-- AI 回复：无气泡，无头像，交给 markstream 流式渲染 -->
-      <MarkdownRender
-        v-else
-        mode="chat"
-        fade
-        :content="message.content"
-        :final="!message.isStreaming"
-        :is-dark="settingsStore.isDarkMode"
-      />
+      <!-- AI 回复：无气泡，无头像，交给 markstream 流式渲染；
+           失败时详情用红色接在（可能有半截的）正文下面。详情可能多行 → whitespace-pre-line -->
+      <template v-else>
+        <MarkdownRender
+          v-if="message.content"
+          mode="chat"
+          fade
+          :content="message.content"
+          :final="!message.isStreaming"
+          :is-dark="settingsStore.isDarkMode"
+        />
+        <p
+          v-if="message.error"
+          class="text-sm whitespace-pre-line text-destructive"
+          :class="message.content && 'mt-1.5'"
+        >
+          {{ message.error }}
+        </p>
+      </template>
 
       <!-- 时间戳 + 复制 + 编辑：AI 消息流式期间不显示，回答结束才淡入。
            AI 这边不能加 px-*：markstream 的段落没有任何水平内边距，一加时间戳就会比正文文字右移 -->

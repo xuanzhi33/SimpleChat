@@ -9,7 +9,6 @@ import { buildTitlePrompt, cleanTitle } from '@/lib/title'
 import MessageItem from './MessageItem.vue'
 import SystemPromptBlock from './SystemPromptBlock.vue'
 import ConversationConfig from './ConversationConfig.vue'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   InputGroup,
   InputGroupAddon,
@@ -37,7 +36,6 @@ const settingsStore = useSettingsStore()
 const inputText = ref('')
 const messagesContainerRef = ref<HTMLElement>()
 const abortControllerRef = ref<AbortController | null>(null)
-const error = ref<string>('')
 const modelManagementOpen = ref(false)
 const conversationConfigOpen = ref(false)
 /** 正在编辑的消息 id；非空时输入框里是这条消息的内容，发送时会从这条开始截断 */
@@ -107,8 +105,11 @@ watch(
 watch(
   () => chatStore.activeConversationId,
   () => {
-    // 被编辑的消息已经不属于当前会话了，退出编辑模式
-    if (editingMessageId.value) cancelEdit()
+    // 只在被编辑的消息已经不属于当前会话时才退出编辑模式。
+    // 首条消息会在这里创建会话、从而触发本 watch，那条消息仍在当前会话里，不能误取消
+    const editingStillHere =
+      editingMessageId.value && messages.value.some((m) => m.id === editingMessageId.value)
+    if (editingMessageId.value && !editingStillHere) cancelEdit()
     focusInput()
   },
 )
@@ -118,6 +119,16 @@ onMounted(() => {
   focusInput()
 })
 
+/**
+ * 错误 → 贴在 AI 消息上的红色详情文案（可能多行，展示时用 `whitespace-pre-line`）。
+ * 疑似 CORS / 未知错误回退到通用文案。
+ */
+const errorText = (err: unknown): string => {
+  if (isLikelyCorsError(err)) return t('errors.possibleCors')
+  if (err instanceof Error && err.message) return describeError(err, t) ?? err.message
+  return describeError(err, t) ?? t('chat.errors.sendFailed')
+}
+
 // 发送消息
 const sendMessage = async () => {
   const content = inputText.value.trim()
@@ -125,11 +136,10 @@ const sendMessage = async () => {
 
   // 检查是否有可用的模型
   if (!currentModel.value) {
-    error.value = t('chat.errors.noModel')
+    toast.error(t('chat.errors.noModel'))
     return
   }
 
-  error.value = ''
   inputText.value = ''
 
   // 编辑模式：丢弃被编辑消息及其之后的内容，然后把新内容当成普通消息发出去
@@ -138,8 +148,8 @@ const sendMessage = async () => {
     editingMessageId.value = null
   }
 
-  // 添加用户消息
-  chatStore.addMessage({
+  // 添加用户消息；发送失败时要把这条拿回编辑模式，所以留个引用
+  const userMessage = chatStore.addMessage({
     role: 'user',
     content,
   })
@@ -235,14 +245,12 @@ const sendMessage = async () => {
         if (conversationId) maybeGenerateTitle(conversationId, fullContent)
       },
       (err) => {
-        // 错误
+        // 错误：详情红色显示在 AI 输出的位置（挂在消息上），toast 只给一行摘要
         console.error('Chat error:', err)
         const possibleCors = isLikelyCorsError(err)
-        error.value = possibleCors
-          ? t('errors.possibleCors')
-          : (describeError(err, t) ?? err.message)
         chatStore.updateMessage(assistantMessage.id, {
           isStreaming: false,
+          error: errorText(err),
         })
         chatStore.isGenerating = false
         abortControllerRef.value = null
@@ -251,18 +259,18 @@ const sendMessage = async () => {
             ? t('errors.possibleCors')
             : (summarizeError(err, t) ?? t('chat.errors.sendFailed')),
         )
+        // 立即进入编辑模式：这条用户消息回到输入框并全选，回车即重发
+        if (userMessage) startEdit(userMessage.id)
       },
       abortControllerRef.value.signal,
     )
   } catch (err) {
     console.error('Unexpected error:', err)
-    const possibleCors = isLikelyCorsError(err)
-    error.value = possibleCors
-      ? t('errors.possibleCors')
-      : (describeError(err, t) ??
-        (err instanceof Error ? err.message : t('chat.errors.sendFailed')))
+    chatStore.updateMessage(assistantMessage.id, { isStreaming: false, error: errorText(err) })
     chatStore.isGenerating = false
     abortControllerRef.value = null
+    toast.error(summarizeError(err, t) ?? t('chat.errors.sendFailed'))
+    if (userMessage) startEdit(userMessage.id)
   }
 }
 
@@ -317,7 +325,6 @@ const startEdit = (messageId: string) => {
 
   editingMessageId.value = messageId
   inputText.value = message.content
-  error.value = ''
   focusInput()
 
   // 全选原文，方便直接覆写
@@ -346,12 +353,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- 错误提示 -->
-    <Alert v-if="error" variant="destructive" class="p-4 pl-14">
-      <AlertCircle class="h-4 w-4" />
-      <AlertDescription class="whitespace-pre-line">{{ error }}</AlertDescription>
-    </Alert>
-
     <!-- 消息列表：底边比输入框顶边低 24px（= rounded-3xl 的圆角半径），
          滚动的文字会从输入框圆角下面滑过，形成被盖住的悬浮感 -->
     <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-6 py-6 -mb-6">

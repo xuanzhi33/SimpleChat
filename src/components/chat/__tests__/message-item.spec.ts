@@ -173,4 +173,20 @@ describe('MessageItem 渲染', () => {
     expect(older.text()).toBe(i18n.global.d(olderTs, 'dateTimeWithYear'))
     expect(older.text()).toContain(String(year - 1))
   })
+
+  it('请求失败时在 AI 输出的位置用红色（destructive）显示错误', async () => {
+    const wrapper = await render({ content: '', error: '请求失败（401）：API Key 错误，认证失败' })
+    const errorLine = wrapper.get('.text-destructive')
+    expect(errorLine.text()).toContain('API Key')
+    // 详情是多行的，需要靠 whitespace-pre-line 才不挤成一行
+    expect(errorLine.classes()).toContain('whitespace-pre-line')
+    // 一点正文都没收到时不该再留一个空的 markdown 块
+    expect(wrapper.find('.markstream-vue').exists()).toBe(false)
+  })
+
+  it('拿到半截正文后失败：正文和错误都在，错误接在正文下面', async () => {
+    const wrapper = await render({ content: '半截回答', error: '连接被中断' })
+    expect(wrapper.text()).toContain('半截回答')
+    expect(wrapper.get('.text-destructive').text()).toBe('连接被中断')
+  })
 })

@@ -7,6 +7,8 @@ export interface Message {
   reasoningDurationMs?: number
   /** 已收到正文增量，思考阶段结束（单向：一旦为真不再回头） */
   thinkingDone?: boolean
+  /** 请求失败时的详情文案，红色显示在 AI 输出的位置（有部分正文时接在正文下面） */
+  error?: string
   timestamp: number
   isStreaming?: boolean
 }
