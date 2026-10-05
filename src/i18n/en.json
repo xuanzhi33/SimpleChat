@@ -14,6 +14,7 @@
       "gate": "LLM Gate Mode"
     },
     "api": {
+      "notice": "In API mode your browser talks to the provider you enter directly, so that provider has to allow cross-origin (CORS) requests — every major provider does. If you are unsure, fill in the fields and test it; if requests keep failing, switch to LLM Gate mode.",
       "baseUrl": "Endpoint Base URL",
       "baseUrlPlaceholder": "e.g., https://api.deepseek.com/v1",
       "baseUrlDescription": "An OpenAI-compatible endpoint that allows browser cross-origin (CORS) requests.",
@@ -22,7 +23,7 @@
       "modelIdDescription": "Sent as the `model` field in requests; must match the provider's documentation.",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "e.g., sk-xxxxxxxx",
-      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth."
+      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth. The key is sent straight from your browser to the provider you enter — it never passes through any relay."
     },
     "modelIdRequired": "Please enter the model ID",
     "step1": "Step 1: Download and Install LLM Gate",
@@ -85,7 +86,7 @@
       "modelIdDescription": "Sent as the `model` field in requests; must match the provider's documentation",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "e.g., sk-xxxxxxxx",
-      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth",
+      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth. The key is sent straight from your browser to the provider you enter — it never passes through any relay.",
       "gateHint": "With LLM Gate, the model is determined by the ID in the URL, so no model ID or API Key is needed here.",
       "kind": {
         "api": "API",

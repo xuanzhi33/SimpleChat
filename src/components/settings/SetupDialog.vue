@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ExternalLink, CheckCircle2 } from 'lucide-vue-next'
+import { ExternalLink, CheckCircle2, Info } from 'lucide-vue-next'
 import type { ModelKind } from '@/types/chat'
 
 const { t } = useI18n()
@@ -117,6 +117,14 @@ const handleSkip = () => {
 
         <!-- API 模式 -->
         <TabsContent value="api" class="space-y-4">
+          <!-- CORS 说明 -->
+          <div class="flex items-start gap-2.5 rounded-lg border bg-muted/50 p-3">
+            <Info class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <p class="text-xs leading-relaxed text-muted-foreground">
+              {{ t('setup.api.notice') }}
+            </p>
+          </div>
+
           <div class="space-y-2">
             <Label for="api-base-url">{{ t('setup.api.baseUrl') }}</Label>
             <Input

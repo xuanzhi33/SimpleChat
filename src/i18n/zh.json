@@ -14,6 +14,7 @@
       "gate": "LLM Gate 模式"
     },
     "api": {
+      "notice": "API 模式下，浏览器会直接向您填写的提供商发起请求，因此需要该提供商支持跨域（CORS）访问，主流提供商均已支持。如不确定，可先填写并测试是否可用；若请求失败，请改用 LLM Gate 模式。",
       "baseUrl": "接口 Base URL",
       "baseUrlPlaceholder": "例如: https://api.deepseek.com/v1",
       "baseUrlDescription": "兼容 OpenAI 格式的接口地址，必须允许浏览器跨域(CORS)访问。",
@@ -22,7 +23,7 @@
       "modelIdDescription": "将作为请求中的 model 字段发送，需与厂商文档一致。",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
-      "apiKeyDescription": "仅保存在浏览器本地；本地无鉴权的接口可留空。"
+      "apiKeyDescription": "仅保存在浏览器本地，本地无鉴权的接口可留空。API Key 会由浏览器直接发送给您填写的提供商，不经过任何中转，请放心使用。"
     },
     "modelIdRequired": "请输入模型 ID",
     "step1": "步骤 1：下载并安装 LLM Gate",
@@ -85,7 +86,7 @@
       "modelIdDescription": "将作为请求中的 model 字段发送，需与厂商文档一致",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
-      "apiKeyDescription": "仅保存在浏览器本地；本地无鉴权的接口可留空",
+      "apiKeyDescription": "仅保存在浏览器本地，本地无鉴权的接口可留空。API Key 会由浏览器直接发送给您填写的提供商，不经过任何中转，请放心使用。",
       "gateHint": "使用 LLM Gate 时，模型由 URL 中的模型 ID 决定，这里无需填写模型 ID 和 API Key。",
       "kind": {
         "api": "API",
