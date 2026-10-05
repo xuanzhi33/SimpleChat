@@ -14,6 +14,8 @@
 - **它的 CSS 落在 `components` 层**：`@import 'markstream-vue/index.css' layer(components)`（官配写法，能被我们的 utility 压住）。要改它内部样式只能改 `--ms-*` 令牌（思考块就靠 `.thinking-md.markstream-vue` 把 `--ms-text-body` 调小），Tailwind 类打不进去
 - **模型输出里的 HTML 由它自己净化**：`htmlPolicy` 默认 `safe`（白名单标签、剥 `on*`/`style`、校验 URL、禁 script），这就是卸掉 DOMPurify 的原因；想要的更狠就改 `escape`（HTML 当纯文本显示）
 - **它的界面文案不跟语言走**：库只提供“替换文案”钩子，`src/i18n/markstream.ts` 把 i18n 的 `markstream` 段灌进 reactive map，`i18n/config.ts` 里 watch locale 刷新
+- **软换行靠 CSS，不靠 `breaks`**：它不吃 `breaks`（实测 `customMarkdownIt` 里怎么设都不出 `<br>`），但软换行会原样留在 `text-node` 里，由它自带的 `white-space: pre-wrap` 渲染成换行（行尾两空格才是真 `<br>`）——所以 `reasoning_content` 的单换行不用额外处理
+- **流式观感/光标**：默认 `smoothStreaming: 'auto'`（首屏一次吐出，之后按 ~3000 字/秒平滑推进，调 `smoothStreamingOptions`）；光标只在 `typewriter` 打开时有（`'simple'` 用末个文本节点的 `::after`，`true`/`'precise'` 用绝对定位 span），`final` 后自动消失；`mode="chat"` 下 `fade` 默认关
 
 ## gate / api 双模式
 

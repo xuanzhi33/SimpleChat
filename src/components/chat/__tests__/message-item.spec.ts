@@ -41,6 +41,12 @@ describe('MessageItem 渲染', () => {
     expect(wrapper.html()).toContain('<code')
   })
 
+  it('AI 消息里的软换行原样带在 text-node 里（reasoning 常有单换行）', async () => {
+    const wrapper = await render({ content: '一\n**二**' })
+    // markstream 不做 breaks 转换，换行以 \n 留在 text-node 里，靠它自带的 pre-wrap 显示成换行
+    expect(wrapper.find('.paragraph-node').element.textContent).toContain('\n')
+  })
+
   it('AI 消息里的 HTML 被净化（script / onerror 都进不来）', async () => {
     const wrapper = await render({
       content: '<script>alert(1)</script>\n\n<img src=x onerror=alert(1)>',
