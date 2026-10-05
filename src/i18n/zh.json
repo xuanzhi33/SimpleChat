@@ -10,8 +10,16 @@
     "description": "SimpleChat 是一个纯前端应用，所有数据都存储在您的浏览器中。为了与 AI 模型交互，您需要自行配置大模型接口。",
     "language": "语言 / Language",
     "tabs": {
+      "deepseek": "DeepSeek 官方模式",
       "api": "API 模式",
       "gate": "LLM Gate 模式"
+    },
+    "deepseek": {
+      "step1": "步骤 1：注册并获取 API Key",
+      "step1Description": "前往 DeepSeek 开放平台注册账号、完成充值，并在「API Keys」页面创建一个 API Key。",
+      "apiKeyButton": "前往 DeepSeek 开放平台",
+      "step2": "步骤 2：粘贴 API Key",
+      "apiKeyRequired": "请输入 API Key"
     },
     "api": {
       "notice": "API 模式下，浏览器会直接向您填写的提供商发起请求，因此需要该提供商支持跨域（CORS）访问，主流提供商均已支持。如不确定，可先填写并测试是否可用；若请求失败，请改用 LLM Gate 模式。",

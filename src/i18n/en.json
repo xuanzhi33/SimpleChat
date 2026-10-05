@@ -10,8 +10,16 @@
     "description": "SimpleChat is a pure frontend application with all data stored in your browser. To interact with AI models, you need to configure your own LLM interface.",
     "language": "Language / 语言",
     "tabs": {
+      "deepseek": "DeepSeek Official",
       "api": "API Mode",
       "gate": "LLM Gate Mode"
+    },
+    "deepseek": {
+      "step1": "Step 1: Sign up and get an API Key",
+      "step1Description": "Go to the DeepSeek platform, create an account, top up your balance, and create an API Key on the API Keys page.",
+      "apiKeyButton": "Open the DeepSeek platform",
+      "step2": "Step 2: Paste your API Key",
+      "apiKeyRequired": "Please enter your API Key"
     },
     "api": {
       "notice": "In API mode your browser talks to the provider you enter directly, so that provider has to allow cross-origin (CORS) requests — every major provider does. If you are unsure, fill in the fields and test it; if requests keep failing, switch to LLM Gate mode.",

@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ExternalLink, CheckCircle2, Info } from 'lucide-vue-next'
-import type { ModelKind } from '@/types/chat'
+import type { ModelExtra } from '@/types/chat'
+import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID } from '@/lib/model'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -36,7 +37,10 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
-const mode = ref<ModelKind>('api')
+/** 欢迎弹窗里的三个 tab；deepseek 是一个预设好的 api 模型 */
+type SetupMode = 'deepseek' | 'api' | 'gate'
+
+const mode = ref<SetupMode>('deepseek')
 const modelUrl = ref('')
 const modelId = ref('')
 const apiKey = ref('')
@@ -52,7 +56,37 @@ const openLLMGate = () => {
   window.open(llmGateUrl, '_blank')
 }
 
+const deepseekPlatformUrl = 'https://platform.deepseek.com/api_keys'
+
+const openDeepSeek = () => {
+  window.open(deepseekPlatformUrl, '_blank')
+}
+
+const finishSetup = (name: string, baseUrl: string, extra: ModelExtra) => {
+  const newModel = settingsStore.addModel(name, baseUrl, extra)
+  settingsStore.defaultModelId = newModel.id
+
+  toast.success(t('setup.setupSuccess'))
+  isOpen.value = false
+}
+
 const handleComplete = () => {
+  // DeepSeek 官方模式：接口地址和模型 ID 都是固定的，只需要 API Key
+  if (mode.value === 'deepseek') {
+    const key = apiKey.value.trim()
+    if (!key) {
+      toast.error(t('setup.deepseek.apiKeyRequired'))
+      return
+    }
+
+    finishSetup(DEEPSEEK_MODEL_ID, DEEPSEEK_BASE_URL, {
+      kind: 'api',
+      model: DEEPSEEK_MODEL_ID,
+      apiKey: key,
+    })
+    return
+  }
+
   const url = modelUrl.value.trim()
   if (!url) {
     toast.error(t('setup.urlRequired'))
@@ -66,7 +100,7 @@ const handleComplete = () => {
     return
   }
 
-  const newModel = settingsStore.addModel(
+  finishSetup(
     // api 模式用模型 ID 作为展示名
     isApi ? modelIdValue : t('setup.defaultModelName'),
     url,
@@ -74,10 +108,6 @@ const handleComplete = () => {
       ? { kind: 'api', model: modelIdValue, apiKey: apiKey.value.trim() || undefined }
       : { kind: 'gate' },
   )
-  settingsStore.defaultModelId = newModel.id
-
-  toast.success(t('setup.setupSuccess'))
-  isOpen.value = false
 }
 
 const handleSkip = () => {
@@ -111,9 +141,61 @@ const handleSkip = () => {
 
       <Tabs v-model="mode" class="gap-4">
         <TabsList class="w-full">
+          <TabsTrigger value="deepseek">{{ t('setup.tabs.deepseek') }}</TabsTrigger>
           <TabsTrigger value="api">{{ t('setup.tabs.api') }}</TabsTrigger>
           <TabsTrigger value="gate">{{ t('setup.tabs.gate') }}</TabsTrigger>
         </TabsList>
+
+        <!-- DeepSeek 官方模式 -->
+        <TabsContent value="deepseek" class="space-y-4">
+          <!-- Step 1 -->
+          <div class="space-y-2">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              >
+                1
+              </div>
+              <div class="flex-1 space-y-2">
+                <h3 class="font-semibold">{{ t('setup.deepseek.step1') }}</h3>
+                <p class="text-sm text-muted-foreground">
+                  {{ t('setup.deepseek.step1Description') }}
+                </p>
+                <Button @click="openDeepSeek" variant="outline" size="sm">
+                  <ExternalLink class="h-4 w-4" />
+                  {{ t('setup.deepseek.apiKeyButton') }}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="space-y-2">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              >
+                2
+              </div>
+              <div class="flex-1 space-y-3">
+                <h3 class="font-semibold">{{ t('setup.deepseek.step2') }}</h3>
+
+                <div class="space-y-2">
+                  <Label for="deepseek-api-key">{{ t('setup.api.apiKey') }}</Label>
+                  <Input
+                    id="deepseek-api-key"
+                    v-model="apiKey"
+                    :placeholder="t('setup.api.apiKeyPlaceholder')"
+                    @keyup.enter="handleComplete"
+                  />
+                  <p class="text-xs text-muted-foreground">
+                    {{ t('setup.api.apiKeyDescription') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
 
         <!-- API 模式 -->
         <TabsContent value="api" class="space-y-4">
@@ -152,7 +234,6 @@ const handleSkip = () => {
             <Input
               id="api-key"
               v-model="apiKey"
-              type="password"
               :placeholder="t('setup.api.apiKeyPlaceholder')"
               @keyup.enter="handleComplete"
             />

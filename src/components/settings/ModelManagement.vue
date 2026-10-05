@@ -287,7 +287,6 @@ const testModel = async () => {
                   <Input
                     id="model-api-key"
                     v-model="apiKey"
-                    type="password"
                     :placeholder="t('settings.models.apiKeyPlaceholder')"
                   />
                   <p class="text-xs text-muted-foreground">

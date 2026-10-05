@@ -18,7 +18,7 @@ interface Option {
 export interface SettingsItemProps {
   label: string
   description?: string
-  type?: 'input' | 'password' | 'select'
+  type?: 'input' | 'select'
   placeholder?: string
   options?: Option[]
   icon?: Component
@@ -38,7 +38,7 @@ const modelValue = defineModel<string>()
       {{ label }}
     </Label>
 
-    <template v-if="type === 'input' || type === 'password'">
+    <template v-if="type === 'input'">
       <Input :id="label" v-model="modelValue" :type="type" :placeholder="placeholder" />
     </template>
 
