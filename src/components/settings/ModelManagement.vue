@@ -35,6 +35,7 @@ import {
 import { toast } from 'vue-sonner'
 import { ButtonGroup } from '../ui/button-group'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
+import { describeError } from '@/lib/errors'
 import { modelKind } from '@/lib/model'
 import type { ModelKind } from '@/types/chat'
 
@@ -222,9 +223,7 @@ const testModel = async () => {
     console.error('Model test failed:', err)
     const message = isLikelyCorsError(err)
       ? t('errors.possibleCors')
-      : err instanceof Error
-        ? err.message
-        : String(err)
+      : (describeError(err, t) ?? (err instanceof Error ? err.message : String(err)))
     toast.error(t('settings.models.testFailed', { message }))
   } finally {
     isTesting.value = false

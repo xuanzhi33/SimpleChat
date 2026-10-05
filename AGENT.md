@@ -17,6 +17,8 @@ Vue 3.5 · TypeScript · Pinia · VueUse · Tailwind CSS 4 · Shadcn-vue · Dexi
 - 从 `delta.content` 和 `delta.reasoning_content`（回退 `delta.reasoning`）提取内容
 - `ChatService(baseUrl, { model?, apiKey? })`：**仅 api 模式**才在请求体带 `model`、在请求头带 `Authorization: Bearer`
 - 导出 `isLikelyCorsError(err)`：`fetch` 被浏览器拦截 / 断网 / DNS 失败都只会抛 `TypeError`，**无法互相区分**，所以文案必须写“疑似”并建议改用 LLM Gate
+- 非 2xx 抛 `HttpError(status, detail)`（`src/lib/errors.ts`），`detail` 从响应体的 `error.message` / `message` 里取；网关返回 HTML 错误页时丢弃
+- 错误文案统一走 `describeError(err, t)`（多行：原因 + 服务端原文 + 解决方法）和 `summarizeError(err, t)`（单行，适合 toast）；状态码 → 文案的对照表在 `i18n` 的 `errors.http.*`，未收录的状态码走 `errors.http.other`
 
 ### 多模型管理
 

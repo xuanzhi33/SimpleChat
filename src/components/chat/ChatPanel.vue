@@ -3,6 +3,7 @@ import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
+import { describeError, summarizeError } from '@/lib/errors'
 import { modelRequestOptions } from '@/lib/model'
 import MessageItem from './MessageItem.vue'
 import ConversationConfig from './ConversationConfig.vue'
@@ -232,13 +233,19 @@ const sendMessage = async () => {
         // 错误
         console.error('Chat error:', err)
         const possibleCors = isLikelyCorsError(err)
-        error.value = possibleCors ? t('errors.possibleCors') : err.message
+        error.value = possibleCors
+          ? t('errors.possibleCors')
+          : (describeError(err, t) ?? err.message)
         chatStore.updateMessage(assistantMessage.id, {
           isStreaming: false,
         })
         chatStore.isGenerating = false
         abortControllerRef.value = null
-        toast.error(possibleCors ? t('errors.possibleCors') : t('chat.errors.sendFailed'))
+        toast.error(
+          possibleCors
+            ? t('errors.possibleCors')
+            : (summarizeError(err, t) ?? t('chat.errors.sendFailed')),
+        )
       },
       abortControllerRef.value.signal,
     )
@@ -247,9 +254,8 @@ const sendMessage = async () => {
     const possibleCors = isLikelyCorsError(err)
     error.value = possibleCors
       ? t('errors.possibleCors')
-      : err instanceof Error
-        ? err.message
-        : 'Unknown error'
+      : (describeError(err, t) ??
+        (err instanceof Error ? err.message : t('chat.errors.sendFailed')))
     chatStore.isGenerating = false
     abortControllerRef.value = null
   }
@@ -284,7 +290,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     <!-- 错误提示 -->
     <Alert v-if="error" variant="destructive" class="p-4 pl-14">
       <AlertCircle class="h-4 w-4" />
-      <AlertDescription>{{ error }}</AlertDescription>
+      <AlertDescription class="whitespace-pre-line">{{ error }}</AlertDescription>
     </Alert>
 
     <!-- 消息列表 -->

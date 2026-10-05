@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
+import { HttpError } from '@/lib/errors'
 
 const encoder = new TextEncoder()
 
@@ -14,6 +15,12 @@ function sseResponse(...chunks: string[]) {
 }
 
 const delta = (d: object) => `data: ${JSON.stringify({ choices: [{ delta: d }] })}\n\n`
+
+const errorResponse = (status: number, body: string) => ({
+  ok: false,
+  status,
+  text: async () => body,
+})
 
 describe('ChatService.sendMessage', () => {
   afterEach(() => vi.unstubAllGlobals())
@@ -77,6 +84,28 @@ describe('ChatService.sendMessage', () => {
     const init = fetchMock.mock.calls[0]![1]
     expect(init.headers).not.toHaveProperty('Authorization')
     expect(JSON.parse(String(init.body))).not.toHaveProperty('model')
+  })
+
+  it('非 2xx 时包成 HttpError，并带上服务端给的提示', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => errorResponse(401, JSON.stringify({ error: { message: 'bad key' } }))),
+    )
+    const onError = vi.fn()
+    await new ChatService('http://x/v1').sendMessage([], vi.fn(), vi.fn(), onError)
+    expect(onError.mock.calls[0]![0]).toMatchObject({ status: 401, message: 'bad key' })
+    expect(onError.mock.calls[0]![0]).toBeInstanceOf(HttpError)
+  })
+
+  it('testConnection 失败时同样抛 HttpError', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => errorResponse(503, 'gateway down')),
+    )
+    await expect(new ChatService('http://x/v1').testConnection()).rejects.toMatchObject({
+      status: 503,
+      message: 'gateway down',
+    })
   })
 
   it('isLikelyCorsError 只认 TypeError', () => {

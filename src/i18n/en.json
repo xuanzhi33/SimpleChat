@@ -3,7 +3,44 @@
     "title": "SimpleChat"
   },
   "errors": {
-    "possibleCors": "Request failed: the endpoint may not allow browser cross-origin (CORS) requests, or the network is unreachable. If CORS is the cause, consider using LLM Gate instead."
+    "possibleCors": "Request failed: the endpoint may not allow browser cross-origin (CORS) requests, or the network is unreachable. If CORS is the cause, consider using LLM Gate instead.",
+    "requestFailed": "Request failed ({status}): {reason}",
+    "serverDetail": "Server response: {detail}",
+    "solution": "Solution: {solution}",
+    "http": {
+      "400": {
+        "reason": "Malformed request body",
+        "solution": "Fix the request body as described in the server response"
+      },
+      "401": {
+        "reason": "Invalid API key, authentication failed",
+        "solution": "Check that your API key is correct and filled in; if you do not have one yet, create it on your provider's API Keys page"
+      },
+      "402": {
+        "reason": "Insufficient balance",
+        "solution": "Check your account balance and top up on your provider's billing page"
+      },
+      "422": {
+        "reason": "Invalid request parameters",
+        "solution": "Fix the parameters as described in the server response; a wrong model ID is the usual cause"
+      },
+      "429": {
+        "reason": "Rate limit reached (TPM or RPM)",
+        "solution": "Slow down your request rate and retry later"
+      },
+      "500": {
+        "reason": "Server error",
+        "solution": "Wait and retry; if the problem persists, contact your provider"
+      },
+      "503": {
+        "reason": "Server overloaded",
+        "solution": "Retry your request later"
+      },
+      "other": {
+        "reason": "The endpoint returned an error status",
+        "solution": "Check that the Base URL, model ID and API key are correct"
+      }
+    }
   },
   "setup": {
     "title": "Welcome to SimpleChat",

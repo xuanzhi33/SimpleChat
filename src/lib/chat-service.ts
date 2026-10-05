@@ -1,4 +1,5 @@
 import type { Message, ChatCompletionChunk } from '@/types/chat'
+import { HttpError } from '@/lib/errors'
 
 export interface ChatServiceOptions {
   /** 请求体中的 model 字段（仅 API 模式需要；Gate 模式留空） */
@@ -14,6 +15,23 @@ export interface ChatServiceOptions {
  */
 export function isLikelyCorsError(error: unknown): boolean {
   return error instanceof TypeError
+}
+
+/**
+ * 尽量从错误响应体里取出服务端给的提示，供 UI 展示原因。
+ * 取不到（空响应、网关的 HTML 错误页）就返回空字符串。
+ */
+async function readErrorDetail(response: Response): Promise<string> {
+  const text = await response.text().catch(() => '')
+  if (!text || text.trimStart().startsWith('<')) return ''
+
+  try {
+    const data = JSON.parse(text)
+    const message = data?.error?.message ?? data?.message
+    return typeof message === 'string' ? message : text.slice(0, 200)
+  } catch {
+    return text.slice(0, 200)
+  }
 }
 
 export class ChatService {
@@ -69,7 +87,7 @@ export class ChatService {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new HttpError(response.status, await readErrorDetail(response))
       }
 
       const reader = response.body?.getReader()
@@ -137,7 +155,7 @@ export class ChatService {
 
   /**
    * 测试连通性：让模型只回复 "OK"。
-   * 成功返回模型回复内容，失败抛错（调用方可用 isLikelyCorsError 追加提示）
+   * 成功返回模型回复内容，失败抛 HttpError（调用方用 describeError 转成用户文案）
    */
   async testConnection(): Promise<string> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -150,8 +168,7 @@ export class ChatService {
     })
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => '')
-      throw new Error(`HTTP ${response.status}${detail ? `: ${detail.slice(0, 200)}` : ''}`)
+      throw new HttpError(response.status, await readErrorDetail(response))
     }
 
     const data = await response.json()
