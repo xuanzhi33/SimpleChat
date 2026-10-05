@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { Trash2 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
+import { dayDiff } from '@/lib/time'
 import { toast } from 'vue-sonner'
 import type { Conversation } from '@/types/chat'
 import {
@@ -13,7 +14,7 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 const chatStore = useChatStore()
 
 const conversations = computed(() => chatStore.conversations)
@@ -51,19 +52,17 @@ const deleteConversation = (id: string, event: Event) => {
 }
 
 const formatDate = (timestamp: number) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  // 用共享的日历天差：原来拿时间差除 86400000 取整，会把“昨天 23:00”算成今天
+  const days = dayDiff(timestamp)
 
-  if (days === 0) {
+  if (days <= 0) {
     return t('chat.today')
   } else if (days === 1) {
     return t('chat.yesterday')
   } else if (days < 7) {
     return `${days} ${t('chat.daysAgo')}`
   } else {
-    return date.toLocaleDateString('zh-CN')
+    return d(timestamp, 'date')
   }
 }
 </script>
