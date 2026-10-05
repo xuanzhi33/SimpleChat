@@ -166,47 +166,50 @@ watch(
         :is-dark="settingsStore.isDarkMode"
       />
 
-      <!-- 时间戳 + 复制 + 编辑 -->
-      <div
-        class="mt-1 flex items-center gap-1 px-1 text-xs text-gray-400"
-        :class="isUser && 'justify-end'"
-      >
-        <span>{{ formattedTime }}</span>
-        <TooltipProvider v-if="message.content">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                class="size-6 text-gray-400 hover:text-foreground"
-                :aria-label="copied ? t('chat.copied') : t('chat.copy')"
-                @click="copy()"
-              >
-                <Check v-if="copied" class="size-3.5" />
-                <Copy v-else class="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
-        <TooltipProvider v-if="isUser && !message.isStreaming">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                class="size-6 text-gray-400 hover:text-foreground"
-                :aria-label="t('chat.editMessage')"
-                @click="emit('edit', message.id)"
-              >
-                <Pencil class="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{{ t('chat.editMessage') }}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      <!-- 时间戳 + 复制 + 编辑：AI 消息流式期间不显示，回答结束才淡入 -->
+      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0">
+        <div
+          v-if="!message.isStreaming"
+          class="mt-1 flex items-center gap-1 px-1 text-xs text-gray-400"
+          :class="isUser && 'justify-end'"
+        >
+          <span>{{ formattedTime }}</span>
+          <TooltipProvider v-if="message.content">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  class="size-6 text-gray-400 hover:text-foreground"
+                  :aria-label="copied ? t('chat.copied') : t('chat.copy')"
+                  @click="copy()"
+                >
+                  <Check v-if="copied" class="size-3.5" />
+                  <Copy v-else class="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
+          <TooltipProvider v-if="isUser && !message.isStreaming">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  class="size-6 text-gray-400 hover:text-foreground"
+                  :aria-label="t('chat.editMessage')"
+                  @click="emit('edit', message.id)"
+                >
+                  <Pencil class="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{{ t('chat.editMessage') }}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>

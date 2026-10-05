@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -70,11 +71,33 @@ describe('MessageItem 渲染', () => {
     expect(answering.find('.animate-pulse').exists()).toBe(false)
   })
 
+  it('AI 消息的页脚（时间/复制）等回答结束才出现', async () => {
+    const copyLabel = i18n.global.t('chat.copy')
+    const wrapper = mount(MessageItem, {
+      props: { message: makeMessage({ content: '正文', isStreaming: true }) },
+      global: { plugins: [createPinia(), i18n] },
+    })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(wrapper.find(`button[aria-label="${copyLabel}"]`).exists()).toBe(false)
+
+    await wrapper.setProps({ message: makeMessage({ content: '正文', isStreaming: false }) })
+    await nextTick()
+    expect(wrapper.find(`button[aria-label="${copyLabel}"]`).exists()).toBe(true)
+  })
+
   it('AI 消息里的 HTML 被净化（script / onerror 都进不来）', async () => {
     const wrapper = await render({
       content: '<script>alert(1)</script>\n\n<img src=x onerror=alert(1)>',
     })
     expect(wrapper.html()).not.toContain('<script')
     expect(wrapper.html()).not.toContain('onerror')
+  })
+
+  it('用户消息的页脚一直都在（复制 / 编辑）', async () => {
+    const wrapper = await render({ role: 'user', content: '你好' })
+    expect(wrapper.find(`button[aria-label="${i18n.global.t('chat.copy')}"]`).exists()).toBe(true)
+    expect(wrapper.find(`button[aria-label="${i18n.global.t('chat.editMessage')}"]`).exists()).toBe(
+      true,
+    )
   })
 })
