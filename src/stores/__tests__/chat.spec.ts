@@ -51,6 +51,22 @@ describe('chat store', () => {
     expect(store.activeConversation?.messages).toHaveLength(0)
   })
 
+  it('从指定消息开始截断（含自身）', () => {
+    const store = useChatStore()
+    store.createConversation()
+    const first = store.addMessage({ role: 'user', content: 'a' })!
+    store.addMessage({ role: 'assistant', content: 'b' })
+
+    store.truncateFrom(first.id)
+    expect(store.activeConversation?.messages).toHaveLength(0)
+
+    store.addMessage({ role: 'user', content: 'c' })
+    const last = store.addMessage({ role: 'assistant', content: 'd' })!
+    store.truncateFrom(last.id)
+    store.truncateFrom('does-not-exist') // 找不到这条消息时什么都不做
+    expect(store.activeConversation?.messages.map((m) => m.content)).toEqual(['c'])
+  })
+
   it('重命名会话：去掉首尾空白并忽略空标题', () => {
     const store = useChatStore()
     store.createConversation('old')

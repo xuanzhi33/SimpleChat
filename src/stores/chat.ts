@@ -168,6 +168,20 @@ export const useChatStore = defineStore('chat', () => {
     persistConversation(conversation)
   }
 
+  // 从某条消息开始截断（含这条）：编辑重发时，被编辑消息之后的上下文全部丢弃
+  const truncateFrom = (messageId: string) => {
+    const conversation = activeConversation.value
+    if (!conversation) return
+
+    const index = conversation.messages.findIndex((m) => m.id === messageId)
+    if (index === -1) return
+
+    conversation.messages.splice(index)
+    conversation.updatedAt = Date.now()
+    // 异步保存到 IndexedDB
+    persistConversation(conversation)
+  }
+
   // 重命名会话；标记为用户手动设置，之后不再自动生成标题
   const renameConversation = (title: string) => {
     const conversation = activeConversation.value
@@ -208,6 +222,7 @@ export const useChatStore = defineStore('chat', () => {
     updateMessage,
     deleteMessage,
     clearMessages,
+    truncateFrom,
     renameConversation,
     applyAutoTitle,
   }

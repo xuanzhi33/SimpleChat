@@ -24,28 +24,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
-import {
-  StopCircle,
-  Trash2,
-  AlertCircle,
-  Bot,
-  Cpu,
-  ArrowUp,
-  Settings,
-  Sliders,
-} from 'lucide-vue-next'
+import { StopCircle, AlertCircle, Bot, Cpu, ArrowUp, Settings, Sliders } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 
@@ -57,8 +39,9 @@ const messagesContainerRef = ref<HTMLElement>()
 const abortControllerRef = ref<AbortController | null>(null)
 const error = ref<string>('')
 const modelManagementOpen = ref(false)
-const clearDialogOpen = ref(false)
 const conversationConfigOpen = ref(false)
+/** 正在编辑的消息 id；非空时输入框里是这条消息的内容，发送时会从这条开始截断 */
+const editingMessageId = ref<string | null>(null)
 
 const messages = computed(() => chatStore.activeConversation?.messages || [])
 const isGenerating = computed(() => chatStore.isGenerating)
@@ -124,6 +107,8 @@ watch(
 watch(
   () => chatStore.activeConversationId,
   () => {
+    // 被编辑的消息已经不属于当前会话了，退出编辑模式
+    if (editingMessageId.value) cancelEdit()
     focusInput()
   },
 )
@@ -146,6 +131,12 @@ const sendMessage = async () => {
 
   error.value = ''
   inputText.value = ''
+
+  // 编辑模式：丢弃被编辑消息及其之后的内容，然后把新内容当成普通消息发出去
+  if (editingMessageId.value) {
+    chatStore.truncateFrom(editingMessageId.value)
+    editingMessageId.value = null
+  }
 
   // 添加用户消息
   chatStore.addMessage({
@@ -315,10 +306,29 @@ const maybeGenerateTitle = async (conversationId: string, assistantContent: stri
   }
 }
 
-// 清空对话
-const confirmClearConversation = () => {
-  chatStore.clearMessages()
-  clearDialogOpen.value = false
+// 进入编辑模式：把原消息写回输入框，发送时从这条消息开始截断
+const startEdit = (messageId: string) => {
+  const message = messages.value.find((m) => m.id === messageId)
+  if (!message) return
+
+  editingMessageId.value = messageId
+  inputText.value = message.content
+  error.value = ''
+  focusInput()
+
+  // 光标移到末尾，方便直接续写
+  nextTick(() => {
+    const input = document.getElementById('chat-main-input')
+    if (input instanceof HTMLTextAreaElement) {
+      input.setSelectionRange(input.value.length, input.value.length)
+    }
+  })
+}
+
+// 取消编辑：清空输入框，什么也不做
+const cancelEdit = () => {
+  editingMessageId.value = null
+  inputText.value = ''
 }
 
 // 处理键盘事件
@@ -366,12 +376,26 @@ const handleKeyDown = (event: KeyboardEvent) => {
       <!-- 系统提示词显示 -->
       <SystemPromptBlock v-if="messages.length > 0" class="mb-6" />
 
-      <MessageItem
-        v-for="(message, index) in messages"
-        :key="message.id"
-        :message="message"
-        :is-in-context="isMessageInContext(index)"
-      />
+      <template v-for="(message, index) in messages" :key="message.id">
+        <!-- 编辑模式：分割线标出「这条及以下会被替换」的边界 -->
+        <div
+          v-if="message.id === editingMessageId"
+          class="mb-4 flex items-center gap-3 text-xs text-muted-foreground"
+        >
+          <div class="h-px flex-1 bg-border"></div>
+          <span class="shrink-0">{{ t('chat.editNotice') }}</span>
+          <Button variant="ghost" size="sm" class="h-6 shrink-0 px-2 text-xs" @click="cancelEdit">
+            {{ t('chat.cancelEdit') }}
+          </Button>
+          <div class="h-px flex-1 bg-border"></div>
+        </div>
+
+        <MessageItem
+          :message="message"
+          :is-in-context="isMessageInContext(index)"
+          @edit="startEdit"
+        />
+      </template>
     </div>
 
     <!-- 输入区域：悬浮在底部的卡片，不再用分割线隔开 -->
@@ -387,25 +411,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
           class="min-h-16 max-h-50 resize-none md:text-base"
         />
         <InputGroupAddon align="block-end" class="justify-end">
-          <!-- 清空对话按钮 -->
-          <TooltipProvider v-if="messages.length > 0">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <InputGroupButton
-                  variant="ghost"
-                  size="icon-xs"
-                  @click="clearDialogOpen = true"
-                  :disabled="isGenerating"
-                >
-                  <Trash2 class="size-4" />
-                </InputGroupButton>
-              </TooltipTrigger>
-              <TooltipContent>
-                {{ t('chat.clearConversation') }}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
           <!-- 对话配置按钮 -->
           <TooltipProvider>
             <Tooltip>
@@ -493,25 +498,4 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
   <!-- 对话配置弹窗 -->
   <ConversationConfig v-model:open="conversationConfigOpen" />
-
-  <!-- 清空对话确认对话框 -->
-  <AlertDialog v-model:open="clearDialogOpen">
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>{{ t('chat.confirmClear') }}</AlertDialogTitle>
-        <AlertDialogDescription>
-          {{ t('chat.confirmClearDescription') }}
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>{{ t('chat.cancel') }}</AlertDialogCancel>
-        <AlertDialogAction
-          @click="confirmClearConversation"
-          class="bg-destructive text-background hover:bg-destructive/90"
-        >
-          {{ t('chat.confirm') }}
-        </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
 </template>

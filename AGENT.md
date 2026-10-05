@@ -28,6 +28,14 @@ Vue 3.5 · TypeScript · Pinia · VueUse · Tailwind CSS 4 · Shadcn-vue · Dexi
 - `Conversation.titleIsManual` 标记手动改过的标题，`renameConversation` 会置位，`applyAutoTitle` 遇到它就不覆盖
 - 起标题失败只 `console.error`，不改标题也不弹 toast
 
+### 编辑重发
+
+- 用户消息上的编辑按钮只负责 `emit('edit', id)`（`MessageItem`），写回输入框、光标置尾、发送时截断都在 `ChatPanel`
+- 编辑态由 `ChatPanel.editingMessageId` 表示：非空时在这条消息**上方**插一条分割线（提示文案 + 取消编辑按钮）
+- `chat.ts` 的 `truncateFrom(messageId)` 删掉这条消息**及其之后**的全部消息（`splice(index)`）；发送时先截断再 `addMessage`，之后走的就是完全普通的发送流程（上下文裁剪、自动标题都会照常触发）
+- 取消编辑只清空输入框、什么都没发生；切换会话也会退出编辑态（被编辑的消息已经不属于当前会话）
+- 输入框里的“清空对话”按钮已移除（改首条消息即可达到同样效果），但 `chatStore.clearMessages()` 仍在
+
 ### 多模型管理
 
 - 每个对话可独立选择模型（`Conversation.modelId`）

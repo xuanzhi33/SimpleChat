@@ -6,13 +6,17 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Lightbulb, Copy, Check, ChevronDown } from 'lucide-vue-next'
+import { Lightbulb, Copy, Check, ChevronDown, Pencil } from 'lucide-vue-next'
 import { renderMarkdown } from '@/lib/markdown'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   message: Message
   isInContext?: boolean
+}>()
+
+const emit = defineEmits<{
+  edit: [messageId: string]
 }>()
 
 const { t } = useI18n()
@@ -180,7 +184,7 @@ watch(
       <!-- AI 回复：无气泡，只剩文字 -->
       <div v-else class="text-base markdown-body" v-html="renderedContent"></div>
 
-      <!-- 时间戳 + 复制 -->
+      <!-- 时间戳 + 复制 + 编辑 -->
       <div
         class="mt-1 flex items-center gap-1 px-1 text-xs text-gray-400"
         :class="isUser && 'justify-end'"
@@ -201,6 +205,23 @@ watch(
               </Button>
             </TooltipTrigger>
             <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
+        <TooltipProvider v-if="isUser && !message.isStreaming">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                class="size-6 text-gray-400 hover:text-foreground"
+                :aria-label="t('chat.editMessage')"
+                @click="emit('edit', message.id)"
+              >
+                <Pencil class="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ t('chat.editMessage') }}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
