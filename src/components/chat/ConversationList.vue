@@ -73,9 +73,12 @@ const formatDate = (timestamp: number) => {
     <SidebarGroupContent>
       <SidebarMenu>
         <SidebarMenuItem v-for="conversation in conversations" :key="conversation.id">
+          <!-- 选中态：覆盖 ui/sidebar 里默认的 sidebar-accent（0.97，跟边栏底色只差一点点，几乎看不出来）；
+               tw-merge 会把 cva 里冲突的 data-[active=true]:bg-* / font-* 去掉，所以这里能直接盖。
+               用 foreground/10 而不是写死颜色，深色模式下会自动变成变亮；想更深就改这个 /10 -->
           <SidebarMenuButton
             size="lg"
-            class="pr-8"
+            class="pr-8 data-[active=true]:bg-foreground/10 data-[active=true]:font-normal"
             :data-active="activeId === conversation.id"
             @click="selectConversation(conversation.id)"
           >

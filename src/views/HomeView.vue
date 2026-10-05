@@ -15,13 +15,14 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import ConversationList from '@/components/chat/ConversationList.vue'
+import NewChatHint from '@/components/chat/NewChatHint.vue'
 import ChatPanel from '@/components/chat/ChatPanel.vue'
 import TitleBar from '@/components/chat/TitleBar.vue'
 import SettingsDialog from '@/views/SettingsView.vue'
 import { useChatStore } from '@/stores/chat'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useEventListener } from '@vueuse/core'
-import { isNewChatShortcut, newChatShortcutLabel } from '@/lib/shortcuts'
+import { isNewChatShortcut } from '@/lib/shortcuts'
 
 const { t } = useI18n()
 
@@ -54,12 +55,7 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{{ t('chat.newConversation') }}</p>
-            <kbd
-              class="rounded border border-current/25 px-1 py-0.5 font-sans text-[10px] leading-none opacity-70"
-            >
-              {{ newChatShortcutLabel }}
-            </kbd>
+            <NewChatHint />
           </TooltipContent>
         </Tooltip>
       </SidebarHeader>

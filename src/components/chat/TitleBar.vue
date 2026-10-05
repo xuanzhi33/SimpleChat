@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useChatStore } from '@/stores/chat'
-import { newChatShortcutLabel } from '@/lib/shortcuts'
+import NewChatHint from './NewChatHint.vue'
 
 const { t } = useI18n()
 const chatStore = useChatStore()
@@ -64,12 +64,7 @@ const createNew = () => {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{{ t('chat.newConversation') }}</p>
-        <kbd
-          class="rounded border border-current/25 px-1 py-0.5 font-sans text-[10px] leading-none opacity-70"
-        >
-          {{ newChatShortcutLabel }}
-        </kbd>
+        <NewChatHint />
       </TooltipContent>
     </Tooltip>
 
