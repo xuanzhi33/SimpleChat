@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Lightbulb, Copy, Check, ChevronDown, Pencil } from 'lucide-vue-next'
-import { renderMarkdown } from '@/lib/markdown'
+import MarkdownRender from 'markstream-vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const settingsStore = useSettingsStore()
 const isUser = computed(() => props.message.role === 'user')
 
 // 复制消息原文（AI 消息即 Markdown 源码）；legacy 回退兼容没有 navigator.clipboard 的 http 环境
@@ -35,40 +37,6 @@ const formattedTime = computed(() => {
     hour: '2-digit',
     minute: '2-digit',
   })
-})
-
-// 渲染 Markdown 内容
-const renderedContent = computed(() => {
-  // 用户消息保持纯文本
-  if (isUser.value) {
-    return props.message.content
-  }
-  // AI 消息渲染为 Markdown
-  let html = renderMarkdown(props.message.content)
-
-  // 如果正在流式传输，在HTML末尾添加光标
-  if (props.message.isStreaming) {
-    html = html.trimEnd()
-    // 在最后一个标签前插入光标
-    const lastTagMatch = html.match(/<\/[^>]+>$/)
-    if (lastTagMatch) {
-      const insertPos = html.lastIndexOf(lastTagMatch[0])
-      html =
-        html.slice(0, insertPos) +
-        '<span class="inline-block w-2 h-4 ml-1 bg-current animate-pulse align-middle"></span>' +
-        html.slice(insertPos)
-    } else {
-      // 如果没有结束标签，直接追加
-      html +=
-        '<span class="inline-block w-2 h-4 ml-1 bg-current animate-pulse align-middle"></span>'
-    }
-  }
-
-  return html
-})
-
-const renderedReasoningContent = computed(() => {
-  return props.message.reasoning_content ? renderMarkdown(props.message.reasoning_content) : ''
 })
 
 // 思考耗时（秒，保留一位小数；不足 0.1 秒也显示 0.1）
@@ -165,9 +133,16 @@ watch(
               </div>
               <div
                 ref="thinkingContentRef"
-                class="markdown-body min-w-0 flex-1 text-sm text-muted-foreground max-h-25 overflow-y-auto"
-                v-html="renderedReasoningContent"
-              ></div>
+                class="min-w-0 flex-1 text-muted-foreground max-h-25 overflow-y-auto"
+              >
+                <MarkdownRender
+                  class="thinking-md"
+                  mode="chat"
+                  :content="message.reasoning_content!"
+                  :final="!message.isStreaming"
+                  :is-dark="settingsStore.isDarkMode"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -180,15 +155,17 @@ watch(
       >
         <div class="text-base whitespace-pre-wrap wrap-break-word">
           {{ message.content }}
-          <span
-            v-if="message.isStreaming"
-            class="inline-block w-2 h-4 ml-1 bg-current animate-pulse"
-          ></span>
         </div>
       </Card>
 
-      <!-- AI 回复：无气泡，只剩文字 -->
-      <div v-else class="text-base markdown-body" v-html="renderedContent"></div>
+      <!-- AI 回复：无气泡，无头像，交给 markstream 流式渲染 -->
+      <MarkdownRender
+        v-else
+        mode="chat"
+        :content="message.content"
+        :final="!message.isStreaming"
+        :is-dark="settingsStore.isDarkMode"
+      />
 
       <!-- 时间戳 + 复制 + 编辑 -->
       <div

@@ -1,6 +1,6 @@
 # SimpleChat - Agent 开发参考
 
-纯前端 AI 对话应用（无后端）| Vue 3.5 · TS · Pinia · VueUse · Tailwind 4 · shadcn-vue · Dexie · marked · DOMPurify
+纯前端 AI 对话应用（无后端）| Vue 3.5 · TS · Pinia · VueUse · Tailwind 4 · shadcn-vue · Dexie · markstream-vue
 
 ## 铁律
 
@@ -10,6 +10,10 @@
 - **CORS 无法确诊**：`fetch` 被拦 / 断网 / DNS 失败都只抛 `TypeError`，文案只能写“疑似”并建议改用 LLM Gate（`isLikelyCorsError(err)`）
 - **主题是绿色**：`src/assets/main.css` 末尾还有第二段 `:root`（绿色主题），它覆盖了前面的中性色，所以 `--primary` / `--ring` 都是绿的；想让某个控件不发光得在控件上调 `class` 覆盖
 - **`Textarea` 字号**：基础类是 `text-base md:text-sm`，要改字号必须带 `md:` 前缀才压得住
+- **Markdown 只走 `markstream-vue`**：`<MarkdownRender mode="chat" :content :final="!message.isStreaming" :is-dark>`，用户在消息里贴的 HTML 绝不自己 `v-html`；不要再引 marked / DOMPurify（已删）
+- **它的 CSS 落在 `components` 层**：`@import 'markstream-vue/index.css' layer(components)`（官配写法，能被我们的 utility 压住）。要改它内部样式只能改 `--ms-*` 令牌（思考块就靠 `.thinking-md.markstream-vue` 把 `--ms-text-body` 调小），Tailwind 类打不进去
+- **模型输出里的 HTML 由它自己净化**：`htmlPolicy` 默认 `safe`（白名单标签、剥 `on*`/`style`、校验 URL、禁 script），这就是卸掉 DOMPurify 的原因；想要的更狠就改 `escape`（HTML 当纯文本显示）
+- **它的界面文案不跟语言走**：库只提供“替换文案”钩子，`src/i18n/markstream.ts` 把 i18n 的 `markstream` 段灌进 reactive map，`i18n/config.ts` 里 watch locale 刷新
 
 ## gate / api 双模式
 
@@ -43,7 +47,8 @@ interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsMa
 - `src/components/chat/` - ChatPanel（发送 / 编辑 / 流式）、MessageItem、ConversationList、TitleBar、SystemPromptBlock
 - `src/components/settings/` - SetupDialog（欢迎弹窗：DeepSeek 官方 / API / Gate）、ModelManagement
 - `src/stores/` - chat.ts、settings.ts
-- `src/lib/` - chat-service.ts（SSE）、model.ts（kind 判定）、errors.ts、title.ts、db.ts、markdown.ts
+- `src/lib/` - chat-service.ts（SSE）、model.ts（kind 判定）、errors.ts、title.ts、db.ts、utils.ts
+- `src/i18n/` - config.ts（创建实例 + 同步 markstream 文案）、markstream.ts、zh/en.json
 
 ## localStorage 键（前缀 `xuanzhi33-`）
 

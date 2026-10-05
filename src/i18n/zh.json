@@ -223,5 +223,30 @@
       "noGateway": "请先在设置中配置网关地址",
       "sendFailed": "发送消息失败"
     }
+  },
+  "markstream": {
+    "common.copy": "复制",
+    "common.copied": "已复制",
+    "common.selectCopy": "全选并复制",
+    "common.more": "更多",
+    "common.expand": "展开",
+    "common.collapse": "收起",
+    "common.preview": "预览",
+    "common.source": "源码",
+    "common.export": "导出",
+    "common.open": "打开",
+    "common.minimize": "最小化",
+    "common.reset": "重置",
+    "common.decrease": "减少",
+    "common.increase": "增加",
+    "common.fontLarger": "放大字号",
+    "common.fontSmaller": "缩小字号",
+    "common.fontReset": "重置字号",
+    "common.zoomIn": "放大",
+    "common.zoomOut": "缩小",
+    "common.resetZoom": "重置缩放",
+    "image.loading": "图片加载中...",
+    "image.loadError": "图片加载失败",
+    "image.preview": "预览图片"
   }
 }

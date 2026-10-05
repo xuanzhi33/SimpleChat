@@ -223,5 +223,30 @@
       "noGateway": "Please configure the gateway URL in settings first",
       "sendFailed": "Failed to send message"
     }
+  },
+  "markstream": {
+    "common.copy": "Copy",
+    "common.copied": "Copied",
+    "common.selectCopy": "Select all and copy",
+    "common.more": "More",
+    "common.expand": "Expand",
+    "common.collapse": "Collapse",
+    "common.preview": "Preview",
+    "common.source": "Source",
+    "common.export": "Export",
+    "common.open": "Open",
+    "common.minimize": "Minimize",
+    "common.reset": "Reset",
+    "common.decrease": "Decrease",
+    "common.increase": "Increase",
+    "common.fontLarger": "Larger text",
+    "common.fontSmaller": "Smaller text",
+    "common.fontReset": "Reset text size",
+    "common.zoomIn": "Zoom in",
+    "common.zoomOut": "Zoom out",
+    "common.resetZoom": "Reset zoom",
+    "image.loading": "Loading image...",
+    "image.loadError": "Image failed to load",
+    "image.preview": "Preview image"
   }
 }

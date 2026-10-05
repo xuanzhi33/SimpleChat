@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import './markdown.css';
+/* markstream 的组件样式放进 components 层：既可被我们的 utility 覆盖，也不会被 preflight 打乱 */
+@import 'markstream-vue/index.css' layer(components);
 
 @custom-variant dark (&:is(.dark *));
 
@@ -213,4 +214,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-accent-foreground);
   border-width: 4px;
+}
+
+/* 思考内容比正文小一号，保留层级（markstream 默认 --ms-text-body: 1rem） */
+.thinking-md.markstream-vue {
+  --ms-text-body: 0.875rem;
+  --ms-leading-body: 1.5;
+  --ms-text-h1: 1.5rem;
+  --ms-text-h2: 1.25rem;
+  --ms-text-h3: 1.125rem;
+}
+
+/* 它的段落上下各带 1.5em 外边距（且没有首尾重置），首尾块要收掉，
+   否则每条消息/思考块上下都多出一截空白（消息间距由外层 mb-4 控制） */
+.markstream-vue .node-slot:first-child .node-content > :first-child {
+  margin-top: 0;
+}
+
+.markstream-vue .node-slot:last-child .node-content > :last-child {
+  margin-bottom: 0;
 }
