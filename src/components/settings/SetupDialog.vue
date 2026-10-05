@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select'
 import { ExternalLink, CheckCircle2, Info } from 'lucide-vue-next'
 import type { ModelExtra } from '@/types/chat'
-import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID } from '@/lib/model'
+import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID, DEEPSEEK_MODEL_NAME } from '@/lib/model'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -79,7 +79,7 @@ const handleComplete = () => {
       return
     }
 
-    finishSetup(DEEPSEEK_MODEL_ID, DEEPSEEK_BASE_URL, {
+    finishSetup(DEEPSEEK_MODEL_NAME, DEEPSEEK_BASE_URL, {
       kind: 'api',
       model: DEEPSEEK_MODEL_ID,
       apiKey: key,
