@@ -1,0 +1,27 @@
+name: Test
+
+# 仅在 push 时触发；第三方 fork 的 PR 不会触发（PR 事件不在监听列表里）
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install pnpm and Node.js
+        uses: pnpm/setup@v3
+        with:
+          version: 12
+          runtime: node@24
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Run unit tests
+        run: pnpm test:unit:run
