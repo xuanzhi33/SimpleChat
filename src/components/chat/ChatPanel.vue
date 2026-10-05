@@ -338,8 +338,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
       <AlertDescription class="whitespace-pre-line">{{ error }}</AlertDescription>
     </Alert>
 
-    <!-- 消息列表 -->
-    <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-4 py-6">
+    <!-- 消息列表：底边比输入框顶边低 24px（= rounded-3xl 的圆角半径），
+         滚动的文字会从输入框圆角下面滑过，形成被盖住的悬浮感 -->
+    <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-6 py-6 -mb-6">
       <div
         v-if="messages.length === 0"
         class="flex flex-col items-center justify-center min-h-full text-center"
@@ -374,8 +375,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
     </div>
 
     <!-- 输入区域：悬浮在底部的卡片，不再用分割线隔开 -->
-    <div class="px-4 pb-4">
-      <InputGroup class="rounded-3xl shadow-lg">
+    <div class="relative z-10 px-4 pb-4">
+      <InputGroup class="rounded-3xl bg-background shadow-lg dark:bg-background">
         <InputGroupTextarea
           id="chat-main-input"
           v-model="inputText"
