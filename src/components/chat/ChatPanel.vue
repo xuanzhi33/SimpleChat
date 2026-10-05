@@ -376,13 +376,15 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
     <!-- 输入区域：悬浮在底部的卡片，不再用分割线隔开 -->
     <div class="relative z-10 px-4 pb-4">
-      <InputGroup class="rounded-3xl bg-background shadow-lg dark:bg-background">
+      <InputGroup
+        class="rounded-3xl bg-background shadow-lg dark:bg-background has-[[data-slot=input-group-control]:focus-visible]:border-foreground/20 has-[[data-slot=input-group-control]:focus-visible]:ring-foreground/10"
+      >
         <InputGroupTextarea
           id="chat-main-input"
           v-model="inputText"
           :placeholder="t('chat.inputPlaceholder')"
           @keydown="handleKeyDown"
-          class="min-h-16 max-h-50 resize-none md:text-[13px]"
+          class="min-h-16 max-h-50 resize-none md:text-base"
         />
         <InputGroupAddon align="block-end" class="justify-end">
           <!-- 清空对话按钮 -->
