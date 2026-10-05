@@ -137,7 +137,6 @@ watch(
               >
                 <MarkdownRender
                   class="thinking-md"
-                  :class="{ 'ms-streaming': message.isStreaming }"
                   mode="chat"
                   fade
                   :content="message.reasoning_content!"
@@ -163,7 +162,6 @@ watch(
       <!-- AI 回复：无气泡，无头像，交给 markstream 流式渲染 -->
       <MarkdownRender
         v-else
-        :class="{ 'ms-streaming': message.isStreaming }"
         mode="chat"
         fade
         :content="message.content"
