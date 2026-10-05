@@ -1,128 +1,50 @@
 # SimpleChat - Agent 开发参考
 
-纯前端 AI 对话应用 | Vue 3 + TypeScript + SSE 流式对话
+纯前端 AI 对话应用（无后端）| Vue 3.5 · TS · Pinia · VueUse · Tailwind 4 · shadcn-vue · Dexie · marked · DOMPurify
 
-## 技术栈
+## 铁律
 
-Vue 3.5 · TypeScript · Pinia · VueUse · Tailwind CSS 4 · Shadcn-vue · Dexie (IndexedDB) · marked · DOMPurify
+- **不要动 `src/components/ui/`**：shadcn 生成物（已从 eslint/prettier 排除），要改样式就在调用处传 `class`（`cn()` 会做 tw-merge 覆盖）
+- **i18n 中英必须成对**：键集合不一致不会报错，界面只会显示原始 key
+- **思考内容字段**：优先 `delta.reasoning_content`，回退 `delta.reasoning`（**不是** `thinking`），内部统一存 `reasoning_content`。DeepSeek/SGLang 用前者，vLLM 新版/OpenRouter/Ollama 用后者
+- **CORS 无法确诊**：`fetch` 被拦 / 断网 / DNS 失败都只抛 `TypeError`，文案只能写“疑似”并建议改用 LLM Gate（`isLikelyCorsError(err)`）
+- **主题是绿色**：`src/assets/main.css` 末尾还有第二段 `:root`（绿色主题），它覆盖了前面的中性色，所以 `--primary` / `--ring` 都是绿的；想让某个控件不发光得在控件上调 `class` 覆盖
+- **`Textarea` 字号**：基础类是 `text-base md:text-sm`，要改字号必须带 `md:` 前缀才压得住
 
-## 核心架构
+## gate / api 双模式
 
-### SSE 流式处理
+多发参数会污染上游（Gate 未配 Model Name 时原样透传），少发会报错；统一用 `modelRequestOptions(m)`（`src/lib/model.ts`）生成请求参数。
 
-位置：`src/lib/chat-service.ts`
-
-- 使用 Fetch API 而非 EventSource（需要发送 POST 请求体）
-- 通过 ReadableStream 读取响应流，逐行解析 `data:` 开头的 SSE 事件
-- 从 `delta.content` 和 `delta.reasoning_content`（回退 `delta.reasoning`）提取内容
-- `ChatService(baseUrl, { model?, apiKey? })`：**仅 api 模式**才在请求体带 `model`、在请求头带 `Authorization: Bearer`
-- 导出 `isLikelyCorsError(err)`：`fetch` 被浏览器拦截 / 断网 / DNS 失败都只会抛 `TypeError`，**无法互相区分**，所以文案必须写“疑似”并建议改用 LLM Gate
-- 非 2xx 抛 `HttpError(status, detail)`（`src/lib/errors.ts`），`detail` 从响应体的 `error.message` / `message` 里取；网关返回 HTML 错误页时丢弃
-- 错误文案统一走 `describeError(err, t)`（多行：原因 + 服务端原文 + 解决方法）和 `summarizeError(err, t)`（单行，适合 toast）；状态码 → 文案的对照表在 `i18n` 的 `errors.http.*`，未收录的状态码走 `errors.http.other`
-- `complete(messages)`：非流式的一次性补全，返回回复文本，失败抛 `HttpError`（`testConnection()` 和自动标题都走它）
-
-### 自动标题
-
-- 刚建会话时用首条用户消息前 30 字当标题（`chat.ts` 的 `addMessage`）
-- 第一轮问答结束后，`ChatPanel.maybeGenerateTitle()` 再让模型起一个更合适的标题；只在 `messages.length === 2` 时触发一次，提示词与清洗在 `src/lib/title.ts`
-- `Conversation.titleIsManual` 标记手动改过的标题，`renameConversation` 会置位，`applyAutoTitle` 遇到它就不覆盖
-- 起标题失败只 `console.error`，不改标题也不弹 toast
-
-### 编辑重发
-
-- 用户消息上的编辑按钮只负责 `emit('edit', id)`（`MessageItem`），写回输入框、光标置尾、发送时截断都在 `ChatPanel`
-- 编辑态由 `ChatPanel.editingMessageId` 表示：非空时在这条消息**上方**插一条分割线（提示文案 + 取消编辑按钮）
-- `chat.ts` 的 `truncateFrom(messageId)` 删掉这条消息**及其之后**的全部消息（`splice(index)`）；发送时先截断再 `addMessage`，之后走的就是完全普通的发送流程（上下文裁剪、自动标题都会照常触发）
-- 取消编辑只清空输入框、什么都没发生；切换会话也会退出编辑态（被编辑的消息已经不属于当前会话）
-- 输入框里的“清空对话”按钮已移除（改首条消息即可达到同样效果），但 `chatStore.clearMessages()` 仍在
-
-### 多模型管理
-
-- 每个对话可独立选择模型（`Conversation.modelId`）
-- 模型配置包含 `id`、`name`、`baseUrl`、`kind`、`model`、`apiKey`
-- 通过 `settings.ts` 管理模型列表和默认模型
-- 兼容两种后端，由 `kind` 区分：
-
-| `kind` | 请求体 `model` | `Authorization` | 说明 |
+| `Model.kind` | 请求体 `model` | `Authorization` | 说明 |
 | --- | --- | --- | --- |
-| `'gate'`（含缺省/历史数据） | ❌ 不发 | ❌ 不发 | LLM Gate 将模型编码在 URL path 里（`/{model_id}/v1`） |
-| `'api'` | ✅ 发 `model` | 有 `apiKey` 才发 | 直连兼容 OpenAI 的厂商接口 |
+| `'gate'`（缺省 / 历史数据） | ❌ | ❌ | LLM Gate 把模型编码在 URL path 里（`/{model_id}/v1`） |
+| `'api'` | ✅ | 有 `apiKey` 才发 | 直连兼容 OpenAI 的厂商接口 |
 
-`name` 在两种模式下都只是展示名；发往厂商的模型 ID 是独立的 `model` 字段。
-辅助函数在 `src/lib/model.ts`：`modelKind(m)`（`m.kind ?? 'gate'`）、`isApiModel(m)`、`modelRequestOptions(m)`。
+## 数据模型（`src/types/chat.ts`）
 
-### 数据持久化
-
-- **会话数据**：IndexedDB (Dexie) 存储 conversations
-- **配置项**：localStorage (VueUse) 存储模型列表、上下文长度等
-- 使用 `useStorage()` 自动同步 localStorage
-
-### 关键字段
-
-**⚠️ Thinking 字段优先读 `reasoning_content`，回退到 `reasoning`（不是 `thinking`）**
-
-不同网关字段名不一致：DeepSeek/SGLang/多数国内网关用 `reasoning_content`，vLLM 新版、OpenRouter、Ollama 的 OpenAI 兼容端点用 `reasoning`。解析时两者都读，内部统一存为 `reasoning_content`。
-
-```typescript
-interface Model {
-  id: string
-  name: string // 展示名，不参与请求
-  baseUrl: string
-  kind?: 'api' | 'gate' // 缺省视为 'gate'
-  model?: string // 仅 api 模式：请求体中的 model
-  apiKey?: string // 仅 api 模式：Bearer token，可为空
-}
+```ts
+interface Model { id; name; baseUrl; kind?; model?; apiKey? }
+// name 只是展示名（两种模式都不参与请求），model 才是真正发出去的模型 ID（仅 api 模式）
+interface Message { role: 'user' | 'assistant' | 'system'; content; reasoning_content?; reasoningDurationMs?; timestamp; isStreaming? }
+interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsManual?; createdAt; updatedAt }
 ```
 
-```typescript
-interface Message {
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  reasoning_content?: string // 推理内容
-  isStreaming?: boolean
-}
-```
+## 关键流程
 
-## 核心目录
+- **发送**：`ChatPanel.sendMessage()` → `ChatService.sendMessage()`，`POST {baseUrl}/chat/completions`，body 为 `messages` + `stream: true`；用 Fetch（不是 EventSource）读 ReadableStream 逐行解析 `data:`；非 2xx 抛 `HttpError(status, detail)`
+- **错误文案**：`describeError(err, t)`（多行：原因 + 服务端原文 + 解法）、`summarizeError(err, t)`（单行，给 toast）；状态码对照表在 `i18n.errors.http.*`，未收录走 `other`
+- **`complete(messages)`**：非流式补全，返回文本；`testConnection()`（要求回复 "OK"）和自动标题都走它
+- **自动标题**：`addMessage` 先用首条用户消息前 30 字当标题；第一轮问答结束（`messages.length === 2`）后 `maybeGenerateTitle()` 再让模型起一个，提示词与清洗在 `src/lib/title.ts`。`titleIsManual` 一旦手动改过就不再覆盖，失败只 `console.error`
+- **编辑重发**：`MessageItem` 只 `emit('edit', id)`；`ChatPanel.editingMessageId` 非空时在该消息上方插分割线，发送时先 `truncateFrom(id)`（删掉这条**及其之后**全部消息）再 `addMessage`，之后走普通发送流程（上下文裁剪、自动标题都会照常触发）
+- **持久化**：会话在 IndexedDB（Dexie），配置在 localStorage 且一律用 `useStorage()`（不要手写 localStorage）；启动时 `chatStore.initializeStore()`
 
-- `src/components/chat/` - ChatPanel、MessageItem、ConversationList、TitleBar（顶部悬浮胶囊：边栏开关 + 折叠时的新对话 + 可重命名的标题）
-- `src/stores/` - chat.ts (IndexedDB)、settings.ts (模型管理)
-- `src/lib/` - db.ts、chat-service.ts、model.ts、markdown.ts、errors.ts、title.ts
-- `src/types/chat.ts` - 类型定义
+## 目录
 
-## API 接口
+- `src/components/chat/` - ChatPanel（发送 / 编辑 / 流式）、MessageItem、ConversationList、TitleBar、SystemPromptBlock
+- `src/components/settings/` - SetupDialog（欢迎弹窗：DeepSeek 官方 / API / Gate）、ModelManagement
+- `src/stores/` - chat.ts、settings.ts
+- `src/lib/` - chat-service.ts（SSE）、model.ts（kind 判定）、errors.ts、title.ts、db.ts、markdown.ts
 
-**请求**: `POST {baseUrl}/chat/completions`，发送 `messages` 数组和 `stream: true`；api 模式额外带 `model` 与 `Authorization: Bearer <key>`
+## localStorage 键（前缀 `xuanzhi33-`）
 
-**响应**: SSE 流返回 `delta.content` 和思考内容（`delta.reasoning_content` 或 `delta.reasoning`）
-
-**测试连接**: `ChatService.testConnection()` 发一个非流式请求，要求模型只回复 "OK"（原来的 `GET /models` 已废弃，并非所有厂商都提供该端点）
-
-## 核心流程
-
-### 初始化
-
-App 启动时调用 `chatStore.initializeStore()` 从 IndexedDB 加载会话
-
-### 流式对话
-
-1. 添加用户消息
-2. 创建助手占位消息（`isStreaming: true`）
-3. 根据对话的 `modelId` 获取模型配置
-4. ChatService 流式接收并累加 `content` 和思考内容（`reasoning_content` / `reasoning`）
-5. 完成后设置 `isStreaming: false`
-
-## localStorage 键
-
-- `xuanzhi33-active-conversation-id` - 当前会话ID
-- `xuanzhi33-models` - 模型列表（含 `kind` / `model` / `apiKey`，同一份数组，无单独存储键）
-- `xuanzhi33-default-model-id` - 默认模型
-- `xuanzhi33-context-length` - 上下文长度（默认10）
-
-## 常见错误
-
-1. **字段名错误**：思考内容读 `reasoning_content`，并回退 `reasoning`；不要用 `thinking`
-2. **未初始化**：使用 chatStore 前必须调用 `initializeStore()`
-3. **手动存储**：用 `useStorage()` 而非手动操作 localStorage
-4. **gate/api 混淆**：gate 模式发 `model` 会污染上游（Gate 未配 Model Name 时原样透传），api 模式漏发 `model` 会直接报错；统一用 `modelRequestOptions()` 生成参数
-5. **CORS 误判**：`TypeError` 只能说明“请求没发出去”，不是 CORS 的确诊；文案不要写死
+`active-conversation-id` · `models` · `default-model-id` · `context-length`（默认 10）· `language` · `color-mode`
