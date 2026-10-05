@@ -192,6 +192,7 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "daysAgo": "days ago",
+    "timestampYesterday": "Yesterday {time}",
     "noConversations": "No conversations yet",
     "conversationConfig": "Conversation Settings",
     "systemPrompt": "System Prompt",

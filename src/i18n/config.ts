@@ -15,11 +15,30 @@ export const i18n = createI18n({
   // tooltip 里的完整时间交给 Intl 的 dateStyle/timeStyle 按语言排
   datetimeFormats: {
     en: {
-      time: { hour: '2-digit', minute: '2-digit' },
+      // en 用 12 小时制且不带前导零（2:05 PM），跟 tooltip 的 timeStyle: 'short' 一致
+      time: { hour: 'numeric', minute: '2-digit' },
+      date: { year: 'numeric', month: 'numeric', day: 'numeric' },
+      dateTimeWithYear: {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      },
       dateTime: { dateStyle: 'full', timeStyle: 'short' },
     },
     zh: {
       time: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
+      date: { year: 'numeric', month: 'numeric', day: 'numeric' },
+      // month: 'long' 在 zh 的 CLDR 模式里就是「3月」（不是「三月」），合起来是 2024年3月5日 14:05
+      dateTimeWithYear: {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      },
       dateTime: { dateStyle: 'full', timeStyle: 'short' },
     },
   },

@@ -192,6 +192,7 @@
     "today": "今天",
     "yesterday": "昨天",
     "daysAgo": "天前",
+    "timestampYesterday": "昨天 {time}",
     "noConversations": "暂无对话",
     "conversationConfig": "对话配置",
     "systemPrompt": "系统提示词",

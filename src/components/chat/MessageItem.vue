@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Lightbulb, Copy, Check, ChevronDown, Pencil } from 'lucide-vue-next'
 import MarkdownRender from 'markstream-vue'
 import { useSettingsStore } from '@/stores/settings'
+import { dayBucket } from '@/lib/time'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -32,8 +33,19 @@ const { copy, copied } = useClipboard({
   legacy: true,
 })
 
-// 时间戳走 i18n 的日期格式化：钟点跟随语言（zh 24h / en AM-PM），悬停看完整日期时间
-const formattedTime = computed(() => d(props.message.timestamp, 'time'))
+// 时间戳只分三档：今天给钟点、昨天加「昨天」、更早一律带年份（钟点跟随语言，zh 24h / en AM-PM）。
+// 不挂定时器，跨午夜就靠下一次重渲染刷新；悬停 tooltip 始终给完整日期时间
+const formattedTime = computed(() => {
+  const ts = props.message.timestamp
+  switch (dayBucket(ts)) {
+    case 'yesterday':
+      return t('chat.timestampYesterday', { time: d(ts, 'time') })
+    case 'older':
+      return d(ts, 'dateTimeWithYear')
+    default:
+      return d(ts, 'time')
+  }
+})
 const formattedDateTime = computed(() => d(props.message.timestamp, 'dateTime'))
 
 // 思考耗时（秒，保留一位小数；不足 0.1 秒也显示 0.1）

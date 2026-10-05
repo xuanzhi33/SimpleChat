@@ -115,7 +115,8 @@ describe('MessageItem 渲染', () => {
   })
 
   it('时间戳走 i18n：en 是 AM/PM、zh 是 24 小时制，悬停 tooltip 给完整日期时间', async () => {
-    const wrapper = await render({ content: '正文' })
+    const ts = Date.now()
+    const wrapper = await render({ content: '正文', timestamp: ts })
     const footer = wrapper.get('.mt-1')
     // AI 回复的时间戳要和正文文字左边缘齐：markstream 的段落没有水平内边距，
     // 所以 footer 也不能有，否则时间戳整体右移
@@ -124,14 +125,14 @@ describe('MessageItem 渲染', () => {
     expect(footer.classes().filter((c) => /^(p|m)[xl]-/.test(c))).toEqual([])
 
     const stamp = footer.get('span')
-    expect(stamp.text()).toBe(i18n.global.d(0, 'time'))
+    expect(stamp.text()).toBe(i18n.global.d(ts, 'time'))
     expect(stamp.text()).toMatch(/[AP]M/)
     expect(stamp.attributes('data-slot')).toBe('tooltip-trigger')
 
     // 切语言后跟着变（也验证 d() 在 computed 里对 locale 是响应式的）
     i18n.global.locale.value = 'zh'
     await nextTick()
-    expect(stamp.text()).toBe(i18n.global.d(0, 'time'))
+    expect(stamp.text()).toBe(i18n.global.d(ts, 'time'))
     expect(stamp.text()).not.toMatch(/[AP]M/)
     i18n.global.locale.value = 'en'
     await nextTick()
@@ -140,6 +141,36 @@ describe('MessageItem 渲染', () => {
     stamp.trigger('pointerenter')
     stamp.trigger('pointermove')
     await new Promise((resolve) => setTimeout(resolve, 80))
-    expect(document.body.textContent).toContain(i18n.global.d(0, 'dateTime'))
+    expect(document.body.textContent).toContain(i18n.global.d(ts, 'dateTime'))
+  })
+
+  it('时间戳只分三档：今天只给钟点、昨天前面加「昨天」、更早一律带年份', async () => {
+    const stampOf = async (ts: number) =>
+      (await render({ content: '正文', timestamp: ts })).get('.mt-1 span')
+
+    const now = new Date()
+    const year = now.getFullYear()
+
+    // 今天：只有钟点，不该出现年份
+    const today = await stampOf(now.getTime())
+    expect(today.text()).toBe(i18n.global.d(now.getTime(), 'time'))
+    expect(today.text()).not.toContain(String(year))
+
+    // 昨天：用 setDate 保证是日历上的昨天（不用 86400000 硬减，DST 那天会偏）
+    const yesterdayDate = new Date()
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+    yesterdayDate.setHours(10, 0, 0, 0)
+    const yesterdayTs = yesterdayDate.getTime()
+    const yesterday = await stampOf(yesterdayTs)
+    expect(yesterday.text()).toBe(
+      i18n.global.t('chat.timestampYesterday', { time: i18n.global.d(yesterdayTs, 'time') }),
+    )
+    expect(yesterday.text()).not.toContain(String(year))
+
+    // 更早：不管是不是今年都带年份
+    const olderTs = new Date(year - 1, 0, 15, 10, 0).getTime()
+    const older = await stampOf(olderTs)
+    expect(older.text()).toBe(i18n.global.d(olderTs, 'dateTimeWithYear'))
+    expect(older.text()).toContain(String(year - 1))
   })
 })

@@ -43,6 +43,7 @@ interface Conversation { id; title; messages; modelId?; systemPrompt?; titleIsMa
 - **`complete(messages)`**：非流式补全，返回文本；`testConnection()`（要求回复 "OK"）和自动标题都走它
 - **自动标题**：`addMessage` 先用首条用户消息前 30 字当标题；第一轮问答结束（`messages.length === 2`）后 `maybeGenerateTitle()` 再让模型起一个，提示词与清洗在 `src/lib/title.ts`。`titleIsManual` 一旦手动改过就不再覆盖，失败只 `console.error`
 - **编辑重发**：`MessageItem` 只 `emit('edit', id)`；`ChatPanel.editingMessageId` 非空时在该消息上方插分割线，发送时先 `truncateFrom(id)`（删掉这条**及其之后**全部消息）再 `addMessage`，之后走普通发送流程（上下文裁剪、自动标题都会照常触发）
+- **时间戳**：一律走 vue-i18n 的 `d(ts, 'time' | 'dateTime' | 'dateTimeWithYear' | 'date')`，别自己拼 `toLocaleString`；`datetimeFormats` 的 key 必须 zh/en 成对。消息 footer 只分三档（`src/lib/time.ts` 的 `dayBucket`）：今天给钟点、昨天加「昨天」、更早一律带年份；**不挂定时器**（跨午夜靠下一次重渲染），悬停 tooltip 始终给完整日期时间。判定天差用 `dayDiff`（按本地日历天，别拿时间差除 86400000，“昨天 23:00”会被算成今天）
 - **持久化**：会话在 IndexedDB（Dexie），配置在 localStorage 且一律用 `useStorage()`（不要手写 localStorage）；启动时 `chatStore.initializeStore()`
 
 ## 本地检查
