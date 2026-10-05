@@ -163,12 +163,13 @@ watch(
         :is-dark="settingsStore.isDarkMode"
       />
 
-      <!-- 时间戳 + 复制 + 编辑：AI 消息流式期间不显示，回答结束才淡入 -->
+      <!-- 时间戳 + 复制 + 编辑：AI 消息流式期间不显示，回答结束才淡入。
+           AI 这边不能加 px-*：markstream 的段落没有任何水平内边距，一加时间戳就会比正文文字右移 -->
       <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0">
         <div
           v-if="!message.isStreaming"
-          class="mt-1 flex items-center gap-1 px-1 text-xs text-gray-400"
-          :class="isUser ? 'justify-end' : 'justify-start'"
+          class="mt-1 flex items-center gap-1 text-xs text-gray-400"
+          :class="isUser ? 'justify-end px-1' : 'justify-start'"
         >
           <TooltipProvider>
             <!-- 时间戳：悬停看完整日期时间 -->

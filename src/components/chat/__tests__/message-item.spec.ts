@@ -109,15 +109,19 @@ describe('MessageItem 渲染', () => {
     expect(wrapper.find(`button[aria-label="${i18n.global.t('chat.editMessage')}"]`).exists()).toBe(
       true,
     )
-    expect(wrapper.get('.mt-1').classes()).toContain('justify-end')
+    const footer = wrapper.get('.mt-1')
+    expect(footer.classes()).toContain('justify-end')
+    expect(footer.classes()).toContain('px-1')
   })
 
   it('时间戳走 i18n：en 是 AM/PM、zh 是 24 小时制，悬停 tooltip 给完整日期时间', async () => {
     const wrapper = await render({ content: '正文' })
     const footer = wrapper.get('.mt-1')
-    // AI 回复的时间戳左对齐
+    // AI 回复的时间戳要和正文文字左边缘齐：markstream 的段落没有水平内边距，
+    // 所以 footer 也不能有，否则时间戳整体右移
     expect(footer.classes()).toContain('justify-start')
     expect(footer.classes()).not.toContain('justify-end')
+    expect(footer.classes().filter((c) => /^(p|m)[xl]-/.test(c))).toEqual([])
 
     const stamp = footer.get('span')
     expect(stamp.text()).toBe(i18n.global.d(0, 'time'))
