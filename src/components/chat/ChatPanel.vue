@@ -316,11 +316,11 @@ const startEdit = (messageId: string) => {
   error.value = ''
   focusInput()
 
-  // 光标移到末尾，方便直接续写
+  // 全选原文，方便直接覆写
   nextTick(() => {
     const input = document.getElementById('chat-main-input')
     if (input instanceof HTMLTextAreaElement) {
-      input.setSelectionRange(input.value.length, input.value.length)
+      input.select()
     }
   })
 }
@@ -384,7 +384,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
         >
           <div class="h-px flex-1 bg-border"></div>
           <span class="shrink-0">{{ t('chat.editNotice') }}</span>
-          <Button variant="ghost" size="sm" class="h-6 shrink-0 px-2 text-xs" @click="cancelEdit">
+          <Button
+            variant="default"
+            size="sm"
+            class="h-6 shrink-0 px-2.5 text-xs"
+            @click="cancelEdit"
+          >
             {{ t('chat.cancelEdit') }}
           </Button>
           <div class="h-px flex-1 bg-border"></div>
@@ -393,6 +398,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
         <MessageItem
           :message="message"
           :is-in-context="isMessageInContext(index)"
+          :is-editing="message.id === editingMessageId"
           @edit="startEdit"
         />
       </template>

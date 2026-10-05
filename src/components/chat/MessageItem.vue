@@ -13,6 +13,8 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   message: Message
   isInContext?: boolean
+  /** 正在被编辑、即将被替换掉的那条消息 */
+  isEditing?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -108,7 +110,11 @@ watch(
 <template>
   <div
     class="flex mb-4"
-    :class="[isUser ? 'justify-end' : 'justify-start', !isInContext && 'opacity-50']"
+    :class="[
+      isUser ? 'justify-end' : 'justify-start',
+      !isInContext && 'opacity-50',
+      isEditing && 'opacity-40',
+    ]"
   >
     <!-- 消息内容：用户气泡随文字伸缩（最多 80%）并靠右，AI 回复占满 -->
     <div :class="isUser ? 'w-fit max-w-[80%]' : 'min-w-0 flex-1'">
@@ -170,7 +176,7 @@ watch(
       <!-- 用户消息：淡色气泡（全圆角，上下内边距收紧） -->
       <Card
         v-if="isUser"
-        class="rounded-full px-3 py-1.5 bg-blue-100 text-blue-950 border-blue-100 dark:bg-blue-900/60 dark:text-blue-50 dark:border-blue-900/40"
+        class="w-fit max-w-full ml-auto rounded-full px-3 py-1.5 bg-blue-100 text-blue-950 border-blue-100 dark:bg-blue-900/60 dark:text-blue-50 dark:border-blue-900/40"
       >
         <div class="text-base whitespace-pre-wrap wrap-break-word">
           {{ message.content }}
