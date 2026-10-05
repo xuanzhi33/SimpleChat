@@ -34,7 +34,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
-import SettingsDialog from '@/views/SettingsView.vue'
 import {
   StopCircle,
   Trash2,
@@ -57,7 +56,6 @@ const abortControllerRef = ref<AbortController | null>(null)
 const error = ref<string>('')
 const modelManagementOpen = ref(false)
 const clearDialogOpen = ref(false)
-const settingsOpen = ref(false)
 const conversationConfigOpen = ref(false)
 
 const messages = computed(() => chatStore.activeConversation?.messages || [])
@@ -357,25 +355,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
           class="min-h-16 max-h-50 resize-none"
         />
         <InputGroupAddon align="block-end" class="justify-end">
-          <!-- 设置按钮 -->
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <InputGroupButton
-                  variant="ghost"
-                  size="icon-xs"
-                  @click="settingsOpen = true"
-                  :disabled="isGenerating"
-                >
-                  <Settings class="size-4" />
-                </InputGroupButton>
-              </TooltipTrigger>
-              <TooltipContent>
-                {{ t('settings.title') }}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
           <!-- 清空对话按钮 -->
           <TooltipProvider v-if="messages.length > 0">
             <Tooltip>
@@ -476,9 +455,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
       </InputGroup>
     </div>
   </div>
-
-  <!-- 设置弹窗 -->
-  <SettingsDialog v-model:open="settingsOpen" />
 
   <!-- 模型管理弹窗 -->
   <ModelManagement v-model:open="modelManagementOpen" />
