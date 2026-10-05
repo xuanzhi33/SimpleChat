@@ -7,9 +7,9 @@ import { describeError, summarizeError } from '@/lib/errors'
 import { modelRequestOptions } from '@/lib/model'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
 import MessageItem from './MessageItem.vue'
+import SystemPromptBlock from './SystemPromptBlock.vue'
 import ConversationConfig from './ConversationConfig.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import {
   InputGroup,
   InputGroupAddon,
@@ -336,7 +336,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-4 py-6">
       <div
         v-if="messages.length === 0"
-        class="flex flex-col items-center justify-center h-full text-center"
+        class="flex flex-col items-center justify-center min-h-full text-center"
       >
         <Bot class="w-20 h-20 mb-6 text-blue-500 opacity-50" />
         <h2 class="text-2xl font-bold mb-2 text-gray-700 dark:text-gray-300">
@@ -345,6 +345,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
         <p class="text-gray-500 dark:text-gray-400 mb-4">
           {{ t('chat.emptyState') }}
         </p>
+        <!-- 设置了系统提示词时紧贴欢迎语显示，不再撑出滚动条 -->
+        <SystemPromptBlock class="w-full max-w-md text-left" />
         <div
           v-if="!currentModel"
           class="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg"
@@ -355,24 +357,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
       </div>
 
       <!-- 系统提示词显示 -->
-      <div
-        v-if="
-          chatStore.activeConversation?.systemPrompt &&
-          chatStore.activeConversation.systemPrompt.trim()
-        "
-        class="mb-6"
-      >
-        <div class="mb-1">
-          <Badge variant="secondary" class="text-xs">
-            {{ t('chat.systemPrompt') }}
-          </Badge>
-        </div>
-        <div
-          class="border-l-2 border-border pl-3 text-sm text-muted-foreground whitespace-pre-wrap"
-        >
-          {{ chatStore.activeConversation.systemPrompt }}
-        </div>
-      </div>
+      <SystemPromptBlock v-if="messages.length > 0" class="mb-6" />
 
       <MessageItem
         v-for="(message, index) in messages"
