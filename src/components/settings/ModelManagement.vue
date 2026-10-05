@@ -24,9 +24,24 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Trash2, Edit, Check, X, Star, Sparkles, Sparkle } from 'lucide-vue-next'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Plus,
+  Trash2,
+  Edit,
+  Check,
+  X,
+  Star,
+  Sparkles,
+  Sparkle,
+  Loader2,
+  ShieldCheck,
+} from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { ButtonGroup } from '../ui/button-group'
+import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
+import { modelKind } from '@/lib/model'
+import type { ModelKind } from '@/types/chat'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -39,6 +54,10 @@ const isEditing = ref(false)
 const editingModelId = ref<string | null>(null)
 const modelName = ref('')
 const modelBaseUrl = ref('')
+const modelMode = ref<ModelKind>('api')
+const modelId = ref('')
+const apiKey = ref('')
+const isTesting = ref(false)
 
 // 删除确认对话框
 const deleteDialogOpen = ref(false)
@@ -50,6 +69,9 @@ const startAdd = () => {
   editingModelId.value = null
   modelName.value = ''
   modelBaseUrl.value = ''
+  modelMode.value = 'api'
+  modelId.value = ''
+  apiKey.value = ''
 }
 
 // 从 URL 推断模型名称
@@ -71,14 +93,14 @@ const inferModelNameFromUrl = (url: string): string => {
   return ''
 }
 
-// 监听 URL 变化，自动填充名称（仅在添加新模型时）
-watch(modelBaseUrl, (newUrl) => {
-  // 只有在添加新模型时才自动填充
-  if (!editingModelId.value && newUrl.trim()) {
-    const inferredName = inferModelNameFromUrl(newUrl)
-    if (inferredName) {
-      modelName.value = inferredName
-    }
+// 监听 URL / 模型 ID 变化，自动填充展示名（仅在添加新模型时）
+watch([modelBaseUrl, modelId], () => {
+  if (editingModelId.value) return
+  // API 模式直接用模型 ID 作为展示名，Gate 模式从 URL 推断
+  const inferred =
+    modelMode.value === 'api' ? modelId.value.trim() : inferModelNameFromUrl(modelBaseUrl.value)
+  if (inferred) {
+    modelName.value = inferred
   }
 })
 
@@ -90,6 +112,9 @@ const startEdit = (id: string) => {
     editingModelId.value = id
     modelName.value = model.name
     modelBaseUrl.value = model.baseUrl
+    modelMode.value = modelKind(model)
+    modelId.value = model.model ?? ''
+    apiKey.value = model.apiKey ?? ''
   }
 }
 
@@ -99,6 +124,9 @@ const cancelEdit = () => {
   editingModelId.value = null
   modelName.value = ''
   modelBaseUrl.value = ''
+  modelMode.value = 'api'
+  modelId.value = ''
+  apiKey.value = ''
 }
 
 // 保存模型
@@ -116,13 +144,25 @@ const saveModel = () => {
     return
   }
 
+  const isApi = modelMode.value === 'api'
+  const modelIdValue = modelId.value.trim()
+  if (isApi && !modelIdValue) {
+    toast.error(t('settings.models.modelIdRequired'))
+    return
+  }
+
+  // 切回 gate 模式时会显式清掉 api 模式的字段
+  const extra = isApi
+    ? { kind: 'api' as const, model: modelIdValue, apiKey: apiKey.value.trim() || undefined }
+    : { kind: 'gate' as const }
+
   if (editingModelId.value) {
     // 编辑现有模型
-    settingsStore.updateModel(editingModelId.value, name, baseUrl)
+    settingsStore.updateModel(editingModelId.value, name, baseUrl, extra)
     toast.success(t('settings.models.updateSuccess'))
   } else {
     // 添加新模型
-    settingsStore.addModel(name, baseUrl)
+    settingsStore.addModel(name, baseUrl, extra)
     toast.success(t('settings.models.addSuccess'))
   }
 
@@ -156,6 +196,45 @@ const setDefaultModel = (id: string) => {
   defaultModelId.value = id
   toast.success(t('settings.models.defaultSet'))
 }
+
+// 脱敏显示 API Key
+const maskKey = (key: string) => (key.length > 8 ? `${key.slice(0, 4)}…${key.slice(-4)}` : '••••••')
+
+// 测试连通性：让模型只回复 "OK"
+const testModel = async () => {
+  const baseUrl = modelBaseUrl.value.trim()
+  if (!baseUrl) {
+    toast.error(t('settings.models.urlRequired'))
+    return
+  }
+
+  const isApi = modelMode.value === 'api'
+  const modelIdValue = modelId.value.trim()
+  if (isApi && !modelIdValue) {
+    toast.error(t('settings.models.modelIdRequired'))
+    return
+  }
+
+  isTesting.value = true
+  try {
+    const service = new ChatService(
+      baseUrl,
+      isApi ? { model: modelIdValue, apiKey: apiKey.value.trim() || undefined } : {},
+    )
+    const reply = await service.testConnection()
+    toast.success(t('settings.models.testSuccess', { reply: reply.trim().slice(0, 50) }))
+  } catch (err) {
+    console.error('Model test failed:', err)
+    const message = isLikelyCorsError(err)
+      ? t('errors.possibleCors')
+      : err instanceof Error
+        ? err.message
+        : String(err)
+    toast.error(t('settings.models.testFailed', { message }))
+  } finally {
+    isTesting.value = false
+  }
+}
 </script>
 
 <template>
@@ -183,6 +262,32 @@ const setDefaultModel = (id: string) => {
               <Input id="model-url" v-model="modelBaseUrl" :placeholder="t('settings.models.modelUrlPlaceholder')" />
               <p class="text-xs text-muted-foreground">{{ t('settings.models.modelUrlDescription') }}</p>
             </div>
+
+            <Tabs v-model="modelMode">
+              <TabsList class="w-full">
+                <TabsTrigger value="api">{{ t('settings.models.kind.api') }}</TabsTrigger>
+                <TabsTrigger value="gate">{{ t('settings.models.kind.gate') }}</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="api" class="space-y-4 pt-2">
+                <div class="space-y-2">
+                  <Label for="model-id">{{ t('settings.models.modelId') }}</Label>
+                  <Input id="model-id" v-model="modelId" :placeholder="t('settings.models.modelIdPlaceholder')" />
+                  <p class="text-xs text-muted-foreground">{{ t('settings.models.modelIdDescription') }}</p>
+                </div>
+                <div class="space-y-2">
+                  <Label for="model-api-key">{{ t('settings.models.apiKey') }}</Label>
+                  <Input id="model-api-key" v-model="apiKey" type="password"
+                    :placeholder="t('settings.models.apiKeyPlaceholder')" />
+                  <p class="text-xs text-muted-foreground">{{ t('settings.models.apiKeyDescription') }}</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="gate" class="pt-2">
+                <p class="text-xs text-muted-foreground">{{ t('settings.models.gateHint') }}</p>
+              </TabsContent>
+            </Tabs>
+
             <div class="space-y-2">
               <Label for="model-name">{{ t('settings.models.modelName') }}</Label>
               <Input id="model-name" v-model="modelName" :placeholder="t('settings.models.modelNamePlaceholder')" />
@@ -192,6 +297,11 @@ const setDefaultModel = (id: string) => {
               <Button @click="saveModel" class="gap-2">
                 <Check class="size-4" />
                 {{ t('settings.models.save') }}
+              </Button>
+              <Button @click="testModel" variant="outline" class="gap-2" :disabled="isTesting">
+                <Loader2 v-if="isTesting" class="size-4 animate-spin" />
+                <ShieldCheck v-else class="size-4" />
+                {{ isTesting ? t('settings.models.testing') : t('settings.models.test') }}
               </Button>
               <Button @click="cancelEdit" variant="outline" class="gap-2">
                 <X class="size-4" />
@@ -218,8 +328,18 @@ const setDefaultModel = (id: string) => {
                     <Badge v-if="model.id === defaultModelId" variant="default">
                       {{ t('settings.models.default') }}
                     </Badge>
+                    <Badge variant="outline">
+                      {{ t(`settings.models.kind.${modelKind(model)}`) }}
+                    </Badge>
                   </div>
                   <p class="text-sm text-muted-foreground break-all">{{ model.baseUrl }}</p>
+                  <p v-if="modelKind(model) === 'api' && model.model" class="text-sm text-muted-foreground break-all">
+                    {{ model.model }}
+                  </p>
+                  <p v-if="modelKind(model) === 'api' && model.apiKey"
+                    class="text-xs text-muted-foreground font-mono">
+                    {{ maskKey(model.apiKey) }}
+                  </p>
                 </div>
                 <ButtonGroup>
 

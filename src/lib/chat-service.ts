@@ -1,10 +1,44 @@
 import type { Message, ChatCompletionChunk } from '@/types/chat'
 
+export interface ChatServiceOptions {
+  /** 请求体中的 model 字段（仅 API 模式需要；Gate 模式留空） */
+  model?: string
+  /** Bearer token，留空则不发送 Authorization 头 */
+  apiKey?: string
+}
+
+/**
+ * 判断错误是否疑似被浏览器 CORS 拦截。
+ * 跨域被拒、断网、DNS 失败在 fetch 层面都只会抛 TypeError，无法互相区分，
+ * 因此调用方展示文案时需写成“疑似”，并建议改用 LLM Gate。
+ */
+export function isLikelyCorsError(error: unknown): boolean {
+  return error instanceof TypeError
+}
+
 export class ChatService {
   private baseUrl: string
+  private options: ChatServiceOptions
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, options: ChatServiceOptions = {}) {
     this.baseUrl = baseUrl.replace(/\/$/, '') // 移除末尾的斜杠
+    this.options = options
+  }
+
+  private buildHeaders(): Record<string, string> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (this.options.apiKey) {
+      headers['Authorization'] = `Bearer ${this.options.apiKey}`
+    }
+    return headers
+  }
+
+  /** 请求体公共部分：gate 模式不带 model */
+  private buildBody(extra: Record<string, unknown>): string {
+    return JSON.stringify({
+      ...(this.options.model ? { model: this.options.model } : {}),
+      ...extra,
+    })
   }
 
   /**
@@ -26,10 +60,8 @@ export class ChatService {
 
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        headers: this.buildHeaders(),
+        body: this.buildBody({
           messages: apiMessages,
           stream: true,
         }),
@@ -104,20 +136,25 @@ export class ChatService {
   }
 
   /**
-   * 测试网关连接
+   * 测试连通性：让模型只回复 "OK"。
+   * 成功返回模型回复内容，失败抛错（调用方可用 isLikelyCorsError 追加提示）
    */
-  async testConnection(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/models`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      return response.ok
-    } catch (error) {
-      console.error('Connection test failed:', error)
-      return false
+  async testConnection(): Promise<string> {
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: this.buildHeaders(),
+      body: this.buildBody({
+        messages: [{ role: 'user', content: 'Reply with exactly "OK" and nothing else.' }],
+        stream: false,
+      }),
+    })
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new Error(`HTTP ${response.status}${detail ? `: ${detail.slice(0, 200)}` : ''}`)
     }
+
+    const data = await response.json()
+    return data?.choices?.[0]?.message?.content ?? ''
   }
 }

@@ -16,9 +16,12 @@ SimpleChat is a minimalist chat interface for interacting with Large Language Mo
 
 ## Prerequisites
 
-**Important:** This application requires [LLM Gate](https://github.com/xuanzhi33/LLM-Gate) to be installed and running on your local machine.
+SimpleChat talks to an OpenAI-compatible `/chat/completions` endpoint. Two modes are supported:
 
-LLM Gate acts as a local API gateway that provides the chat completion endpoints needed by SimpleChat.
+- **API Mode (default)** — connect directly to any provider that allows browser cross-origin (CORS) requests, such as DeepSeek, Moonshot, or a local Ollama / LM Studio instance. You provide the Base URL, the Model ID and (optionally) an API Key.
+- **LLM Gate Mode** — run [LLM Gate](https://github.com/xuanzhi33/LLM-Gate) locally as a gateway. Recommended when the provider blocks browser requests (CORS), or when you do not want to paste your API key into a web page.
+
+> ⚠️ **Security note:** in API Mode your API key is stored in the browser's `localStorage` in plaintext and is sent directly from the browser to the endpoint you configure. Avoid API Mode on shared or untrusted machines.
 
 ## Features
 
@@ -53,10 +56,16 @@ pnpm dev
 
 ## Usage
 
-1. Ensure [LLM Gate](https://github.com/xuanzhi33/LLM-Gate) is installed and running
-2. Open SimpleChat in your browser
-3. Configure the LLM Gate endpoint in settings if needed
+1. Open SimpleChat in your browser
+2. Choose a mode in the welcome dialog:
+   - **API Mode**: enter the Base URL (e.g. `https://api.deepseek.com/v1`), the Model ID (e.g. `deepseek-chat`) and your API Key
+   - **LLM Gate Mode**: install and start [LLM Gate](https://github.com/xuanzhi33/LLM-Gate), add a model, then paste the generated URL (e.g. `http://localhost:11456/model-01/v1`)
+3. Use **Test** in the model editor to verify the connection (it asks the model to reply "OK")
 4. Start chatting!
+
+The two modes can be mixed: every model keeps its own mode, Base URL, Model ID and API Key.
+
+If a request fails with a network error, the endpoint is probably blocking browser requests (CORS). Use LLM Gate Mode to route around it.
 
 ## Development
 
@@ -64,7 +73,8 @@ pnpm dev
 - `pnpm build` - Build for production
 - `pnpm preview` - Preview production build
 - `pnpm lint` - Lint and fix code
-- `pnpm test:unit` - Run unit tests
+- `pnpm test:unit` - Run unit tests (watch mode)
+- `pnpm test:unit:run` - Run unit tests once
 
 ## Tech Stack
 

@@ -2,7 +2,7 @@ import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/cor
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Model } from '@/types/chat'
+import type { Model, ModelExtra } from '@/types/chat'
 
 export type ColorMode = 'light' | 'dark' | 'system'
 
@@ -37,22 +37,27 @@ export const useSettingsStore = defineStore('settings', () => {
   })
 
   // 添加模型
-  const addModel = (name: string, baseUrl: string) => {
+  const addModel = (name: string, baseUrl: string, extra: ModelExtra = {}) => {
     const newModel: Model = {
       id: Date.now().toString(),
       name,
       baseUrl,
+      ...extra,
     }
     models.value.push(newModel)
     return newModel
   }
 
   // 更新模型
-  const updateModel = (id: string, name: string, baseUrl: string) => {
+  const updateModel = (id: string, name: string, baseUrl: string, extra: ModelExtra = {}) => {
     const model = models.value.find((m) => m.id === id)
     if (model) {
       model.name = name
       model.baseUrl = baseUrl
+      // 显式赋值，切回 gate 模式时会清掉 api 模式的字段
+      model.kind = extra.kind
+      model.model = extra.model
+      model.apiKey = extra.apiKey
     }
   }
 

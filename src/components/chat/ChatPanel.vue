@@ -2,7 +2,8 @@
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
-import { ChatService } from '@/lib/chat-service'
+import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
+import { modelRequestOptions } from '@/lib/model'
 import MessageItem from './MessageItem.vue'
 import ConversationConfig from './ConversationConfig.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -163,7 +164,7 @@ const sendMessage = async () => {
   chatStore.isGenerating = true
   abortControllerRef.value = new AbortController()
 
-  const chatService = new ChatService(currentModel.value.baseUrl)
+  const chatService = new ChatService(currentModel.value.baseUrl, modelRequestOptions(currentModel.value))
   let fullContent = ''
   let fullReasoningContent = ''
 
@@ -225,19 +226,25 @@ const sendMessage = async () => {
       (err) => {
         // 错误
         console.error('Chat error:', err)
-        error.value = err.message
+        const possibleCors = isLikelyCorsError(err)
+        error.value = possibleCors ? t('errors.possibleCors') : err.message
         chatStore.updateMessage(assistantMessage.id, {
           isStreaming: false,
         })
         chatStore.isGenerating = false
         abortControllerRef.value = null
-        toast.error(t('chat.errors.sendFailed'))
+        toast.error(possibleCors ? t('errors.possibleCors') : t('chat.errors.sendFailed'))
       },
       abortControllerRef.value.signal
     )
   } catch (err) {
     console.error('Unexpected error:', err)
-    error.value = err instanceof Error ? err.message : 'Unknown error'
+    const possibleCors = isLikelyCorsError(err)
+    error.value = possibleCors
+      ? t('errors.possibleCors')
+      : err instanceof Error
+        ? err.message
+        : 'Unknown error'
     chatStore.isGenerating = false
     abortControllerRef.value = null
   }

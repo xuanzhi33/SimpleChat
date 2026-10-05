@@ -2,10 +2,29 @@
   "common": {
     "title": "SimpleChat"
   },
+  "errors": {
+    "possibleCors": "请求失败：目标接口可能不允许浏览器跨域(CORS)访问，也可能是网络不可达。若确认是跨域限制，建议改用 LLM Gate。"
+  },
   "setup": {
     "title": "欢迎使用 SimpleChat",
     "description": "SimpleChat 是一个纯前端应用，所有数据都存储在您的浏览器中。为了与 AI 模型交互，您需要自行配置大模型接口。",
     "language": "语言 / Language",
+    "tabs": {
+      "api": "API 模式",
+      "gate": "LLM Gate 模式"
+    },
+    "api": {
+      "baseUrl": "接口 Base URL",
+      "baseUrlPlaceholder": "例如: https://api.deepseek.com/v1",
+      "baseUrlDescription": "兼容 OpenAI 格式的接口地址，必须允许浏览器跨域(CORS)访问。",
+      "modelId": "模型 ID",
+      "modelIdPlaceholder": "例如: deepseek-chat",
+      "modelIdDescription": "将作为请求中的 model 字段发送，需与厂商文档一致。",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
+      "apiKeyDescription": "仅保存在浏览器本地；本地无鉴权的接口可留空。"
+    },
+    "modelIdRequired": "请输入模型 ID",
     "step1": "步骤 1：下载并安装 LLM Gate",
     "step1Description": "LLM Gate 是一个本地 LLM API 网关，支持 Windows 和 macOS。它为 SimpleChat 提供与 AI 模型通信的接口。",
     "downloadButton": "下载 LLM Gate",
@@ -59,8 +78,24 @@
       "addModel": "添加模型",
       "editModel": "编辑模型",
       "modelUrl": "模型 URL",
-      "modelUrlPlaceholder": "例如: http://localhost:11456/model-01/v1",
-      "modelUrlDescription": "从 LLM Gate 软件中获取的模型 Base URL",
+      "modelUrlPlaceholder": "例如: https://api.deepseek.com/v1",
+      "modelUrlDescription": "兼容 OpenAI 格式的接口 Base URL",
+      "modelId": "模型 ID",
+      "modelIdPlaceholder": "例如: gpt-4o",
+      "modelIdDescription": "将作为请求中的 model 字段发送，需与厂商文档一致",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
+      "apiKeyDescription": "仅保存在浏览器本地；本地无鉴权的接口可留空",
+      "gateHint": "使用 LLM Gate 时，模型由 URL 中的模型 ID 决定，这里无需填写模型 ID 和 API Key。",
+      "kind": {
+        "api": "API",
+        "gate": "LLM Gate"
+      },
+      "modelIdRequired": "请输入模型 ID",
+      "test": "测试",
+      "testing": "测试中...",
+      "testSuccess": "连接成功，模型回复：{reply}",
+      "testFailed": "连接失败：{message}",
       "modelName": "模型名称",
       "modelNamePlaceholder": "例如: GPT-4",
       "modelNameDescription": "仅用于展示，不会用于接口调用",

@@ -7,11 +7,18 @@ export interface Message {
   isStreaming?: boolean
 }
 
+export type ModelKind = 'api' | 'gate'
+
 export interface Model {
   id: string
-  name: string
+  name: string // 展示名，不参与请求
   baseUrl: string
+  kind?: ModelKind // 缺省视为 'gate'（历史数据兼容）
+  model?: string // 仅 api 模式：请求体中的 model 字段
+  apiKey?: string // 仅 api 模式：Bearer token，可为空
 }
+
+export type ModelExtra = Pick<Model, 'kind' | 'model' | 'apiKey'>
 
 export interface Conversation {
   id: string

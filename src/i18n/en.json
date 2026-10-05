@@ -2,10 +2,29 @@
   "common": {
     "title": "SimpleChat"
   },
+  "errors": {
+    "possibleCors": "Request failed: the endpoint may not allow browser cross-origin (CORS) requests, or the network is unreachable. If CORS is the cause, consider using LLM Gate instead."
+  },
   "setup": {
     "title": "Welcome to SimpleChat",
     "description": "SimpleChat is a pure frontend application with all data stored in your browser. To interact with AI models, you need to configure your own LLM interface.",
     "language": "Language / 语言",
+    "tabs": {
+      "api": "API Mode",
+      "gate": "LLM Gate Mode"
+    },
+    "api": {
+      "baseUrl": "Endpoint Base URL",
+      "baseUrlPlaceholder": "e.g., https://api.deepseek.com/v1",
+      "baseUrlDescription": "An OpenAI-compatible endpoint that allows browser cross-origin (CORS) requests.",
+      "modelId": "Model ID",
+      "modelIdPlaceholder": "e.g., deepseek-chat",
+      "modelIdDescription": "Sent as the `model` field in requests; must match the provider's documentation.",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "e.g., sk-xxxxxxxx",
+      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth."
+    },
+    "modelIdRequired": "Please enter the model ID",
     "step1": "Step 1: Download and Install LLM Gate",
     "step1Description": "LLM Gate is a local LLM API gateway that supports Windows and macOS. It provides SimpleChat with the interface to communicate with AI models.",
     "downloadButton": "Download LLM Gate",
@@ -59,8 +78,24 @@
       "addModel": "Add Model",
       "editModel": "Edit Model",
       "modelUrl": "Model URL",
-      "modelUrlPlaceholder": "e.g., http://localhost:11456/model-01/v1",
-      "modelUrlDescription": "Model Base URL obtained from LLM Gate software",
+      "modelUrlPlaceholder": "e.g., https://api.deepseek.com/v1",
+      "modelUrlDescription": "OpenAI-compatible endpoint Base URL",
+      "modelId": "Model ID",
+      "modelIdPlaceholder": "e.g., gpt-4o",
+      "modelIdDescription": "Sent as the `model` field in requests; must match the provider's documentation",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "e.g., sk-xxxxxxxx",
+      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth",
+      "gateHint": "With LLM Gate, the model is determined by the ID in the URL, so no model ID or API Key is needed here.",
+      "kind": {
+        "api": "API",
+        "gate": "LLM Gate"
+      },
+      "modelIdRequired": "Please enter the model ID",
+      "test": "Test",
+      "testing": "Testing...",
+      "testSuccess": "Connected. Model replied: {reply}",
+      "testFailed": "Connection failed: {message}",
       "modelName": "Model Name",
       "modelNamePlaceholder": "e.g., GPT-4",
       "modelNameDescription": "Display name only, not used for API calls",

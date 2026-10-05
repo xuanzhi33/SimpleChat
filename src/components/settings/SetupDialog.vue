@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ExternalLink, CheckCircle2 } from 'lucide-vue-next'
+import type { ModelKind } from '@/types/chat'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -34,7 +36,10 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
+const mode = ref<ModelKind>('api')
 const modelUrl = ref('')
+const modelId = ref('')
+const apiKey = ref('')
 
 const isOpen = computed({
   get: () => props.open,
@@ -48,15 +53,27 @@ const openLLMGate = () => {
 }
 
 const handleComplete = () => {
-  if (!modelUrl.value.trim()) {
+  const url = modelUrl.value.trim()
+  if (!url) {
     toast.error(t('setup.urlRequired'))
     return
   }
 
-  const name = t('setup.defaultModelName')
-  const url = modelUrl.value.trim()
+  const isApi = mode.value === 'api'
+  const modelIdValue = modelId.value.trim()
+  if (isApi && !modelIdValue) {
+    toast.error(t('setup.modelIdRequired'))
+    return
+  }
 
-  const newModel = settingsStore.addModel(name, url)
+  const newModel = settingsStore.addModel(
+    // api 模式用模型 ID 作为展示名
+    isApi ? modelIdValue : t('setup.defaultModelName'),
+    url,
+    isApi
+      ? { kind: 'api', model: modelIdValue, apiKey: apiKey.value.trim() || undefined }
+      : { kind: 'gate' },
+  )
   settingsStore.defaultModelId = newModel.id
 
   toast.success(t('setup.setupSuccess'))
@@ -92,7 +109,38 @@ const handleSkip = () => {
         </Select>
       </div>
 
-      <div class="space-y-4">
+      <Tabs v-model="mode" class="gap-4">
+        <TabsList class="w-full">
+          <TabsTrigger value="api">{{ t('setup.tabs.api') }}</TabsTrigger>
+          <TabsTrigger value="gate">{{ t('setup.tabs.gate') }}</TabsTrigger>
+        </TabsList>
+
+        <!-- API 模式 -->
+        <TabsContent value="api" class="space-y-4">
+          <div class="space-y-2">
+            <Label for="api-base-url">{{ t('setup.api.baseUrl') }}</Label>
+            <Input id="api-base-url" v-model="modelUrl" :placeholder="t('setup.api.baseUrlPlaceholder')"
+              @keyup.enter="handleComplete" />
+            <p class="text-xs text-muted-foreground">{{ t('setup.api.baseUrlDescription') }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="api-model-id">{{ t('setup.api.modelId') }}</Label>
+            <Input id="api-model-id" v-model="modelId" :placeholder="t('setup.api.modelIdPlaceholder')"
+              @keyup.enter="handleComplete" />
+            <p class="text-xs text-muted-foreground">{{ t('setup.api.modelIdDescription') }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="api-key">{{ t('setup.api.apiKey') }}</Label>
+            <Input id="api-key" v-model="apiKey" type="password" :placeholder="t('setup.api.apiKeyPlaceholder')"
+              @keyup.enter="handleComplete" />
+            <p class="text-xs text-muted-foreground">{{ t('setup.api.apiKeyDescription') }}</p>
+          </div>
+        </TabsContent>
+
+        <!-- LLM Gate 模式 -->
+        <TabsContent value="gate" class="space-y-4">
         <!-- Step 1 -->
         <div class="space-y-2">
           <div class="flex items-start gap-3">
@@ -147,7 +195,8 @@ const handleSkip = () => {
             </div>
           </div>
         </div>
-      </div>
+        </TabsContent>
+      </Tabs>
 
       <DialogFooter>
         <Button @click="handleSkip" variant="outline">
