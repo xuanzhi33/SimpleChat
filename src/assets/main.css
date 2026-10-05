@@ -234,3 +234,41 @@
 .markstream-vue .node-slot:last-child .node-content > :last-child {
   margin-bottom: 0;
 }
+
+/* 流式光标：只给最后一个段落（含列表项）末尾挂一根细竖线，
+   消息一结束 ms-streaming 就移除，光标自动消失。
+   慢呼吸而不是硬闪，prefers-reduced-motion 下不动画。 */
+.ms-streaming.markstream-vue
+  .node-slot:not(:has(~ .node-slot))
+  .paragraph-node:last-child:not(.list-item:not(:last-child) *):not(.blockquote-node *)
+  > :last-child::after {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 1em;
+  margin-left: 0.12em;
+  vertical-align: -0.12em;
+  border-right: 2px solid currentColor;
+  animation: ms-caret-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes ms-caret-pulse {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ms-streaming.markstream-vue
+    .node-slot:not(:has(~ .node-slot))
+    .paragraph-node:last-child:not(.list-item:not(:last-child) *):not(.blockquote-node *)
+    > :last-child::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}

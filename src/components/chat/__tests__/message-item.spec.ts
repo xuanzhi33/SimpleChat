@@ -47,6 +47,13 @@ describe('MessageItem 渲染', () => {
     expect(wrapper.find('.paragraph-node').element.textContent).toContain('\n')
   })
 
+  it('流式中才挂 ms-streaming（流式光标全靠这个类）', async () => {
+    const streaming = await render({ content: '你好', isStreaming: true })
+    expect(streaming.find('.markstream-vue').classes()).toContain('ms-streaming')
+    const done = await render({ content: '你好', isStreaming: false })
+    expect(done.find('.markstream-vue').classes()).not.toContain('ms-streaming')
+  })
+
   it('AI 消息里的 HTML 被净化（script / onerror 都进不来）', async () => {
     const wrapper = await render({
       content: '<script>alert(1)</script>\n\n<img src=x onerror=alert(1)>',
