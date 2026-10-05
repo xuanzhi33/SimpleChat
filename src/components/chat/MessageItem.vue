@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { User, Lightbulb, Copy, Check, ChevronDown } from 'lucide-vue-next'
+import { Lightbulb, Copy, Check, ChevronDown } from 'lucide-vue-next'
 import { renderMarkdown } from '@/lib/markdown'
 import { useI18n } from 'vue-i18n'
 
@@ -103,18 +103,10 @@ watch(
 
 <template>
   <div
-    class="flex gap-3 mb-4"
-    :class="[isUser ? 'flex-row-reverse' : 'flex-row', !isInContext && 'opacity-50']"
+    class="flex mb-4"
+    :class="[isUser ? 'justify-end' : 'justify-start', !isInContext && 'opacity-50']"
   >
-    <!-- 头像：只有用户保留，AI 回复直接是文字 -->
-    <div
-      v-if="isUser"
-      class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900"
-    >
-      <User class="w-5 h-5 text-blue-700 dark:text-blue-100" />
-    </div>
-
-    <!-- 消息内容：用户气泡随文字伸缩（最多 80%），AI 回复占满 -->
+    <!-- 消息内容：用户气泡随文字伸缩（最多 80%）并靠右，AI 回复占满 -->
     <div :class="isUser ? 'w-fit max-w-[80%]' : 'min-w-0 flex-1'">
       <!-- 超出上下文标识 -->
       <div v-if="!isInContext" class="mb-1">
@@ -141,7 +133,7 @@ watch(
           <Badge
             v-if="!message.isStreaming && thinkingSeconds"
             variant="secondary"
-            class="px-1.5 py-0 text-[11px] font-normal"
+            class="ml-1.5 px-1.5 py-0 text-[11px] font-normal"
           >
             {{ t('chat.thinkingDuration', { seconds: thinkingSeconds }) }}
           </Badge>
@@ -151,16 +143,23 @@ watch(
           />
         </button>
 
-        <div v-show="!thinkingCollapsed" class="mt-1.5 flex gap-3">
-          <!-- 细线顶端与右侧思考正文顶端对齐 -->
-          <div class="flex w-4 shrink-0 justify-center">
-            <div class="w-px bg-border"></div>
+        <div
+          class="grid transition-[grid-template-rows] duration-200 ease-out"
+          :class="thinkingCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'"
+        >
+          <div class="overflow-hidden">
+            <div class="mt-1.5 flex gap-3">
+              <!-- 细线顶端与右侧思考正文顶端对齐 -->
+              <div class="flex w-4 shrink-0 justify-center">
+                <div class="w-px bg-border"></div>
+              </div>
+              <div
+                ref="thinkingContentRef"
+                class="markdown-body min-w-0 flex-1 text-sm text-muted-foreground max-h-25 overflow-y-auto"
+                v-html="renderedReasoningContent"
+              ></div>
+            </div>
           </div>
-          <div
-            ref="thinkingContentRef"
-            class="markdown-body min-w-0 flex-1 text-sm text-muted-foreground max-h-25 overflow-y-auto"
-            v-html="renderedReasoningContent"
-          ></div>
         </div>
       </div>
 
