@@ -22,7 +22,7 @@ const emit = defineEmits<{
   edit: [messageId: string]
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 const settingsStore = useSettingsStore()
 const isUser = computed(() => props.message.role === 'user')
 
@@ -32,12 +32,9 @@ const { copy, copied } = useClipboard({
   legacy: true,
 })
 
-const formattedTime = computed(() => {
-  return new Date(props.message.timestamp).toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-})
+// 时间戳走 i18n 的日期格式化：钟点跟随语言（zh 24h / en AM-PM），悬停看完整日期时间
+const formattedTime = computed(() => d(props.message.timestamp, 'time'))
+const formattedDateTime = computed(() => d(props.message.timestamp, 'dateTime'))
 
 // 思考耗时（秒，保留一位小数；不足 0.1 秒也显示 0.1）
 const thinkingSeconds = computed(() =>
@@ -171,11 +168,17 @@ watch(
         <div
           v-if="!message.isStreaming"
           class="mt-1 flex items-center gap-1 px-1 text-xs text-gray-400"
-          :class="isUser && 'justify-end'"
+          :class="isUser ? 'justify-end' : 'justify-start'"
         >
-          <span>{{ formattedTime }}</span>
-          <TooltipProvider v-if="message.content">
+          <TooltipProvider>
+            <!-- 时间戳：悬停看完整日期时间 -->
             <Tooltip>
+              <TooltipTrigger as-child>
+                <span>{{ formattedTime }}</span>
+              </TooltipTrigger>
+              <TooltipContent>{{ formattedDateTime }}</TooltipContent>
+            </Tooltip>
+            <Tooltip v-if="message.content">
               <TooltipTrigger as-child>
                 <Button
                   variant="ghost"
@@ -190,10 +193,8 @@ watch(
               </TooltipTrigger>
               <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
             </Tooltip>
-          </TooltipProvider>
-          <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
-          <TooltipProvider v-if="isUser && !message.isStreaming">
-            <Tooltip>
+            <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
+            <Tooltip v-if="isUser">
               <TooltipTrigger as-child>
                 <Button
                   variant="ghost"

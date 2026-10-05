@@ -1,5 +1,15 @@
 import { nextTick } from 'vue'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+// reka 的 tooltip 定位用 useSize，依赖 ResizeObserver（jsdom 里没有）
+vi.stubGlobal(
+  'ResizeObserver',
+  class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+)
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import MessageItem from '@/components/chat/MessageItem.vue'
@@ -93,11 +103,39 @@ describe('MessageItem 渲染', () => {
     expect(wrapper.html()).not.toContain('onerror')
   })
 
-  it('用户消息的页脚一直都在（复制 / 编辑）', async () => {
+  it('用户消息的页脚一直都在（复制 / 编辑），且靠右', async () => {
     const wrapper = await render({ role: 'user', content: '你好' })
     expect(wrapper.find(`button[aria-label="${i18n.global.t('chat.copy')}"]`).exists()).toBe(true)
     expect(wrapper.find(`button[aria-label="${i18n.global.t('chat.editMessage')}"]`).exists()).toBe(
       true,
     )
+    expect(wrapper.get('.mt-1').classes()).toContain('justify-end')
+  })
+
+  it('时间戳走 i18n：en 是 AM/PM、zh 是 24 小时制，悬停 tooltip 给完整日期时间', async () => {
+    const wrapper = await render({ content: '正文' })
+    const footer = wrapper.get('.mt-1')
+    // AI 回复的时间戳左对齐
+    expect(footer.classes()).toContain('justify-start')
+    expect(footer.classes()).not.toContain('justify-end')
+
+    const stamp = footer.get('span')
+    expect(stamp.text()).toBe(i18n.global.d(0, 'time'))
+    expect(stamp.text()).toMatch(/[AP]M/)
+    expect(stamp.attributes('data-slot')).toBe('tooltip-trigger')
+
+    // 切语言后跟着变（也验证 d() 在 computed 里对 locale 是响应式的）
+    i18n.global.locale.value = 'zh'
+    await nextTick()
+    expect(stamp.text()).toBe(i18n.global.d(0, 'time'))
+    expect(stamp.text()).not.toMatch(/[AP]M/)
+    i18n.global.locale.value = 'en'
+    await nextTick()
+
+    // 悬停 → tooltip 里是完整日期时间
+    stamp.trigger('pointerenter')
+    stamp.trigger('pointermove')
+    await new Promise((resolve) => setTimeout(resolve, 80))
+    expect(document.body.textContent).toContain(i18n.global.d(0, 'dateTime'))
   })
 })

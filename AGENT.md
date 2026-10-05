@@ -5,7 +5,7 @@
 ## 铁律
 
 - **不要动 `src/components/ui/`**：shadcn 生成物（已从 eslint/prettier 排除），要改样式就在调用处传 `class`（`cn()` 会做 tw-merge 覆盖）
-- **i18n 中英必须成对**：键集合不一致不会报错，界面只会显示原始 key
+- **i18n 中英必须成对**：键集合不一致不会报错，界面只会显示原始 key；`src/i18n/config.ts` 里的 `datetimeFormats` 也一样（可见钟点走 `d(ts, 'time')`，完整日期时间走 `d(ts, 'dateTime')`，别自己拼 `toLocaleString`）
 - **思考内容字段**：优先 `delta.reasoning_content`，回退 `delta.reasoning`（**不是** `thinking`），内部统一存 `reasoning_content`。DeepSeek/SGLang 用前者，vLLM 新版/OpenRouter/Ollama 用后者
 - **“思考结束”= 收到首个正文增量**：SSE 没有 thinking 结束事件，唯一信号是 `delta.content` 到来，所以 `ChatPanel` 用单向 latch 写成 `message.thinkingDone`（模型偶尔思考/正文交替也不回头）。思考块的标题/脉动/自动收起/`:final` 全看 `isThinking = isStreaming && !thinkingDone`，而不是整条消息的 `isStreaming`（否则正文开始后还一直显示“思考中...”）
 - **CORS 无法确诊**：`fetch` 被拦 / 断网 / DNS 失败都只抛 `TypeError`，文案只能写“疑似”并建议改用 LLM Gate（`isLikelyCorsError(err)`）
