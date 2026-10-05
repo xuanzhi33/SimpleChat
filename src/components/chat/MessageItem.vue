@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { User, Lightbulb, Copy, Check } from 'lucide-vue-next'
+import { User, Lightbulb, Copy, Check, ChevronDown } from 'lucide-vue-next'
 import { renderMarkdown } from '@/lib/markdown'
 import { useI18n } from 'vue-i18n'
 
@@ -68,6 +68,17 @@ const renderedReasoningContent = computed(() => {
 // thinking内容容器引用
 const thinkingContentRef = ref<HTMLElement | null>(null)
 
+// 思考内容默认折叠：历史消息直接收起，正在思考的消息展开
+const thinkingCollapsed = ref(!props.message.isStreaming)
+
+// 思考中展开，思考结束自动收起（只跟随 isStreaming 变化，之后手动展开不会被覆盖）
+watch(
+  () => props.message.isStreaming,
+  (streaming) => {
+    thinkingCollapsed.value = !streaming
+  },
+)
+
 // 监听thinking内容变化，自动滚动到底部
 watch(
   () => props.message.reasoning_content,
@@ -105,22 +116,35 @@ watch(
         </Badge>
       </div>
 
-      <!-- Thinking 内容 (如果有)：灯泡与细线同列居中，整体灰色 -->
-      <div v-if="message.reasoning_content" class="mb-2 flex gap-3">
-        <div class="flex shrink-0 flex-col items-center">
+      <!-- Thinking 内容 (如果有)：灯泡/状态/箭头整行可点击，正文可折叠 -->
+      <div v-if="message.reasoning_content" class="mb-2">
+        <button
+          type="button"
+          class="flex w-fit items-center rounded-sm text-xs leading-4 text-muted-foreground transition-colors outline-hidden hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+          :aria-expanded="!thinkingCollapsed"
+          @click="thinkingCollapsed = !thinkingCollapsed"
+        >
           <Lightbulb
-            class="w-4 h-4 text-muted-foreground"
+            class="w-4 h-4 mr-3 shrink-0"
             :class="message.isStreaming && 'animate-pulse'"
           />
-          <div class="mt-1 w-px flex-1 bg-border"></div>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="mb-1.5 text-xs leading-4 text-muted-foreground">
+          <span>
             {{ message.isStreaming ? t('chat.thinkingInProgress') : t('chat.thinkingComplete') }}
+          </span>
+          <ChevronDown
+            class="ml-1.5 size-3.5 shrink-0 transition-transform"
+            :class="thinkingCollapsed && '-rotate-90'"
+          />
+        </button>
+
+        <div v-show="!thinkingCollapsed" class="mt-1.5 flex gap-3">
+          <!-- 细线顶端与右侧思考正文顶端对齐 -->
+          <div class="flex w-4 shrink-0 justify-center">
+            <div class="w-px bg-border"></div>
           </div>
           <div
             ref="thinkingContentRef"
-            class="markdown-body text-sm text-muted-foreground max-h-25 overflow-y-auto"
+            class="markdown-body min-w-0 flex-1 text-sm text-muted-foreground max-h-25 overflow-y-auto"
             v-html="renderedReasoningContent"
           ></div>
         </div>
