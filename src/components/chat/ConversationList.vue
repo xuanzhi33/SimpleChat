@@ -11,7 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction
+  SidebarMenuAction,
 } from '@/components/ui/sidebar'
 
 const { t } = useI18n()
@@ -24,7 +24,6 @@ const selectConversation = (id: string) => {
   chatStore.activeConversationId = id
 }
 
-
 const deleteConversation = (id: string, event: Event) => {
   event.stopPropagation()
 
@@ -32,7 +31,9 @@ const deleteConversation = (id: string, event: Event) => {
   const index = chatStore.conversations.findIndex((c) => c.id === id)
   if (index === -1) return
 
-  const deletedConversation: Conversation = JSON.parse(JSON.stringify(chatStore.conversations[index]))
+  const deletedConversation: Conversation = JSON.parse(
+    JSON.stringify(chatStore.conversations[index]),
+  )
 
   // 直接删除
   chatStore.deleteConversation(id)
@@ -45,8 +46,8 @@ const deleteConversation = (id: string, event: Event) => {
       onClick: () => {
         // 撤销删除：恢复会话
         chatStore.restoreConversation(deletedConversation, index)
-      }
-    }
+      },
+    },
   })
 }
 
@@ -74,22 +75,32 @@ const formatDate = (timestamp: number) => {
     <SidebarGroupContent>
       <SidebarMenu>
         <SidebarMenuItem v-for="conversation in conversations" :key="conversation.id">
-          <SidebarMenuButton size="lg" :data-active="activeId === conversation.id"
-            @click="selectConversation(conversation.id)">
+          <SidebarMenuButton
+            size="lg"
+            :data-active="activeId === conversation.id"
+            @click="selectConversation(conversation.id)"
+          >
             <MessageSquare class="h-4 w-4" />
             <div class="grid flex-1 text-left text-sm leading-tight">
               <span class="truncate font-medium">{{ conversation.title }}</span>
               <span class="truncate text-xs text-muted-foreground">
-                {{ conversation.messages.length }} {{ t('chat.messages') }} · {{ formatDate(conversation.updatedAt) }}
+                {{ conversation.messages.length }} {{ t('chat.messages') }} ·
+                {{ formatDate(conversation.updatedAt) }}
               </span>
             </div>
           </SidebarMenuButton>
-          <SidebarMenuAction show-on-hover @click="(e: Event) => deleteConversation(conversation.id, e)">
+          <SidebarMenuAction
+            show-on-hover
+            @click="(e: Event) => deleteConversation(conversation.id, e)"
+          >
             <Trash2 />
           </SidebarMenuAction>
         </SidebarMenuItem>
 
-        <div v-if="conversations.length === 0" class="text-center text-muted-foreground text-sm py-8 px-4">
+        <div
+          v-if="conversations.length === 0"
+          class="text-center text-muted-foreground text-sm py-8 px-4"
+        >
           {{ t('chat.noConversations') }}
         </div>
       </SidebarMenu>

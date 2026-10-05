@@ -6,7 +6,19 @@ import { useChatStore } from '@/stores/chat'
 import SettingsItem from '@/components/settings/SettingsItem.vue'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import { computed, ref } from 'vue'
-import { AppWindow, Languages, Settings, SunMoon, Cpu, Trash2, Database, MessageSquare, Info, GitBranch, Bug } from 'lucide-vue-next'
+import {
+  AppWindow,
+  Languages,
+  Settings,
+  SunMoon,
+  Cpu,
+  Trash2,
+  Database,
+  MessageSquare,
+  Info,
+  GitBranch,
+  Bug,
+} from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -18,12 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogScrollContent,
-} from '@/components/ui/dialog'
+import { Dialog, DialogHeader, DialogTitle, DialogScrollContent } from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,20 +70,22 @@ const contextLengthValue = computed({
   get: () => contextLength.value,
   set: (val: number) => {
     contextLength.value = val
-  }
+  },
 })
 
 const colorOptions = computed(() => {
-  return ['light', 'dark', 'system'].map(mode => ({
+  return ['light', 'dark', 'system'].map((mode) => ({
     label: t(`settings.interface.colorModeOptions.${mode}`),
-    value: mode
+    value: mode,
   }))
 })
 
-const localeOptions = computed(() => availableLocales.map(loc => ({
-  label: t(`settings.interface.languageOptions.${loc}`),
-  value: loc
-})))
+const localeOptions = computed(() =>
+  availableLocales.map((loc) => ({
+    label: t(`settings.interface.languageOptions.${loc}`),
+    value: loc,
+  })),
+)
 
 const sectionTitleClass = 'font-semibold text-muted-foreground border-b pt-3 pb-2'
 
@@ -93,7 +102,6 @@ const clearAllData = async () => {
   // 重置设置为默认值
   settingsStore.resetSettings()
 }
-
 </script>
 
 <template>
@@ -111,11 +119,21 @@ const clearAllData = async () => {
           {{ t('settings.interface.title') }}
         </h2>
 
-        <SettingsItem v-model="colorMode" :label="t('settings.interface.colorMode')" type="select" :icon="SunMoon"
-          :options="colorOptions" />
+        <SettingsItem
+          v-model="colorMode"
+          :label="t('settings.interface.colorMode')"
+          type="select"
+          :icon="SunMoon"
+          :options="colorOptions"
+        />
 
-        <SettingsItem v-model="language" :label="t('settings.interface.language')" type="select" :icon="Languages"
-          :options="localeOptions" />
+        <SettingsItem
+          v-model="language"
+          :label="t('settings.interface.language')"
+          type="select"
+          :icon="Languages"
+          :options="localeOptions"
+        />
       </section>
 
       <section class="space-y-3">
@@ -144,7 +162,11 @@ const clearAllData = async () => {
               <SelectValue :placeholder="t('settings.api.selectContextLength')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="option in contextLengthOptions" :key="option.value" :value="option.value">
+              <SelectItem
+                v-for="option in contextLengthOptions"
+                :key="option.value"
+                :value="option.value"
+              >
                 {{ option.label }}
               </SelectItem>
             </SelectContent>
@@ -178,8 +200,10 @@ const clearAllData = async () => {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{{ t('settings.data.cancel') }}</AlertDialogCancel>
-                <AlertDialogAction @click="clearAllData"
-                  class="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <AlertDialogAction
+                  @click="clearAllData"
+                  class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
                   {{ t('settings.data.confirm') }}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -211,9 +235,7 @@ const clearAllData = async () => {
                 @xuanzhi33
               </Button>
             </p>
-            <p class="text-xs text-muted-foreground">
-              Licensed under AGPL-3.0
-            </p>
+            <p class="text-xs text-muted-foreground">Licensed under AGPL-3.0</p>
             <ButtonGroup class="mt-2">
               <Button variant="outline" size="sm" @click="openUrl(repo)">
                 <GitBranch />

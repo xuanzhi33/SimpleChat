@@ -32,15 +32,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import SettingsDialog from '@/views/SettingsView.vue'
-import { StopCircle, Trash2, AlertCircle, Bot, Cpu, ArrowUp, Settings, Sliders } from 'lucide-vue-next'
+import {
+  StopCircle,
+  Trash2,
+  AlertCircle,
+  Bot,
+  Cpu,
+  ArrowUp,
+  Settings,
+  Sliders,
+} from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 
@@ -63,7 +67,7 @@ const isGenerating = computed(() => chatStore.isGenerating)
 const currentModel = computed(() => {
   const modelId = chatStore.activeConversation?.modelId
   if (!modelId) return settingsStore.defaultModel
-  return settingsStore.models.find(m => m.id === modelId) || settingsStore.defaultModel
+  return settingsStore.models.find((m) => m.id === modelId) || settingsStore.defaultModel
 })
 
 // 更新当前对话的模型
@@ -113,7 +117,7 @@ watch(
   () => messages.value.length,
   () => {
     scrollToBottom()
-  }
+  },
 )
 
 // 监听对话切换，自动聚焦输入框
@@ -121,7 +125,7 @@ watch(
   () => chatStore.activeConversationId,
   () => {
     focusInput()
-  }
+  },
 )
 
 // 页面加载完成后聚焦输入框
@@ -164,7 +168,10 @@ const sendMessage = async () => {
   chatStore.isGenerating = true
   abortControllerRef.value = new AbortController()
 
-  const chatService = new ChatService(currentModel.value.baseUrl, modelRequestOptions(currentModel.value))
+  const chatService = new ChatService(
+    currentModel.value.baseUrl,
+    modelRequestOptions(currentModel.value),
+  )
   let fullContent = ''
   let fullReasoningContent = ''
 
@@ -235,7 +242,7 @@ const sendMessage = async () => {
         abortControllerRef.value = null
         toast.error(possibleCors ? t('errors.possibleCors') : t('chat.errors.sendFailed'))
       },
-      abortControllerRef.value.signal
+      abortControllerRef.value.signal,
     )
   } catch (err) {
     console.error('Unexpected error:', err)
@@ -284,7 +291,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
     <!-- 消息列表 -->
     <div ref="messagesContainerRef" class="flex-1 overflow-y-auto px-4 py-6">
-      <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center">
+      <div
+        v-if="messages.length === 0"
+        class="flex flex-col items-center justify-center h-full text-center"
+      >
         <Bot class="w-20 h-20 mb-6 text-blue-500 opacity-50" />
         <h2 class="text-2xl font-bold mb-2 text-gray-700 dark:text-gray-300">
           {{ t('common.title') }}
@@ -292,17 +302,26 @@ const handleKeyDown = (event: KeyboardEvent) => {
         <p class="text-gray-500 dark:text-gray-400 mb-4">
           {{ t('chat.emptyState') }}
         </p>
-        <div v-if="!currentModel"
-          class="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg">
+        <div
+          v-if="!currentModel"
+          class="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg"
+        >
           <AlertCircle class="inline-block w-4 h-4 mr-1" />
           {{ t('chat.errors.noModel') }}
         </div>
       </div>
 
       <!-- 系统提示词显示 -->
-      <div v-if="chatStore.activeConversation?.systemPrompt && chatStore.activeConversation.systemPrompt.trim()"
-        class="mb-6 flex gap-3">
-        <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 mt-7">
+      <div
+        v-if="
+          chatStore.activeConversation?.systemPrompt &&
+          chatStore.activeConversation.systemPrompt.trim()
+        "
+        class="mb-6 flex gap-3"
+      >
+        <div
+          class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 mt-7"
+        >
           <Settings class="w-5 h-5 text-white" />
         </div>
         <div class="flex-1">
@@ -312,27 +331,42 @@ const handleKeyDown = (event: KeyboardEvent) => {
             </Badge>
           </div>
           <div
-            class="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-sm whitespace-pre-wrap">
+            class="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-sm whitespace-pre-wrap"
+          >
             {{ chatStore.activeConversation.systemPrompt }}
           </div>
         </div>
       </div>
 
-      <MessageItem v-for="(message, index) in messages" :key="message.id" :message="message"
-        :is-in-context="isMessageInContext(index)" />
+      <MessageItem
+        v-for="(message, index) in messages"
+        :key="message.id"
+        :message="message"
+        :is-in-context="isMessageInContext(index)"
+      />
     </div>
 
     <!-- 输入区域 -->
     <div class="border-t border-gray-200 dark:border-gray-700 p-3">
       <InputGroup>
-        <InputGroupTextarea id="chat-main-input" v-model="inputText" :placeholder="t('chat.inputPlaceholder')"
-          @keydown="handleKeyDown" class="min-h-16 max-h-50 resize-none" />
+        <InputGroupTextarea
+          id="chat-main-input"
+          v-model="inputText"
+          :placeholder="t('chat.inputPlaceholder')"
+          @keydown="handleKeyDown"
+          class="min-h-16 max-h-50 resize-none"
+        />
         <InputGroupAddon align="block-end" class="justify-end">
           <!-- 设置按钮 -->
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger as-child>
-                <InputGroupButton variant="ghost" size="icon-xs" @click="settingsOpen = true" :disabled="isGenerating">
+                <InputGroupButton
+                  variant="ghost"
+                  size="icon-xs"
+                  @click="settingsOpen = true"
+                  :disabled="isGenerating"
+                >
                   <Settings class="size-4" />
                 </InputGroupButton>
               </TooltipTrigger>
@@ -346,8 +380,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
           <TooltipProvider v-if="messages.length > 0">
             <Tooltip>
               <TooltipTrigger as-child>
-                <InputGroupButton variant="ghost" size="icon-xs" @click="clearDialogOpen = true"
-                  :disabled="isGenerating">
+                <InputGroupButton
+                  variant="ghost"
+                  size="icon-xs"
+                  @click="clearDialogOpen = true"
+                  :disabled="isGenerating"
+                >
                   <Trash2 class="size-4" />
                 </InputGroupButton>
               </TooltipTrigger>
@@ -361,8 +399,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger as-child>
-                <InputGroupButton variant="ghost" size="icon-xs" @click="conversationConfigOpen = true"
-                  :disabled="isGenerating">
+                <InputGroupButton
+                  variant="ghost"
+                  size="icon-xs"
+                  @click="conversationConfigOpen = true"
+                  :disabled="isGenerating"
+                >
                   <Sliders class="size-4" />
                 </InputGroupButton>
               </TooltipTrigger>
@@ -371,7 +413,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
 
           <!-- 模型选择下拉菜单 -->
           <DropdownMenu v-if="chatStore.activeConversation">
@@ -382,8 +423,11 @@ const handleKeyDown = (event: KeyboardEvent) => {
               </InputGroupButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" class="[--radius:0.95rem]">
-              <DropdownMenuItem v-for="model in settingsStore.models" :key="model.id"
-                @click="updateConversationModel(model.id)">
+              <DropdownMenuItem
+                v-for="model in settingsStore.models"
+                :key="model.id"
+                @click="updateConversationModel(model.id)"
+              >
                 <Cpu class="size-4 mr-2" />
                 {{ model.name }}
               </DropdownMenuItem>
@@ -401,8 +445,13 @@ const handleKeyDown = (event: KeyboardEvent) => {
           <TooltipProvider v-if="!isGenerating">
             <Tooltip>
               <TooltipTrigger as-child>
-                <InputGroupButton variant="default" class="rounded-full" size="icon-xs" @click="sendMessage"
-                  :disabled="!inputText.trim()">
+                <InputGroupButton
+                  variant="default"
+                  class="rounded-full"
+                  size="icon-xs"
+                  @click="sendMessage"
+                  :disabled="!inputText.trim()"
+                >
                   <ArrowUp class="size-4" />
                   <span class="sr-only">{{ t('chat.send') }}</span>
                 </InputGroupButton>
@@ -413,7 +462,13 @@ const handleKeyDown = (event: KeyboardEvent) => {
             </Tooltip>
           </TooltipProvider>
 
-          <InputGroupButton v-else variant="destructive" class="rounded-full" size="icon-xs" @click="stopGenerating">
+          <InputGroupButton
+            v-else
+            variant="destructive"
+            class="rounded-full"
+            size="icon-xs"
+            @click="stopGenerating"
+          >
             <StopCircle class="size-4" />
             <span class="sr-only">{{ t('chat.stop') }}</span>
           </InputGroupButton>
@@ -442,8 +497,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ t('chat.cancel') }}</AlertDialogCancel>
-        <AlertDialogAction @click="confirmClearConversation"
-          class="bg-destructive text-background hover:bg-destructive/90">
+        <AlertDialogAction
+          @click="confirmClearConversation"
+          class="bg-destructive text-background hover:bg-destructive/90"
+        >
           {{ t('chat.confirm') }}
         </AlertDialogAction>
       </AlertDialogFooter>

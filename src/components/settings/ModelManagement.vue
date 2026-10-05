@@ -6,12 +6,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogScrollContent,
-} from '@/components/ui/dialog'
+import { Dialog, DialogHeader, DialogTitle, DialogScrollContent } from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,10 +73,10 @@ const startAdd = () => {
 const inferModelNameFromUrl = (url: string): string => {
   try {
     const urlObj = new URL(url)
-    const pathParts = urlObj.pathname.split('/').filter(part => part.trim() !== '')
+    const pathParts = urlObj.pathname.split('/').filter((part) => part.trim() !== '')
 
     // 过滤掉版本号 (v1, v2, etc.)
-    const nonVersionParts = pathParts.filter(part => !/^v\d+$/i.test(part))
+    const nonVersionParts = pathParts.filter((part) => !/^v\d+$/i.test(part))
 
     // 返回最后一个非版本部分
     if (nonVersionParts.length > 0) {
@@ -106,7 +101,7 @@ watch([modelBaseUrl, modelId], () => {
 
 // 开始编辑模型
 const startEdit = (id: string) => {
-  const model = models.value.find(m => m.id === id)
+  const model = models.value.find((m) => m.id === id)
   if (model) {
     isEditing.value = true
     editingModelId.value = id
@@ -259,8 +254,14 @@ const testModel = async () => {
           <CardContent class="space-y-4">
             <div class="space-y-2">
               <Label for="model-url">{{ t('settings.models.modelUrl') }}</Label>
-              <Input id="model-url" v-model="modelBaseUrl" :placeholder="t('settings.models.modelUrlPlaceholder')" />
-              <p class="text-xs text-muted-foreground">{{ t('settings.models.modelUrlDescription') }}</p>
+              <Input
+                id="model-url"
+                v-model="modelBaseUrl"
+                :placeholder="t('settings.models.modelUrlPlaceholder')"
+              />
+              <p class="text-xs text-muted-foreground">
+                {{ t('settings.models.modelUrlDescription') }}
+              </p>
             </div>
 
             <Tabs v-model="modelMode">
@@ -272,14 +273,26 @@ const testModel = async () => {
               <TabsContent value="api" class="space-y-4 pt-2">
                 <div class="space-y-2">
                   <Label for="model-id">{{ t('settings.models.modelId') }}</Label>
-                  <Input id="model-id" v-model="modelId" :placeholder="t('settings.models.modelIdPlaceholder')" />
-                  <p class="text-xs text-muted-foreground">{{ t('settings.models.modelIdDescription') }}</p>
+                  <Input
+                    id="model-id"
+                    v-model="modelId"
+                    :placeholder="t('settings.models.modelIdPlaceholder')"
+                  />
+                  <p class="text-xs text-muted-foreground">
+                    {{ t('settings.models.modelIdDescription') }}
+                  </p>
                 </div>
                 <div class="space-y-2">
                   <Label for="model-api-key">{{ t('settings.models.apiKey') }}</Label>
-                  <Input id="model-api-key" v-model="apiKey" type="password"
-                    :placeholder="t('settings.models.apiKeyPlaceholder')" />
-                  <p class="text-xs text-muted-foreground">{{ t('settings.models.apiKeyDescription') }}</p>
+                  <Input
+                    id="model-api-key"
+                    v-model="apiKey"
+                    type="password"
+                    :placeholder="t('settings.models.apiKeyPlaceholder')"
+                  />
+                  <p class="text-xs text-muted-foreground">
+                    {{ t('settings.models.apiKeyDescription') }}
+                  </p>
                 </div>
               </TabsContent>
 
@@ -290,8 +303,14 @@ const testModel = async () => {
 
             <div class="space-y-2">
               <Label for="model-name">{{ t('settings.models.modelName') }}</Label>
-              <Input id="model-name" v-model="modelName" :placeholder="t('settings.models.modelNamePlaceholder')" />
-              <p class="text-xs text-muted-foreground">{{ t('settings.models.modelNameDescription') }}</p>
+              <Input
+                id="model-name"
+                v-model="modelName"
+                :placeholder="t('settings.models.modelNamePlaceholder')"
+              />
+              <p class="text-xs text-muted-foreground">
+                {{ t('settings.models.modelNameDescription') }}
+              </p>
             </div>
             <div class="flex gap-2">
               <Button @click="saveModel" class="gap-2">
@@ -333,25 +352,42 @@ const testModel = async () => {
                     </Badge>
                   </div>
                   <p class="text-sm text-muted-foreground break-all">{{ model.baseUrl }}</p>
-                  <p v-if="modelKind(model) === 'api' && model.model" class="text-sm text-muted-foreground break-all">
+                  <p
+                    v-if="modelKind(model) === 'api' && model.model"
+                    class="text-sm text-muted-foreground break-all"
+                  >
                     {{ model.model }}
                   </p>
-                  <p v-if="modelKind(model) === 'api' && model.apiKey"
-                    class="text-xs text-muted-foreground font-mono">
+                  <p
+                    v-if="modelKind(model) === 'api' && model.apiKey"
+                    class="text-xs text-muted-foreground font-mono"
+                  >
                     {{ maskKey(model.apiKey) }}
                   </p>
                 </div>
                 <ButtonGroup>
-
-                  <Button v-if="model.id !== defaultModelId" @click="setDefaultModel(model.id)" variant="outline"
-                    size="icon-sm">
+                  <Button
+                    v-if="model.id !== defaultModelId"
+                    @click="setDefaultModel(model.id)"
+                    variant="outline"
+                    size="icon-sm"
+                  >
                     <Star />
                   </Button>
-                  <Button @click="startEdit(model.id)" variant="outline" size="icon-sm" :disabled="isEditing">
+                  <Button
+                    @click="startEdit(model.id)"
+                    variant="outline"
+                    size="icon-sm"
+                    :disabled="isEditing"
+                  >
                     <Edit />
                   </Button>
-                  <Button @click="confirmDelete(model.id)" variant="outline" size="icon-sm"
-                    :disabled="isEditing || models.length <= 1">
+                  <Button
+                    @click="confirmDelete(model.id)"
+                    variant="outline"
+                    size="icon-sm"
+                    :disabled="isEditing || models.length <= 1"
+                  >
                     <Trash2 />
                   </Button>
                 </ButtonGroup>
@@ -374,7 +410,10 @@ const testModel = async () => {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ t('settings.models.cancel') }}</AlertDialogCancel>
-        <AlertDialogAction @click="deleteModel" class="bg-destructive text-background hover:bg-destructive/90">
+        <AlertDialogAction
+          @click="deleteModel"
+          class="bg-destructive text-background hover:bg-destructive/90"
+        >
           {{ t('settings.models.delete') }}
         </AlertDialogAction>
       </AlertDialogFooter>

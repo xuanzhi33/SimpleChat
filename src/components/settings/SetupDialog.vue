@@ -43,7 +43,7 @@ const apiKey = ref('')
 
 const isOpen = computed({
   get: () => props.open,
-  set: (value) => emit('update:open', value)
+  set: (value) => emit('update:open', value),
 })
 
 const llmGateUrl = 'https://github.com/xuanzhi33/LLM-Gate'
@@ -119,82 +119,102 @@ const handleSkip = () => {
         <TabsContent value="api" class="space-y-4">
           <div class="space-y-2">
             <Label for="api-base-url">{{ t('setup.api.baseUrl') }}</Label>
-            <Input id="api-base-url" v-model="modelUrl" :placeholder="t('setup.api.baseUrlPlaceholder')"
-              @keyup.enter="handleComplete" />
+            <Input
+              id="api-base-url"
+              v-model="modelUrl"
+              :placeholder="t('setup.api.baseUrlPlaceholder')"
+              @keyup.enter="handleComplete"
+            />
             <p class="text-xs text-muted-foreground">{{ t('setup.api.baseUrlDescription') }}</p>
           </div>
 
           <div class="space-y-2">
             <Label for="api-model-id">{{ t('setup.api.modelId') }}</Label>
-            <Input id="api-model-id" v-model="modelId" :placeholder="t('setup.api.modelIdPlaceholder')"
-              @keyup.enter="handleComplete" />
+            <Input
+              id="api-model-id"
+              v-model="modelId"
+              :placeholder="t('setup.api.modelIdPlaceholder')"
+              @keyup.enter="handleComplete"
+            />
             <p class="text-xs text-muted-foreground">{{ t('setup.api.modelIdDescription') }}</p>
           </div>
 
           <div class="space-y-2">
             <Label for="api-key">{{ t('setup.api.apiKey') }}</Label>
-            <Input id="api-key" v-model="apiKey" type="password" :placeholder="t('setup.api.apiKeyPlaceholder')"
-              @keyup.enter="handleComplete" />
+            <Input
+              id="api-key"
+              v-model="apiKey"
+              type="password"
+              :placeholder="t('setup.api.apiKeyPlaceholder')"
+              @keyup.enter="handleComplete"
+            />
             <p class="text-xs text-muted-foreground">{{ t('setup.api.apiKeyDescription') }}</p>
           </div>
         </TabsContent>
 
         <!-- LLM Gate 模式 -->
         <TabsContent value="gate" class="space-y-4">
-        <!-- Step 1 -->
-        <div class="space-y-2">
-          <div class="flex items-start gap-3">
-            <div
-              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              1
-            </div>
-            <div class="flex-1 space-y-2">
-              <h3 class="font-semibold">{{ t('setup.step1') }}</h3>
-              <p class="text-sm text-muted-foreground">
-                {{ t('setup.step1Description') }}
-              </p>
-              <Button @click="openLLMGate" variant="outline" size="sm">
-                <ExternalLink class="h-4 w-4" />
-                {{ t('setup.downloadButton') }}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="space-y-2">
-          <div class="flex items-start gap-3">
-            <div
-              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              2
-            </div>
-            <div class="flex-1 space-y-2">
-              <h3 class="font-semibold">{{ t('setup.step2') }}</h3>
-              <p class="text-sm text-muted-foreground">
-                {{ t('setup.step2Description') }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="space-y-2">
-          <div class="flex items-start gap-3">
-            <div
-              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              3
-            </div>
-            <div class="flex-1 space-y-3">
-              <h3 class="font-semibold">{{ t('setup.step3') }}</h3>
-
-              <div class="space-y-2">
-                <Label for="model-url">{{ t('setup.modelUrl') }}</Label>
-                <Input id="model-url" v-model="modelUrl" :placeholder="t('setup.modelUrlPlaceholder')"
-                  @keyup.enter="handleComplete" />
+          <!-- Step 1 -->
+          <div class="space-y-2">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              >
+                1
+              </div>
+              <div class="flex-1 space-y-2">
+                <h3 class="font-semibold">{{ t('setup.step1') }}</h3>
+                <p class="text-sm text-muted-foreground">
+                  {{ t('setup.step1Description') }}
+                </p>
+                <Button @click="openLLMGate" variant="outline" size="sm">
+                  <ExternalLink class="h-4 w-4" />
+                  {{ t('setup.downloadButton') }}
+                </Button>
               </div>
             </div>
           </div>
-        </div>
+
+          <!-- Step 2 -->
+          <div class="space-y-2">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              >
+                2
+              </div>
+              <div class="flex-1 space-y-2">
+                <h3 class="font-semibold">{{ t('setup.step2') }}</h3>
+                <p class="text-sm text-muted-foreground">
+                  {{ t('setup.step2Description') }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="space-y-2">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              >
+                3
+              </div>
+              <div class="flex-1 space-y-3">
+                <h3 class="font-semibold">{{ t('setup.step3') }}</h3>
+
+                <div class="space-y-2">
+                  <Label for="model-url">{{ t('setup.modelUrl') }}</Label>
+                  <Input
+                    id="model-url"
+                    v-model="modelUrl"
+                    :placeholder="t('setup.modelUrlPlaceholder')"
+                    @keyup.enter="handleComplete"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

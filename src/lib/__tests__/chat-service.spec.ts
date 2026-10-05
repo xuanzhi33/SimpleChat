@@ -21,10 +21,21 @@ describe('ChatService.sendMessage', () => {
   it('累加 content 与 reasoning_content', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => sseResponse(delta({ content: 'hi' }), delta({ reasoning_content: 'think' }), 'data: [DONE]\n\n')),
+      vi.fn(async () =>
+        sseResponse(
+          delta({ content: 'hi' }),
+          delta({ reasoning_content: 'think' }),
+          'data: [DONE]\n\n',
+        ),
+      ),
     )
     const chunks: Array<[string, string | undefined]> = []
-    await new ChatService('http://x/v1').sendMessage([], (c, r) => chunks.push([c, r]), vi.fn(), vi.fn())
+    await new ChatService('http://x/v1').sendMessage(
+      [],
+      (c, r) => chunks.push([c, r]),
+      vi.fn(),
+      vi.fn(),
+    )
     expect(chunks).toEqual([
       ['hi', undefined],
       ['', 'think'],
@@ -32,7 +43,10 @@ describe('ChatService.sendMessage', () => {
   })
 
   it('兼容 reasoning 字段', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => sseResponse(delta({ reasoning: 'r' }))))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => sseResponse(delta({ reasoning: 'r' }))),
+    )
     const onChunk = vi.fn()
     await new ChatService('http://x/v1').sendMessage([], onChunk, vi.fn(), vi.fn())
     expect(onChunk).toHaveBeenCalledWith('', 'r')
@@ -72,7 +86,12 @@ describe('ChatService.sendMessage', () => {
 
   it('abort 走 onComplete 而非 onError', async () => {
     const abort = Object.assign(new Error('aborted'), { name: 'AbortError' })
-    vi.stubGlobal('fetch', vi.fn(async () => { throw abort }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw abort
+      }),
+    )
     const onComplete = vi.fn()
     const onError = vi.fn()
     await new ChatService('http://x/v1').sendMessage([], vi.fn(), onComplete, onError)

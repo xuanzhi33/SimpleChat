@@ -43,7 +43,10 @@ describe('chat store', () => {
     store.createConversation()
     const msg = store.addMessage({ role: 'assistant', content: 'a' })!
     store.updateMessage(msg.id, { content: 'b', reasoning_content: 'r' })
-    expect(store.activeConversation?.messages[0]).toMatchObject({ content: 'b', reasoning_content: 'r' })
+    expect(store.activeConversation?.messages[0]).toMatchObject({
+      content: 'b',
+      reasoning_content: 'r',
+    })
     store.deleteMessage(msg.id)
     expect(store.activeConversation?.messages).toHaveLength(0)
   })

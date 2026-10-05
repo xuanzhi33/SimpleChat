@@ -29,11 +29,15 @@ const emit = defineEmits<{
 const systemPrompt = ref('')
 
 // 监听弹窗打开，加载当前对话的系统提示词
-watch(() => chatStore.activeConversation, (conversation) => {
-  if (conversation) {
-    systemPrompt.value = conversation.systemPrompt || ''
-  }
-}, { immediate: true })
+watch(
+  () => chatStore.activeConversation,
+  (conversation) => {
+    if (conversation) {
+      systemPrompt.value = conversation.systemPrompt || ''
+    }
+  },
+  { immediate: true },
+)
 
 // 监听系统提示词变化，实时保存到 store
 watch(systemPrompt, (newValue) => {
@@ -62,8 +66,12 @@ watch(systemPrompt, (newValue) => {
       <div class="space-y-4 py-4">
         <div class="space-y-2">
           <Label for="system-prompt">{{ t('chat.systemPrompt') }}</Label>
-          <Textarea id="system-prompt" v-model="systemPrompt" :placeholder="t('chat.systemPromptPlaceholder')"
-            class="min-h-32 max-h-60 resize-none" />
+          <Textarea
+            id="system-prompt"
+            v-model="systemPrompt"
+            :placeholder="t('chat.systemPromptPlaceholder')"
+            class="min-h-32 max-h-60 resize-none"
+          />
         </div>
       </div>
     </DialogContent>
