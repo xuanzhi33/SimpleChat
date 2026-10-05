@@ -77,9 +77,9 @@ interface Message {
 
 ## 核心目录
 
-- `src/components/chat/` - ChatPanel、MessageItem、ConversationList
+- `src/components/chat/` - ChatPanel、MessageItem、ConversationList、TitleBar（顶部悬浮胶囊：边栏开关 + 折叠时的新对话 + 可重命名的标题）
 - `src/stores/` - chat.ts (IndexedDB)、settings.ts (模型管理)
-- `src/lib/` - db.ts、chat-service.ts、model.ts、markdown.ts
+- `src/lib/` - db.ts、chat-service.ts、model.ts、markdown.ts、errors.ts、title.ts
 - `src/types/chat.ts` - 类型定义
 
 ## API 接口
