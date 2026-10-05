@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import type { Message } from '@/types/chat'
 import { Card } from '@/components/ui/card'
@@ -55,33 +55,16 @@ const thinkingSeconds = computed(() =>
     : '',
 )
 
-// thinking内容容器引用
-const thinkingContentRef = ref<HTMLElement | null>(null)
-
 // 思考阶段：有思考内容且还没开始输出正文（收到首个正文增量就算结束）
 const isThinking = computed(() => !!props.message.isStreaming && !props.message.thinkingDone)
 
-// 思考内容默认折叠：历史消息直接收起，正在思考的消息展开
+// 默认折叠：历史消息（一加载出来就是完成态）收起，正在思考的消息展开
 const thinkingCollapsed = ref(!isThinking.value)
 
 // 思考中展开，思考一结束（正文开始）自动收起；之后手动展开不会被覆盖
 watch(isThinking, (thinking) => {
   thinkingCollapsed.value = !thinking
 })
-
-// 监听thinking内容变化，自动滚动到底部
-watch(
-  () => props.message.reasoning_content,
-  () => {
-    if (props.message.reasoning_content && thinkingContentRef.value) {
-      nextTick(() => {
-        if (thinkingContentRef.value) {
-          thinkingContentRef.value.scrollTop = thinkingContentRef.value.scrollHeight
-        }
-      })
-    }
-  },
-)
 </script>
 
 <template>
@@ -138,10 +121,8 @@ watch(
               <div class="flex w-4 shrink-0 justify-center">
                 <div class="w-px bg-border"></div>
               </div>
-              <div
-                ref="thinkingContentRef"
-                class="min-w-0 flex-1 text-muted-foreground max-h-25 overflow-y-auto"
-              >
+              <!-- 不加限高 / overflow：整段思考直接铺开，不用内部滚动条 -->
+              <div class="min-w-0 flex-1 text-muted-foreground">
                 <MarkdownRender
                   class="thinking-md"
                   mode="chat"

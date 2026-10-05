@@ -81,6 +81,23 @@ describe('MessageItem 渲染', () => {
     expect(answering.find('.animate-pulse').exists()).toBe(false)
   })
 
+  it('手动展开已完成的思考：整段铺开，不限高、无内部滚动条', async () => {
+    const wrapper = await render({
+      reasoning_content: '第一步\n\n第二步',
+      isStreaming: false,
+    })
+    expect(wrapper.get('button[aria-expanded]').attributes('aria-expanded')).toBe('false')
+
+    await wrapper.get('button[aria-expanded]').trigger('click')
+    expect(wrapper.get('button[aria-expanded]').attributes('aria-expanded')).toBe('true')
+
+    // 内容不再被裁进一个限高的小框里（之前是 max-h-25 overflow-y-auto）
+    const body = wrapper.get('.thinking-md').element.parentElement!
+    expect(body.className).not.toMatch(/max-h-|overflow-y-/)
+    expect(body.textContent).toContain('第一步')
+    expect(body.textContent).toContain('第二步')
+  })
+
   it('AI 消息的页脚（时间/复制）等回答结束才出现', async () => {
     const copyLabel = i18n.global.t('chat.copy')
     const wrapper = mount(MessageItem, {
