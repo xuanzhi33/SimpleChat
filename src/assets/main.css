@@ -2,6 +2,8 @@
 @import 'tw-animate-css';
 /* markstream 的组件样式放进 components 层：既可被我们的 utility 覆盖，也不会被 preflight 打乱 */
 @import 'markstream-vue/index.css' layer(components);
+/* KaTeX 的样式 markstream 不自带，装了 katex peer 就得自己引，不然公式排版是坏的 */
+@import 'katex/dist/katex.min.css' layer(components);
 
 @custom-variant dark (&:is(.dark *));
 
