@@ -233,7 +233,8 @@
       "high": "高",
       "max": "最高",
       "on": "開",
-      "hint": "預設 = 交給模型自己決定；關 = 明確不思考。檔位依 {provider} 支援的等級提供。"
+      "toggleTo": "點擊切換為「{level}」",
+      "hint": "關 = 明確不思考；預設 = 交給模型自己決定。檔位依 {provider} 支援的等級提供。"
     },
     "systemPrompt": "系統提示詞",
     "systemPromptPlaceholder": "例如：你是一位專業的程式設計助手，擅長解答技術問題...",

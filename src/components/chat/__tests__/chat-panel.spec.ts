@@ -42,6 +42,8 @@ vi.mock('vue-sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ChatPanel from '@/components/chat/ChatPanel.vue'
+import ConversationConfig from '@/components/chat/ConversationConfig.vue'
+import ThinkingLevelToggle from '@/components/chat/ThinkingLevelToggle.vue'
 import SetupDialog from '@/components/settings/SetupDialog.vue'
 import { Button } from '@/components/ui/button'
 import { i18n } from '@/i18n/config'
@@ -69,14 +71,20 @@ describe('ChatPanel 发送失败', () => {
   let pinia: ReturnType<typeof createPinia>
   let wrapper: VueWrapper
 
-  const setup = async (options: { withModel?: boolean } = {}) => {
+  const setup = async (options: { withModel?: boolean; baseUrl?: string } = {}) => {
     localStorage.clear()
     // 设置 store 的 setup 里会调 useI18n()，必须先写在 localStorage、再让它在组件 setup 期间创建
     if (options.withModel !== false) {
       localStorage.setItem(
         'xuanzhi33-models',
         JSON.stringify([
-          { id: 'm1', name: 'Test', baseUrl: 'https://example.com', kind: 'api', model: 'x' },
+          {
+            id: 'm1',
+            name: 'Test',
+            baseUrl: options.baseUrl ?? 'https://example.com',
+            kind: 'api',
+            model: 'x',
+          },
         ]),
       )
       localStorage.setItem('xuanzhi33-default-model-id', 'm1')
@@ -86,6 +94,13 @@ describe('ChatPanel 发送失败', () => {
     wrapper = mount(ChatPanel, { global: { plugins: [pinia, i18n] } })
     await nextTick()
     return wrapper
+  }
+
+  const createConversation = async () => {
+    const chatStore = useChatStore()
+    chatStore.createConversation('对话')
+    await nextTick()
+    return chatStore
   }
 
   const send = async () => {
@@ -170,6 +185,43 @@ describe('ChatPanel 发送失败', () => {
     await nextTick()
 
     expect(setupDialog.props('open')).toBe(true)
+  })
+
+  it('输入框左下角是配置按钮，点它照旧弹出对话配置', async () => {
+    await setup()
+    await createConversation()
+
+    const config = wrapper.findComponent(ConversationConfig)
+    expect(config.props('open')).toBe(false)
+
+    // 配置按钮是这个区域里的第一个按钮（= 左下角）
+    await wrapper.get('[data-slot="input-group-addon"] button').trigger('click')
+    expect(config.props('open')).toBe(true)
+  })
+
+  it('内置服务商：左下角外显思考强度，点一下就在「关」和上次档位之间切', async () => {
+    await setup({ baseUrl: 'https://api.deepseek.com' })
+    const chatStore = await createConversation()
+    expect(chatStore.activeConversation?.thinkingLevel).toBeUndefined()
+
+    const toggle = wrapper.findComponent(ThinkingLevelToggle)
+    expect(toggle.text()).toContain(i18n.global.t('chat.thinkingEffort.title'))
+    expect(toggle.text()).toContain(i18n.global.t('chat.thinkingEffort.default'))
+
+    await toggle.get('button').trigger('click')
+    expect(chatStore.activeConversation?.thinkingLevel).toBe('none')
+
+    // 没记着别的档位（本来就没设置过），切回去就是「默认」
+    await toggle.get('button').trigger('click')
+    expect(chatStore.activeConversation?.thinkingLevel).toBeUndefined()
+  })
+
+  it('非内置服务商（自定义地址）：左下角没有思考强度，只有配置按钮', async () => {
+    await setup()
+    await createConversation()
+
+    expect(wrapper.findComponent(ThinkingLevelToggle).find('button').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="input-group-addon"] button').exists()).toBe(true)
   })
 
   it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {

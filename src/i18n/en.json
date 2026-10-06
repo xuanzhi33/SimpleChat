@@ -233,7 +233,8 @@
       "high": "High",
       "max": "Max",
       "on": "On",
-      "hint": "Default lets the model decide; Off explicitly disables thinking. Levels follow what {provider} supports."
+      "toggleTo": "Switch to {level}",
+      "hint": "Off explicitly disables thinking; Default lets the model decide. Levels follow what {provider} supports."
     },
     "systemPrompt": "System Prompt",
     "systemPromptPlaceholder": "e.g., You are a professional programming assistant who excels at answering technical questions...",

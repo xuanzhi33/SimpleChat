@@ -12,6 +12,7 @@ import { buildTitlePrompt, cleanTitle } from '@/lib/title'
 import MessageItem from './MessageItem.vue'
 import SystemPromptBlock from './SystemPromptBlock.vue'
 import ConversationConfig from './ConversationConfig.vue'
+import ThinkingLevelToggle from './ThinkingLevelToggle.vue'
 import {
   InputGroup,
   InputGroupAddon,
@@ -34,6 +35,7 @@ import ModelIcon from '@/components/ModelIcon.vue'
 import { CircleStop, CircleAlert, Bot, ArrowUp, Settings, SlidersVertical } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
+import type { ThinkingLevel } from '@/types/chat'
 
 const { t } = useI18n()
 const chatStore = useChatStore()
@@ -70,6 +72,14 @@ const updateConversationModel = (modelId: unknown) => {
     conversation.modelId = modelId
     conversation.updatedAt = Date.now()
   }
+}
+
+// 输入框左下角外显的思考强度：认不出服务商（LLM Gate / 自定义地址）就整块不显示
+const thinkingStyle = computed(() => thinkingStyleOf(currentModel.value))
+const setThinkingLevel = (level?: ThinkingLevel) => {
+  const conversationId = chatStore.activeConversation?.id
+  if (!conversationId) return
+  chatStore.updateConversationSettings(conversationId, { thinkingLevel: level })
 }
 
 // 计算每条消息是否在上下文范围内
@@ -459,84 +469,97 @@ const handleKeyDown = (event: KeyboardEvent) => {
           @keydown="handleKeyDown"
           class="min-h-16 max-h-50 resize-none md:text-base"
         />
-        <InputGroupAddon align="block-end" class="justify-end">
-          <!-- 对话配置按钮 -->
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <InputGroupButton
-                  variant="ghost"
-                  size="icon-xs"
-                  @click="conversationConfigOpen = true"
-                  :disabled="isGenerating"
-                >
-                  <SlidersVertical class="size-4" />
+        <InputGroupAddon align="block-end" class="justify-between">
+          <div class="flex shrink-0 items-center gap-1">
+            <!-- 对话配置按钮 -->
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <InputGroupButton
+                    variant="ghost"
+                    size="icon-xs"
+                    @click="conversationConfigOpen = true"
+                    :disabled="isGenerating"
+                  >
+                    <SlidersVertical class="size-4" />
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {{ t('chat.conversationConfig') }}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <!-- 思考强度：点一下就在「关」和上次的档位之间来回切 -->
+            <ThinkingLevelToggle
+              :level="chatStore.activeConversation?.thinkingLevel"
+              :style="thinkingStyle"
+              :conversation-id="chatStore.activeConversation?.id"
+              :disabled="isGenerating"
+              @set-level="setThinkingLevel"
+            />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- 模型选择下拉菜单 -->
+            <DropdownMenu v-if="chatStore.activeConversation">
+              <DropdownMenuTrigger as-child>
+                <InputGroupButton variant="ghost" class="min-w-0" :disabled="isGenerating">
+                  <ModelIcon :model="currentModel" class="mr-1.5" />
+                  <span class="truncate">{{ currentModel?.name || t('chat.selectModel') }}</span>
                 </InputGroupButton>
-              </TooltipTrigger>
-              <TooltipContent>
-                {{ t('chat.conversationConfig') }}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <!-- 模型选择下拉菜单 -->
-          <DropdownMenu v-if="chatStore.activeConversation">
-            <DropdownMenuTrigger as-child>
-              <InputGroupButton variant="ghost" :disabled="isGenerating">
-                <ModelIcon :model="currentModel" class="mr-1.5" />
-                {{ currentModel?.name || t('chat.selectModel') }}
-              </InputGroupButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" class="[--radius:0.95rem]">
-              <DropdownMenuItem
-                v-for="model in settingsStore.models"
-                :key="model.id"
-                @click="updateConversationModel(model.id)"
-              >
-                <ModelIcon :model="model" class="mr-2" />
-                {{ model.name }}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem @click="modelManagementOpen = true">
-                <Settings class="size-4 mr-2" />
-                {{ t('chat.manageModels') }}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Separator orientation="vertical" class="h-4! mx-1" />
-
-          <!-- 发送/停止按钮 -->
-          <TooltipProvider v-if="!isGenerating">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <InputGroupButton
-                  variant="default"
-                  class="rounded-full"
-                  size="icon-xs"
-                  @click="sendMessage"
-                  :disabled="!inputText.trim()"
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="end" class="[--radius:0.95rem]">
+                <DropdownMenuItem
+                  v-for="model in settingsStore.models"
+                  :key="model.id"
+                  @click="updateConversationModel(model.id)"
                 >
-                  <ArrowUp class="size-4" />
-                  <span class="sr-only">{{ t('chat.send') }}</span>
-                </InputGroupButton>
-              </TooltipTrigger>
-              <TooltipContent>
-                {{ t('chat.sendTooltip') }}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  <ModelIcon :model="model" class="mr-2" />
+                  {{ model.name }}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem @click="modelManagementOpen = true">
+                  <Settings class="size-4 mr-2" />
+                  {{ t('chat.manageModels') }}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <InputGroupButton
-            v-else
-            variant="destructive"
-            class="rounded-full"
-            size="icon-xs"
-            @click="stopGenerating"
-          >
-            <CircleStop class="size-4" />
-            <span class="sr-only">{{ t('chat.stop') }}</span>
-          </InputGroupButton>
+            <Separator orientation="vertical" class="h-4! mx-1" />
+
+            <!-- 发送/停止按钮 -->
+            <TooltipProvider v-if="!isGenerating">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <InputGroupButton
+                    variant="default"
+                    class="rounded-full"
+                    size="icon-xs"
+                    @click="sendMessage"
+                    :disabled="!inputText.trim()"
+                  >
+                    <ArrowUp class="size-4" />
+                    <span class="sr-only">{{ t('chat.send') }}</span>
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {{ t('chat.sendTooltip') }}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <InputGroupButton
+              v-else
+              variant="destructive"
+              class="rounded-full"
+              size="icon-xs"
+              @click="stopGenerating"
+            >
+              <CircleStop class="size-4" />
+              <span class="sr-only">{{ t('chat.stop') }}</span>
+            </InputGroupButton>
+          </div>
         </InputGroupAddon>
       </InputGroup>
     </div>

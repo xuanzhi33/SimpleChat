@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   THINKING_LEVELS,
   completeWithoutThinking,
+  thinkingLevelLabelKey,
   thinkingPayload,
   thinkingStopIndex,
   thinkingStops,
@@ -33,10 +34,10 @@ const errorResponse = (status: number, body: string) => ({
 const requestBody = (init: RequestInit) => JSON.parse(String(init.body))
 
 describe('思考档位', () => {
-  it('按服务商提供档位，最左边永远是「默认」（不发送参数）', () => {
+  it('按服务商提供档位：关在最左，第二格是「默认」（不发送参数）', () => {
     expect(thinkingStops('reasoning_effort').map((stop) => stop.level)).toEqual([
-      undefined,
       'none',
+      undefined,
       'low',
       'medium',
       'high',
@@ -44,16 +45,16 @@ describe('思考档位', () => {
     ])
     // DeepSeek 没有「中」
     expect(thinkingStops('thinking_effort').map((stop) => stop.level)).toEqual([
-      undefined,
       'none',
+      undefined,
       'low',
       'high',
       'max',
     ])
     // 只支持开关的：两档
     expect(thinkingStops('enable_thinking').map((stop) => stop.level)).toEqual([
-      undefined,
       'none',
+      undefined,
       'medium',
     ])
     // 没接的风格：界面直接不显示这一项
@@ -63,10 +64,11 @@ describe('思考档位', () => {
 
   it('硅基流动的「开」显示成「开」而不是「中」', () => {
     expect(thinkingStops('enable_thinking').map((stop) => stop.labelKey)).toEqual([
-      'chat.thinkingEffort.default',
       'chat.thinkingEffort.none',
+      'chat.thinkingEffort.default',
       'chat.thinkingEffort.on',
     ])
+    expect(thinkingLevelLabelKey('enable_thinking', 'none')).toBe('chat.thinkingEffort.none')
   })
 
   it('风格按 base url 反推；LLM Gate 和自定义地址判断不出来', () => {
@@ -112,9 +114,10 @@ describe('思考档位', () => {
     // 低 / 最高 → 硅基流动：都是「开」
     expect(thinkingStopIndex('enable_thinking', 'low')).toBe(2)
     expect(thinkingStopIndex('enable_thinking', 'max')).toBe(2)
-    expect(thinkingStopIndex('enable_thinking', 'none')).toBe(1)
-    // 没设置过就是默认档
-    expect(thinkingStopIndex('enable_thinking')).toBe(0)
+    expect(thinkingStopIndex('enable_thinking', 'none')).toBe(0)
+    // 没设置过就落在「默认」那一格（紧挨着「关」）
+    expect(thinkingStopIndex('enable_thinking')).toBe(1)
+    expect(thinkingStopIndex('thinking_effort')).toBe(1)
   })
 })
 

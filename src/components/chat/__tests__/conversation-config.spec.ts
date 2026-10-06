@@ -77,6 +77,13 @@ const mountConfig = async (model: Model = MODEL) => {
 
 const slider = (wrapper: VueWrapper) => wrapper.findComponent(Slider)
 const textarea = (wrapper: VueWrapper) => wrapper.findComponent(Textarea)
+const labelOf = (key: string) => i18n.global.t(`chat.thinkingEffort.${key}`)
+
+/** 滑块下面那行档位刻度，按从左到右的顺序 */
+const tickLabels = () =>
+  Array.from(document.body.querySelectorAll('[class*="text-[10px]"] span')).map((el) =>
+    el.textContent?.trim(),
+  )
 
 /** 拖滑块：先 update:modelValue 再 valueCommit（reka 松手才发后一个） */
 const moveSlider = async (wrapper: VueWrapper, index: number) => {
@@ -97,18 +104,16 @@ describe('对话配置弹窗', () => {
     vi.useRealTimers()
   })
 
-  it('内置服务商（DeepSeek）：顶部是思考强度滑块，档位没有「中」', async () => {
+  it('内置服务商（DeepSeek）：档位是 关/默认/低/高/最高，没有「中」', async () => {
     const { wrapper } = await mountConfig()
 
     expect(slider(wrapper).exists()).toBe(true)
     expect(slider(wrapper).props('max')).toBe(4)
-    // 默认档在最左，也就是当前状态
-    expect(slider(wrapper).props('modelValue')).toEqual([0])
-    expect(document.body.textContent).toContain(i18n.global.t('chat.thinkingEffort.title'))
-    expect(document.body.textContent).toContain(i18n.global.t('chat.thinkingEffort.max'))
+    expect(tickLabels()).toEqual(['none', 'default', 'low', 'high', 'max'].map(labelOf))
+    // 没设置过就落在「默认」那一格（紧挨着最左的「关」）
+    expect(slider(wrapper).props('modelValue')).toEqual([1])
 
-    // DeepSeek 只有 low/high/max，滑块上没有「中」（0=默认、1=关、2=低、3=高、4=最高）
-    expect(slider(wrapper).props('modelValue')).toEqual([0])
+    // 0=关、1=默认、2=低、3=高、4=最高
     await moveSlider(wrapper, 3)
     expect(useChatStore().activeConversation?.thinkingLevel).toBe('high')
   })
@@ -133,8 +138,15 @@ describe('对话配置弹窗', () => {
     chatStore.updateConversationSettings(conversationId, { thinkingLevel: 'low' })
     await flushTicks()
 
-    await moveSlider(wrapper, 0)
+    await moveSlider(wrapper, 1)
     expect(useChatStore().activeConversation?.thinkingLevel).toBeUndefined()
+  })
+
+  it('拖到最左边的「关」= 明确不思考（存成 none）', async () => {
+    const { wrapper } = await mountConfig()
+
+    await moveSlider(wrapper, 0)
+    expect(useChatStore().activeConversation?.thinkingLevel).toBe('none')
   })
 
   it('硅基流动只有开关两档，「开」不显示成「中」', async () => {
@@ -145,14 +157,14 @@ describe('对话配置弹窗', () => {
     })
 
     expect(slider(wrapper).props('max')).toBe(2)
-    expect(document.body.textContent).toContain(i18n.global.t('chat.thinkingEffort.on'))
-    expect(document.body.textContent).not.toContain(i18n.global.t('chat.thinkingEffort.medium'))
+    expect(tickLabels()).toEqual(['none', 'default', 'on'].map(labelOf))
   })
 
   it('LLM Gate / 自定义地址：不显示思考强度，只剩系统提示词', async () => {
     const { wrapper } = await mountConfig({ ...MODEL, kind: 'gate', baseUrl: 'http://x/v1' })
 
     expect(slider(wrapper).exists()).toBe(false)
+    expect(tickLabels()).toEqual([])
     expect(document.body.textContent).not.toContain(i18n.global.t('chat.thinkingEffort.title'))
     expect(textarea(wrapper).exists()).toBe(true)
   })

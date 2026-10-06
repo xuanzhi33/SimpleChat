@@ -233,7 +233,8 @@
       "high": "高",
       "max": "最高",
       "on": "开",
-      "hint": "默认 = 交给模型自己决定；关 = 明确不思考。档位按 {provider} 支持的等级提供。"
+      "toggleTo": "点击切换为「{level}」",
+      "hint": "关 = 明确不思考；默认 = 交给模型自己决定。档位按 {provider} 支持的等级提供。"
     },
     "systemPrompt": "系统提示词",
     "systemPromptPlaceholder": "例如：你是一位专业的编程助手，擅长解答技术问题...",
