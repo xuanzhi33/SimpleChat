@@ -1,0 +1,281 @@
+{
+  "common": {
+    "title": "SimpleChat"
+  },
+  "errors": {
+    "possibleCors": "請求失敗：目標介面可能不允許瀏覽器跨域(CORS)訪問，也可能是網路不可達。若確認是跨域限制，建議改用 LLM Gate。",
+    "requestFailed": "請求失敗（{status}）：{reason}",
+    "serverDetail": "伺服器返回：{detail}",
+    "solution": "解決方法：{solution}",
+    "http": {
+      "400": {
+        "reason": "請求體格式錯誤",
+        "solution": "請根據伺服器返回的錯誤資訊修改請求體"
+      },
+      "401": {
+        "reason": "API Key 錯誤，認證失敗",
+        "solution": "請檢查 API Key 是否正確，並確認已正確填寫；如還沒有 API Key，請先前往提供商的 API Keys 頁面建立"
+      },
+      "402": {
+        "reason": "帳號餘額不足",
+        "solution": "請確認帳戶餘額，並前往提供商的充值頁面進行充值"
+      },
+      "422": {
+        "reason": "請求體參數錯誤",
+        "solution": "請根據伺服器返回的錯誤資訊修改相關參數，常見原因是模型 ID 填寫有誤"
+      },
+      "429": {
+        "reason": "請求速率達到上限（TPM 或 RPM）",
+        "solution": "請合理規劃您的請求速率，稍後重試"
+      },
+      "500": {
+        "reason": "伺服器內部故障",
+        "solution": "請等待後重試；若問題一直存在，請聯絡提供商解決"
+      },
+      "503": {
+        "reason": "伺服器負載過高",
+        "solution": "請稍後重試您的請求"
+      },
+      "other": {
+        "reason": "介面返回了錯誤狀態碼",
+        "solution": "請檢查介面地址、模型 ID 和 API Key 是否正確"
+      }
+    }
+  },
+  "setup": {
+    "title": "歡迎使用 SimpleChat",
+    "description": "SimpleChat 是一個純前端應用，所有資料都儲存在您的瀏覽器中。為了與 AI 模型互動，您需要自行配置大模型介面。",
+    "language": "語言 / Language",
+    "tabs": {
+      "deepseek": "DeepSeek 官方模式",
+      "api": "API 模式",
+      "gate": "LLM Gate 模式"
+    },
+    "deepseek": {
+      "step1": "步驟 1：註冊並取得 API Key",
+      "step1Description": "前往 DeepSeek 開放平臺註冊帳號、完成充值，並在「API Keys」頁面建立一個 API Key。",
+      "apiKeyButton": "前往 DeepSeek 開放平臺",
+      "step2": "步驟 2：貼上 API Key",
+      "apiKeyRequired": "請輸入 API Key"
+    },
+    "api": {
+      "notice": "API 模式下，瀏覽器會直接向您填寫的提供商發起請求，因此需要該提供商支援跨域（CORS）訪問，主流提供商均已支援。如不確定，可先填寫並測試是否可用；若請求失敗，請改用 LLM Gate 模式。",
+      "provider": "服務商",
+      "providerCustom": "自訂（OpenAI 相容）",
+      "baseUrl": "介面 Base URL",
+      "baseUrlPlaceholder": "例如: https://api.deepseek.com/v1",
+      "baseUrlDescription": "通常以 /v1 結尾；SimpleChat 會自動在末尾拼接 /chat/completions，無需手動新增。",
+      "baseUrlRequired": "請選擇服務商，或填寫自訂 Base URL",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
+      "apiKeyDescription": "僅儲存在瀏覽器本地，本地無鑑權的介面可留空。API Key 會由瀏覽器直接傳送給您填寫的提供商，不經過任何中轉，請放心使用。",
+      "model": "模型",
+      "modelSource": {
+        "list": "從列表選擇",
+        "manual": "手動輸入模型 ID"
+      },
+      "fetchModels": "校驗 Key 並取得模型列表",
+      "modelsEmpty": "介面返回的模型列表是空的。",
+      "modelsFailed": "取得模型列表失敗。",
+      "modelSelectPlaceholder": "搜尋或選擇模型",
+      "modelsNoMatch": "沒有匹配的模型。",
+      "modelOption": "{name}（{id}）",
+      "modelIdRequired": "請選擇模型，或手動填寫模型 ID",
+      "modelIdPlaceholder": "例如: deepseek-chat",
+      "modelIdDescription": "將作為請求中的 model 欄位傳送，需與廠商文件一致。",
+      "contextWindow": "上下文長度",
+      "inputModalities": "輸入模態",
+      "noModelInfo": "該介面沒有返回這個模型的更多資訊。",
+      "modalities": {
+        "text": "文本",
+        "image": "影像",
+        "file": "檔案",
+        "audio": "音訊",
+        "video": "影片"
+      }
+    },
+    "modelIdRequired": "請輸入模型 ID",
+    "step1": "步驟 1：下載並安裝 LLM Gate",
+    "step1Description": "LLM Gate 是一個本地 LLM API 閘道器，支援 Windows 和 macOS。它為 SimpleChat 提供與 AI 模型通訊的介面。",
+    "downloadButton": "下載 LLM Gate",
+    "step2": "步驟 2：在 LLM Gate 中配置模型",
+    "step2Description": "開啟 LLM Gate 軟體，使用「快速新增嚮導」配置您想要使用的 AI 模型。配置完成後，返回主頁，複製對應模型的 Base URL。",
+    "step3": "步驟 3：貼上模型 URL",
+    "modelUrl": "模型 URL",
+    "modelUrlPlaceholder": "例如: http://localhost:11456/model-01/v1",
+    "defaultModelName": "預設模型",
+    "completeSetup": "完成設定",
+    "skip": "跳過",
+    "urlRequired": "請輸入模型 URL",
+    "setupSuccess": "設定成功！您現在可以開始聊天了。"
+  },
+  "settings": {
+    "title": "設定",
+    "interface": {
+      "title": "介面設定",
+      "colorMode": "顏色主題",
+      "colorModeOptions": {
+        "light": "淺色模式",
+        "dark": "深色模式",
+        "system": "跟隨系統"
+      },
+      "language": "語言",
+      "languageOptions": {
+        "en": "英語 - English",
+        "zh": "簡體中文 - Chinese (Simplified)",
+        "zh-hant": "繁體中文 - Chinese (Traditional)"
+      }
+    },
+    "api": {
+      "title": "API 設定",
+      "contextLength": "上下文長度",
+      "selectContextLength": "選擇上下文長度",
+      "contextLengthDescription": "控制傳送給 AI 的歷史對話輪數。較長的上下文能讓 AI 記住更早之前的對話內容，但會消耗更多 token 並可能超出模型的上下文視窗限制。建議從標準設定開始。",
+      "contextOptions": {
+        "veryShort": "較短（5 輪）",
+        "standard": "標準（10 輪）",
+        "long": "較長（25 輪）",
+        "veryLong": "極長（100 輪）",
+        "unlimited": "無限制",
+        "single": "無上下文（1 輪）"
+      }
+    },
+    "models": {
+      "section": "模型管理",
+      "title": "模型管理",
+      "manage": "管理模型",
+      "manageDescription": "配置和管理對話使用的 AI 模型",
+      "addNew": "新增模型",
+      "addModel": "新增模型",
+      "addDescription": "選擇服務商並填寫介面資訊，模型會加到列表末尾，預設模型不變。",
+      "add": "新增",
+      "editModel": "編輯模型",
+      "modelUrl": "模型 URL",
+      "modelUrlPlaceholder": "例如: https://api.deepseek.com/v1",
+      "modelUrlDescription": "通常以 /v1 結尾；SimpleChat 會自動在末尾拼接 /chat/completions，無需手動新增。",
+      "modelId": "模型 ID",
+      "modelIdPlaceholder": "例如: gpt-4o",
+      "modelIdDescription": "將作為請求中的 model 欄位傳送，需與廠商文件一致",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
+      "apiKeyDescription": "僅儲存在瀏覽器本地，本地無鑑權的介面可留空。API Key 會由瀏覽器直接傳送給您填寫的提供商，不經過任何中轉，請放心使用。",
+      "gateHint": "使用 LLM Gate 時，模型由 URL 中的模型 ID 決定，這裡無需填寫模型 ID 和 API Key。",
+      "kind": {
+        "api": "API",
+        "gate": "LLM Gate"
+      },
+      "modelIdRequired": "請輸入模型 ID",
+      "test": "測試",
+      "testing": "測試中...",
+      "testSuccess": "連線成功，模型回覆：{reply}",
+      "testFailed": "連線失敗：{message}",
+      "modelName": "模型名稱",
+      "modelNamePlaceholder": "例如: GPT-4",
+      "modelNameDescription": "僅用於展示，不會用於介面呼叫",
+      "default": "預設",
+      "setDefault": "設為預設",
+      "save": "儲存",
+      "cancel": "取消",
+      "delete": "刪除",
+      "confirmDelete": "確定要刪除這個模型嗎？",
+      "confirmDeleteDescription": "刪除後，使用此模型的對話將改用預設模型。",
+      "nameRequired": "請輸入模型名稱",
+      "urlRequired": "請輸入模型 URL",
+      "addSuccess": "模型新增成功",
+      "updateSuccess": "模型更新成功",
+      "deleteSuccess": "模型刪除成功",
+      "defaultSet": "已設為預設模型",
+      "cannotDeleteLast": "無法刪除最後一個模型"
+    },
+    "data": {
+      "title": "資料管理",
+      "clearAllData": "清空所有資料",
+      "clearAllDataDescription": "刪除所有對話和設定，此操作不可復原",
+      "confirmClearAll": "確定要清空所有資料嗎？",
+      "confirmClearAllDescription": "此操作將刪除所有對話記錄和設定，且不可恢復。",
+      "cancel": "取消",
+      "confirm": "確認清空"
+    },
+    "about": {
+      "title": "關於",
+      "version": "版本",
+      "repo": "原始碼倉庫",
+      "reportIssue": "回報 Bug"
+    }
+  },
+  "chat": {
+    "title": "對話",
+    "newChat": "新增對話",
+    "newConversation": "新對話",
+    "emptyState": "開始新的對話吧！",
+    "noModelHint": "請點擊新增模型",
+    "inputPlaceholder": "輸入訊息...",
+    "sendTooltip": "傳送 (Enter) / 換行 (Shift+Enter)",
+    "currentModel": "當前模型",
+    "selectModel": "選擇模型",
+    "manageModels": "管理模型",
+    "send": "傳送",
+    "stop": "停止",
+    "messages": "條訊息",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "天前",
+    "timestampYesterday": "昨天 {time}",
+    "noConversations": "暫無對話",
+    "conversationConfig": "對話配置",
+    "systemPrompt": "系統提示詞",
+    "systemPromptPlaceholder": "例如：你是一位專業的程式設計助手，擅長解答技術問題...",
+    "systemPromptDescription": "系統提示詞用於定義 AI 的角色和行為方式。它對每個對話獨立儲存，不受上下文長度限制影響，始終會發送給 AI 模型。",
+    "confirmDelete": "確定要刪除這個對話嗎？",
+    "deleted": "對話已刪除",
+    "undo": "復原",
+    "outOfContext": "超出上下文",
+    "thinking": "思考",
+    "thinkingInProgress": "思考中...",
+    "thinkingComplete": "思考完成",
+    "thinkingDuration": "用時 {seconds} 秒",
+    "copy": "複製",
+    "copied": "已複製",
+    "editMessage": "編輯",
+    "editNotice": "編輯後下方的所有內容將會被替換",
+    "cancelEdit": "取消編輯",
+    "renameTitle": "重新命名標題",
+    "deleteConversation": "刪除對話",
+    "collapseSidebar": "收起側邊欄",
+    "expandSidebar": "展開側邊欄",
+    "features": {
+      "markdown": "支援 Markdown 格式",
+      "codeHighlight": "程式碼語法高亮"
+    },
+    "errors": {
+      "noModel": "沒有可用的模型，請在設定中新增模型",
+      "noGateway": "請先在設定中配置閘道器地址",
+      "sendFailed": "傳送訊息失敗"
+    }
+  },
+  "markstream": {
+    "common.copy": "複製",
+    "common.copied": "已複製",
+    "common.selectCopy": "全選並複製",
+    "common.more": "更多",
+    "common.expand": "展開",
+    "common.collapse": "收起",
+    "common.preview": "預覽",
+    "common.source": "原始碼",
+    "common.export": "匯出",
+    "common.open": "開啟",
+    "common.minimize": "最小化",
+    "common.reset": "重置",
+    "common.decrease": "減少",
+    "common.increase": "增加",
+    "common.fontLarger": "放大字號",
+    "common.fontSmaller": "縮小字號",
+    "common.fontReset": "重置字號",
+    "common.zoomIn": "放大",
+    "common.zoomOut": "縮小",
+    "common.resetZoom": "重置縮放",
+    "image.loading": "圖片載入中...",
+    "image.loadError": "圖片載入失敗",
+    "image.preview": "預覽圖片"
+  }
+}
