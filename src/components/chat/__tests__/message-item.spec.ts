@@ -1,5 +1,5 @@
 import { nextTick } from 'vue'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 
 // reka 的 tooltip 定位用 useSize，依赖 ResizeObserver（jsdom 里没有）
 vi.stubGlobal(
@@ -40,6 +40,10 @@ describe('MessageItem 渲染', () => {
     localStorage.clear()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('用户消息保持纯文本，不渲染 markdown', async () => {
     const wrapper = await render({ role: 'user', content: '**not bold** <b>x</b>' })
     expect(wrapper.text()).toContain('**not bold** <b>x</b>')
@@ -68,8 +72,9 @@ describe('MessageItem 渲染', () => {
     expect(thinking.get('button[aria-expanded]').attributes('aria-expanded')).toBe('true')
     expect(thinking.find('.animate-pulse').exists()).toBe(true)
     // 思考中自动展开是限高的（配合自动跟到底看最新几行）
-    const thinkingBody = thinking.get('.thinking-md').element.parentElement!
-    expect(thinkingBody.className).toMatch(/max-h-25.*overflow-y-auto/)
+    expect(thinking.get('.thinking-md').element.parentElement!.className).toMatch(
+      /max-h-25.*overflow-y-auto/,
+    )
 
     const answering = await render({
       content: '正文',
@@ -82,6 +87,37 @@ describe('MessageItem 渲染', () => {
     expect(answering.text()).toContain('1.5')
     expect(answering.get('button[aria-expanded]').attributes('aria-expanded')).toBe('false')
     expect(answering.find('.animate-pulse').exists()).toBe(false)
+  })
+
+  it('思考结束收起时先保持限高，动画放完才解除（否则会先撑开一下再收）', async () => {
+    const wrapper = mount(MessageItem, {
+      props: {
+        message: makeMessage({ reasoning_content: '先想一想', isStreaming: true }),
+      },
+      global: { plugins: [createPinia(), i18n] },
+    })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    const bodyClass = () => wrapper.get('.thinking-md').element.parentElement!.className
+    expect(bodyClass()).toMatch(/max-h-25.*overflow-y-auto/)
+
+    // 收到首个正文增量（思考结束）→ 开始收起
+    vi.useFakeTimers()
+    await wrapper.setProps({
+      message: makeMessage({
+        content: '正文',
+        reasoning_content: '先想一想',
+        isStreaming: true,
+        thinkingDone: true,
+      }),
+    })
+    await nextTick()
+    expect(wrapper.get('button[aria-expanded]').attributes('aria-expanded')).toBe('false')
+    expect(bodyClass()).toMatch(/max-h-25.*overflow-y-auto/)
+
+    // 动画放完再解除限高：那时内容已收成 0 高，看不出变化
+    vi.advanceTimersByTime(200)
+    await nextTick()
+    expect(bodyClass()).not.toMatch(/max-h-|overflow-y-/)
   })
 
   it('手动展开已完成的思考：整段铺开，不限高、无内部滚动条', async () => {

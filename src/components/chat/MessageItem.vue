@@ -61,14 +61,29 @@ const isThinking = computed(() => !!props.message.isStreaming && !props.message.
 // 默认折叠：历史消息（一加载出来就是完成态）收起，正在思考的消息展开
 const thinkingCollapsed = ref(!isThinking.value)
 
+// 思考内容容器
+const thinkingContentRef = ref<HTMLElement | null>(null)
+
+/** 折叠动画时长（模板里的过渡用它，免两处各写一个数） */
+const THINKING_FOLD_MS = 200
+
+/**
+ * 是否给思考内容限高（不限定高时整段铺开）。
+ * 只有「思考中自动展开」限高：等思考结束再解除的话，收起动画是从当前行高开始动画的，
+ * 同时解除限高会让行高先被撑满再往回收 —— 看着就是“突然撑开一下”。
+ * 所以等收起动画放完再解除（此时内容已经收成 0 高，看不出变化），之后手动展开就是全文。
+ */
+const thinkingHeightLimited = ref(isThinking.value)
+
 // 思考中展开，思考一结束（正文开始）自动收起；之后手动展开不会被覆盖
 watch(isThinking, (thinking) => {
   thinkingCollapsed.value = !thinking
+  if (thinking) {
+    thinkingHeightLimited.value = true
+    return
+  }
+  window.setTimeout(() => (thinkingHeightLimited.value = false), THINKING_FOLD_MS)
 })
-
-// 思考内容容器：只有「思考中自动展开」这一种情形是限高的（靠它 + 自动跟到底看最新几行），
-// 用户手动展开已完成的思考时整段铺开，不限高
-const thinkingContentRef = ref<HTMLElement | null>(null)
 
 // 限高时监听thinking内容变化，自动滚动到底部
 watch(
@@ -130,7 +145,8 @@ watch(
         </button>
 
         <div
-          class="grid transition-[grid-template-rows] duration-200 ease-out"
+          class="grid transition-[grid-template-rows] ease-out"
+          :style="{ transitionDuration: `${THINKING_FOLD_MS}ms` }"
           :class="thinkingCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'"
         >
           <div class="overflow-hidden">
@@ -142,7 +158,7 @@ watch(
               <div
                 ref="thinkingContentRef"
                 class="min-w-0 flex-1 text-muted-foreground"
-                :class="isThinking && 'max-h-25 overflow-y-auto'"
+                :class="thinkingHeightLimited && 'max-h-25 overflow-y-auto'"
               >
                 <MarkdownRender
                   class="thinking-md"
