@@ -207,6 +207,7 @@
     "newChat": "New Chat",
     "newConversation": "New Conversation",
     "emptyState": "Start a new conversation!",
+    "noModelHint": "Click Add Model to get started",
     "inputPlaceholder": "Type a message...",
     "sendTooltip": "Send (Enter) / New line (Shift+Enter)",
     "currentModel": "Current Model",

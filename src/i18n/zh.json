@@ -207,6 +207,7 @@
     "newChat": "新建对话",
     "newConversation": "新对话",
     "emptyState": "开始新的对话吧！",
+    "noModelHint": "请点击添加模型",
     "inputPlaceholder": "输入消息...",
     "sendTooltip": "发送 (Enter) / 换行 (Shift+Enter)",
     "currentModel": "当前模型",

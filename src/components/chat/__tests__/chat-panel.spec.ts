@@ -42,6 +42,8 @@ vi.mock('vue-sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ChatPanel from '@/components/chat/ChatPanel.vue'
+import SetupDialog from '@/components/settings/SetupDialog.vue'
+import { Button } from '@/components/ui/button'
 import { i18n } from '@/i18n/config'
 import { useChatStore } from '@/stores/chat'
 import { HttpError, describeError } from '@/lib/errors'
@@ -151,6 +153,23 @@ describe('ChatPanel 发送失败', () => {
     expect(toast.error).toHaveBeenCalledWith(i18n.global.t('chat.errors.noModel'))
     expect(useChatStore().activeConversation?.messages ?? []).toHaveLength(0)
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+  })
+
+  it('空状态提示「请点击添加模型」，点按钮弹出欢迎弹窗', async () => {
+    await setup({ withModel: false })
+
+    expect(wrapper.text()).toContain(i18n.global.t('chat.noModelHint'))
+
+    const setupDialog = wrapper.findComponent(SetupDialog)
+    expect(setupDialog.props('open')).toBe(false)
+
+    await wrapper
+      .findAllComponents(Button)
+      .find((button) => button.text() === i18n.global.t('settings.models.addModel'))!
+      .trigger('click')
+    await nextTick()
+
+    expect(setupDialog.props('open')).toBe(true)
   })
 
   it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {

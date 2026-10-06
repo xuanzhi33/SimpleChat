@@ -28,6 +28,7 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
+import SetupDialog from '@/components/settings/SetupDialog.vue'
 import { CircleStop, CircleAlert, Bot, Cpu, ArrowUp, Settings, SlidersVertical } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
@@ -39,6 +40,8 @@ const inputText = ref('')
 const messagesContainerRef = ref<HTMLElement>()
 const abortControllerRef = ref<AbortController | null>(null)
 const modelManagementOpen = ref(false)
+// 空状态里的「添加模型」直接弹欢迎弹窗（三种接入方式都在里面，添加后会设为默认模型）
+const setupDialogOpen = ref(false)
 const conversationConfigOpen = ref(false)
 /** 流式期间用户自己滚动过：之后的增量不再抢滚动位置 */
 const userScrolledDuringStream = ref(false)
@@ -395,10 +398,13 @@ const handleKeyDown = (event: KeyboardEvent) => {
         <SystemPromptBlock class="w-full max-w-md text-left" />
         <div
           v-if="!currentModel"
-          class="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg"
+          class="flex items-center gap-3 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg"
         >
-          <CircleAlert class="inline-block w-4 h-4 mr-1" />
-          {{ t('chat.errors.noModel') }}
+          <CircleAlert class="w-4 h-4 shrink-0" />
+          {{ t('chat.noModelHint') }}
+          <Button size="sm" class="h-7 px-2.5 text-xs" @click="setupDialogOpen = true">
+            {{ t('settings.models.addModel') }}
+          </Button>
         </div>
       </div>
 
@@ -530,6 +536,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
   <!-- 模型管理弹窗 -->
   <ModelManagement v-model:open="modelManagementOpen" />
+  <SetupDialog v-model:open="setupDialogOpen" />
 
   <!-- 对话配置弹窗 -->
   <ConversationConfig v-model:open="conversationConfigOpen" />
