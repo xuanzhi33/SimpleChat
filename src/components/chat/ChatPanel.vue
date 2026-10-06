@@ -29,7 +29,8 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import SetupDialog from '@/components/settings/SetupDialog.vue'
-import { CircleStop, CircleAlert, Bot, Cpu, ArrowUp, Settings, SlidersVertical } from '@lucide/vue'
+import ModelIcon from '@/components/ModelIcon.vue'
+import { CircleStop, CircleAlert, Bot, ArrowUp, Settings, SlidersVertical } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 
@@ -475,7 +476,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
           <DropdownMenu v-if="chatStore.activeConversation">
             <DropdownMenuTrigger as-child>
               <InputGroupButton variant="ghost" :disabled="isGenerating">
-                <Cpu class="size-4 mr-1.5" />
+                <ModelIcon :model="currentModel" class="mr-1.5" />
                 {{ currentModel?.name || t('chat.selectModel') }}
               </InputGroupButton>
             </DropdownMenuTrigger>
@@ -485,7 +486,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
                 :key="model.id"
                 @click="updateConversationModel(model.id)"
               >
-                <Cpu class="size-4 mr-2" />
+                <ModelIcon :model="model" class="mr-2" />
                 {{ model.name }}
               </DropdownMenuItem>
               <DropdownMenuSeparator />

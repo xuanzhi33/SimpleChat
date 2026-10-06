@@ -12,9 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ExternalLink, Info, LoaderCircle, RefreshCw, ChevronDown, Plug } from '@lucide/vue'
+import {
+  ExternalLink,
+  Info,
+  LoaderCircle,
+  RefreshCw,
+  ChevronDown,
+  Cloud,
+  Lock,
+  Plug,
+} from '@lucide/vue'
 import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID, DEEPSEEK_MODEL_NAME } from '@/lib/model'
 import { providerList } from '@/configs/providers'
+import deepseekLogo from '@/assets/deepseek.svg'
+import ModelIcon from '@/components/ModelIcon.vue'
 import { modelDisplayName, type RemoteModel } from '@/lib/models'
 import { useApiModelForm, CUSTOM_PROVIDER_ID, type ModelDraft } from '@/composables/useApiModelForm'
 import {
@@ -116,9 +127,18 @@ defineExpose({ buildModel })
 <template>
   <Tabs v-model="mode" class="gap-4">
     <TabsList class="w-full">
-      <TabsTrigger value="deepseek">{{ t('setup.tabs.deepseek') }}</TabsTrigger>
-      <TabsTrigger value="api">{{ t('setup.tabs.api') }}</TabsTrigger>
-      <TabsTrigger value="gate">{{ t('setup.tabs.gate') }}</TabsTrigger>
+      <TabsTrigger value="deepseek">
+        <img :src="deepseekLogo" alt="" class="size-4 shrink-0" />
+        {{ t('setup.tabs.deepseek') }}
+      </TabsTrigger>
+      <TabsTrigger value="api">
+        <Cloud class="size-4" />
+        {{ t('setup.tabs.api') }}
+      </TabsTrigger>
+      <TabsTrigger value="gate">
+        <Lock class="size-4" />
+        {{ t('setup.tabs.gate') }}
+      </TabsTrigger>
     </TabsList>
 
     <!-- DeepSeek 官方模式 -->
@@ -194,11 +214,7 @@ defineExpose({ buildModel })
               :key="provider.name"
               :value="provider.name"
             >
-              <img
-                :src="provider.logo"
-                alt=""
-                :class="['size-4 shrink-0', provider.logoInvert && 'dark:invert']"
-              />
+              <ModelIcon :provider="provider" />
               {{ provider.name }}
             </SelectItem>
             <SelectItem :value="CUSTOM_PROVIDER_ID">

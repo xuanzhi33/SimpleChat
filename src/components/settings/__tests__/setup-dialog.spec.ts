@@ -117,6 +117,14 @@ describe('欢迎弹窗 API 模式', () => {
     document.body.innerHTML = ''
   })
 
+  it('三个 tab 各带一个图标', async () => {
+    await mountDialog()
+
+    const tabs = Array.from(document.body.querySelectorAll('[role=tab]'))
+    expect(tabs).toHaveLength(3)
+    expect(tabs.map((tab) => !!tab.querySelector('svg, img'))).toEqual([true, true, true])
+  })
+
   it('默认自定义：Base URL 可以自己填，手动填模型 ID 后提交', async () => {
     const { wrapper, settingsStore } = await mountDialog()
     await openApiTab()

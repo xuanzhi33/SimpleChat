@@ -29,8 +29,6 @@ import {
   Sparkles,
   LoaderCircle,
   ShieldCheck,
-  Cloud,
-  Lock,
   Cpu,
   KeyRound,
   Link,
@@ -38,11 +36,11 @@ import {
 import { toast } from 'vue-sonner'
 import { ButtonGroup } from '../ui/button-group'
 import AddModelDialog from './AddModelDialog.vue'
+import ModelIcon from '@/components/ModelIcon.vue'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError } from '@/lib/errors'
-import { isApiModel, modelKind } from '@/lib/model'
-import { findProviderByUrl } from '@/configs/providers'
-import type { Model, ModelKind } from '@/types/chat'
+import { modelKind } from '@/lib/model'
+import type { ModelKind } from '@/types/chat'
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -69,15 +67,6 @@ const isTesting = ref(false)
 // 删除确认对话框
 const deleteDialogOpen = ref(false)
 const modelToDelete = ref<string | null>(null)
-
-/** 模型里没存服务商，列表只能按 base url 反推（预设地址是选服务商时原样存进去的） */
-const providerOf = (model: Model) =>
-  isApiModel(model) ? findProviderByUrl(model.baseUrl) : undefined
-
-const logoOf = (model: Model) => providerOf(model)?.logo
-
-/** 单色 logo（用 currentColor 画的那种）在深色模式下要反色 */
-const logoInvert = (model: Model) => !!providerOf(model)?.logoInvert
 
 // 展开编辑（切到另一张卡片时，前一张会自动收起）
 const startEdit = (id: string) => {
@@ -232,16 +221,7 @@ const testModel = async () => {
               <div
                 class="flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted/50 text-muted-foreground"
               >
-                <template v-if="isApiModel(model)">
-                  <img
-                    v-if="logoOf(model)"
-                    :src="logoOf(model)"
-                    alt=""
-                    :class="['size-4', logoInvert(model) && 'dark:invert']"
-                  />
-                  <Cloud v-else class="size-4" />
-                </template>
-                <Lock v-else class="size-4" />
+                <ModelIcon :model="model" />
               </div>
 
               <div class="min-w-0 flex-1">

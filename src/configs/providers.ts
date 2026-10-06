@@ -92,6 +92,8 @@ export const providerList: ProviderPreset[] = [
     keyUrl: 'https://openrouter.ai/keys',
     thinkingStyle: 'unified_reasoning',
     logo: openrouterLogo,
+    // OpenRouter 的 mark 也是单色的
+    logoInvert: true,
   },
 ]
 
