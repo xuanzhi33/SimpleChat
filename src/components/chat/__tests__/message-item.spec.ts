@@ -50,6 +50,15 @@ describe('MessageItem 渲染', () => {
     expect(wrapper.html()).not.toContain('<strong>')
   })
 
+  it('用户气泡的圆角有上限：不用 rounded-full（多行会变成两个大圆弧）', async () => {
+    const wrapper = await render({ role: 'user', content: '多行\n内容\n也要圆得正常' })
+
+    const bubble = wrapper.find('.rounded-3xl')
+    expect(bubble.text()).toContain('多行')
+    // rounded-full 会被 CSS 夹成「高度的一半」，行越多圆弧越大
+    expect(bubble.classes()).not.toContain('rounded-full')
+  })
+
   it('AI 消息渲染 markdown', async () => {
     const wrapper = await render({ content: '**bold** and `code`' })
     expect(wrapper.html()).toContain('<strong')

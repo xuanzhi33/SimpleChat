@@ -174,10 +174,13 @@ watch(
         </div>
       </div>
 
-      <!-- 用户消息：淡色气泡（全圆角，上下内边距收紧） -->
+      <!-- 用户消息：淡色气泡（上下内边距收紧）
+           圆角不用 rounded-full：它会被 CSS 夹成「高度的一半」，多行气泡就在左/右边缘变成
+           两个大圆弧。这里用 24px 封顶；单行气泡只有 38px 高（text-base 行高 24 + py-1.5 共 12
+           + 上下边框 2），24px 超出会被 CSS 等比压回 19px，正好还是两端半圆的胶囊样 -->
       <Card
         v-if="isUser"
-        class="w-fit max-w-full ml-auto rounded-full px-3 py-1.5 bg-blue-100 text-blue-950 border-blue-100 dark:bg-blue-900/60 dark:text-blue-50 dark:border-blue-900/40"
+        class="w-fit max-w-full ml-auto rounded-3xl px-3 py-1.5 bg-blue-100 text-blue-950 border-blue-100 dark:bg-blue-900/60 dark:text-blue-50 dark:border-blue-900/40"
       >
         <div class="text-base whitespace-pre-wrap wrap-break-word">
           {{ message.content }}
