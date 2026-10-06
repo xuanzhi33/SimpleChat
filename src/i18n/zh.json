@@ -223,6 +223,18 @@
     "timestampYesterday": "昨天 {time}",
     "noConversations": "暂无对话",
     "conversationConfig": "对话配置",
+    "conversationConfigDescription": "这个对话自己的设置，只影响当前对话。",
+    "thinkingEffort": {
+      "title": "思考强度",
+      "default": "默认",
+      "none": "关",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "max": "最高",
+      "on": "开",
+      "hint": "默认 = 交给模型自己决定；关 = 明确不思考。档位按 {provider} 支持的等级提供。"
+    },
     "systemPrompt": "系统提示词",
     "systemPromptPlaceholder": "例如：你是一位专业的编程助手，擅长解答技术问题...",
     "systemPromptDescription": "系统提示词用于定义 AI 的角色和行为方式。它对每个对话独立保存，不受上下文长度限制影响，始终会发送给 AI 模型。",

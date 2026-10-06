@@ -5,7 +5,8 @@ import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
 import { isImeComposing } from '@/lib/ime'
-import { modelRequestOptions } from '@/lib/model'
+import { modelRequestOptions, resolveConversationModel } from '@/lib/model'
+import { completeWithoutThinking, thinkingPayload, thinkingStyleOf } from '@/lib/thinking'
 import { pinMessageToTop } from '@/lib/scroll'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
 import MessageItem from './MessageItem.vue'
@@ -53,11 +54,13 @@ const messages = computed(() => chatStore.activeConversation?.messages || [])
 const isGenerating = computed(() => chatStore.isGenerating)
 
 // 当前对话使用的模型
-const currentModel = computed(() => {
-  const modelId = chatStore.activeConversation?.modelId
-  if (!modelId) return settingsStore.defaultModel
-  return settingsStore.models.find((m) => m.id === modelId) || settingsStore.defaultModel
-})
+const currentModel = computed(() =>
+  resolveConversationModel(
+    chatStore.activeConversation,
+    settingsStore.models,
+    settingsStore.defaultModel,
+  ),
+)
 
 // 更新当前对话的模型
 const updateConversationModel = (modelId: unknown) => {
@@ -197,10 +200,14 @@ const sendMessage = async () => {
   chatStore.isGenerating = true
   abortControllerRef.value = new AbortController()
 
-  const chatService = new ChatService(
-    currentModel.value.baseUrl,
-    modelRequestOptions(currentModel.value),
-  )
+  const chatService = new ChatService(currentModel.value.baseUrl, {
+    ...modelRequestOptions(currentModel.value),
+    // 思考档位按对话存的值映射成各家字段；没设置就一个字段都不加
+    thinking: thinkingPayload(
+      thinkingStyleOf(currentModel.value),
+      chatStore.activeConversation?.thinkingLevel,
+    ),
+  })
   let fullContent = ''
   let fullReasoningContent = ''
   // 思考耗时：从请求发出到最后一个思考增量
@@ -328,9 +335,9 @@ const maybeGenerateTitle = async (conversationId: string, assistantContent: stri
   if (!model) return
 
   try {
-    const service = new ChatService(model.baseUrl, modelRequestOptions(model))
+    // 标题是内部请求：能关思考就显式关掉，省钱也避免正文被思考预算吃掉
     const title = cleanTitle(
-      await service.complete(buildTitlePrompt(userMessage, assistantContent)),
+      await completeWithoutThinking(model, buildTitlePrompt(userMessage, assistantContent)),
     )
     if (title) chatStore.applyAutoTitle(conversationId, title)
   } catch (err) {

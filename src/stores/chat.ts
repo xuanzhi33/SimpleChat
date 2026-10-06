@@ -44,6 +44,22 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  /**
+   * 更新指定对话自己的设置（系统提示词 / 思考档位）并写回库。
+   * 带 id 是故意的：输入框里带防抖保存，等防抖到点时用户可能已经切到别的对话了。
+   */
+  const updateConversationSettings = (
+    conversationId: string,
+    patch: Partial<Pick<Conversation, 'systemPrompt' | 'thinkingLevel'>>,
+  ) => {
+    const conversation = conversations.value.find((c) => c.id === conversationId)
+    if (!conversation) return
+
+    Object.assign(conversation, patch)
+    conversation.updatedAt = Date.now()
+    persistConversation(conversation)
+  }
+
   // 是否正在生成
   const isGenerating = ref(false)
 
@@ -224,6 +240,7 @@ export const useChatStore = defineStore('chat', () => {
     clearMessages,
     truncateFrom,
     renameConversation,
+    updateConversationSettings,
     applyAutoTitle,
   }
 })

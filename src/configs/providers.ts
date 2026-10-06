@@ -26,8 +26,13 @@ import siliconcloudLogo from '@/assets/siliconcloud.svg'
  * 注意：风格只决定字段形状，各家支持的档位集合并不一样（有的没有「中」，有的关不掉），
  * 这部分留给映射函数去就近取整，别写进这个字段。
  *
- * 来源级别（2026-02 核对）：OpenAI / DeepSeek / OpenRouter / SiliconFlow 四种风格都对过官方 API 文档；
- * `anthropic` 与 `google` 只是从 LiteLLM / AI SDK 这类二手文档推出来的，接入前先去官方页核一遍。
+ * 来源级别（2026-02 核对）：OpenAI / DeepSeek / OpenRouter / SiliconFlow 四种风格都对过官方 API 文档，
+ * 滑动档位与请求字段的映射见 `lib/thinking.ts` 顶部的注释：
+ * - OpenAI Chat Completions 的 `reasoning_effort` 现在收 `none|minimal|low|medium|high|xhigh|max`
+ * - DeepSeek 官方文档给了「请求档位 → 实际档位」的映射表（medium 会被抬成 high），活跃模型只有 low/high/max
+ * - OpenRouter 的 `reasoning.effort` 收 `none|minimal|low|medium|high|xhigh|max`，关用 `reasoning.enabled: false`
+ * - 硅基流动 `enable_thinking` 只有开/关（`thinking_budget` 是可选预算，我们不按档位发 token 数）
+ * `anthropic` 与 `google` 内置预设里没有用到，接入前先去官方页核一遍。
  * 另外 provider 级归类只是默认值：聚合平台（OpenRouter、SiliconFlow）实际上是「模型级」行为，
  * 同一个 base url 下不同模型的可用档位、能否关闭都可能不同，必要时得把风格下沉到模型上。
  */

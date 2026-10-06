@@ -87,6 +87,35 @@ describe('ChatService.sendMessage', () => {
     expect(JSON.parse(String(init.body))).not.toHaveProperty('model')
   })
 
+  it('思考字段按选项进请求体；不传就一个字段都不加', async () => {
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<unknown>>(async () =>
+      sseResponse('data: [DONE]\n\n'),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await new ChatService('http://x/v1', { thinking: { reasoning_effort: 'high' } }).sendMessage(
+      [],
+      vi.fn(),
+      vi.fn(),
+      vi.fn(),
+    )
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1].body))).toMatchObject({
+      reasoning_effort: 'high',
+      stream: true,
+    })
+
+    await new ChatService('http://x/v1', { thinking: {} }).sendMessage(
+      [],
+      vi.fn(),
+      vi.fn(),
+      vi.fn(),
+    )
+    expect(Object.keys(JSON.parse(String(fetchMock.mock.calls[1]![1].body)))).toEqual([
+      'messages',
+      'stream',
+    ])
+  })
+
   it('非 2xx 时包成 HttpError，并带上服务端给的提示', async () => {
     vi.stubGlobal(
       'fetch',

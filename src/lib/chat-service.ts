@@ -7,6 +7,11 @@ export interface ChatServiceOptions {
   model?: string
   /** Bearer token，留空则不发送 Authorization 头 */
   apiKey?: string
+  /**
+   * 思考相关的请求字段（由档位映射出来，见 `lib/thinking.ts`）。
+   * 不传或传空对象 = 一个字段都不加（Gate 模式永远不传）。
+   */
+  thinking?: Record<string, unknown>
 }
 
 /**
@@ -35,10 +40,11 @@ export class ChatService {
     return headers
   }
 
-  /** 请求体公共部分：gate 模式不带 model */
+  /** 请求体公共部分：gate 模式不带 model，思考字段按 options.thinking 透传 */
   private buildBody(extra: Record<string, unknown>): string {
     return JSON.stringify({
       ...(this.options.model ? { model: this.options.model } : {}),
+      ...this.options.thinking,
       ...extra,
     })
   }

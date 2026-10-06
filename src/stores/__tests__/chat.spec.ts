@@ -90,4 +90,35 @@ describe('chat store', () => {
     useChatStore().createConversation('saved')
     expect(dbOperations.saveConversation).toHaveBeenCalled()
   })
+
+  it('对话自己的设置（系统提示词 / 思考档位）会写回库', () => {
+    const store = useChatStore()
+    const c = store.createConversation('c')
+
+    store.updateConversationSettings(c.id, { systemPrompt: '你是助手', thinkingLevel: 'high' })
+
+    expect(store.activeConversation).toMatchObject({
+      systemPrompt: '你是助手',
+      thinkingLevel: 'high',
+    })
+    expect(dbOperations.saveConversation).toHaveBeenCalledWith(
+      expect.objectContaining({ id: c.id, systemPrompt: '你是助手', thinkingLevel: 'high' }),
+    )
+  })
+
+  it('带 id 更新设置：不会写到当前激活的另一条对话上', () => {
+    const store = useChatStore()
+    // 会话 id 用的是 Date.now()，同一毫秒建两条会撞 id，所以这里把时钟往前挪一点
+    vi.useFakeTimers()
+    const first = store.createConversation('first')
+    vi.advanceTimersByTime(1000)
+    const second = store.createConversation('second')
+    vi.useRealTimers()
+    expect(first.id).not.toBe(second.id)
+
+    store.updateConversationSettings(first.id, { systemPrompt: 'first 的提示词' })
+
+    expect(store.conversations.find((c) => c.id === first.id)?.systemPrompt).toBe('first 的提示词')
+    expect(store.conversations.find((c) => c.id === second.id)?.systemPrompt).toBeUndefined()
+  })
 })

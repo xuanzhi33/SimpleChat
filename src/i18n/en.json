@@ -223,6 +223,18 @@
     "timestampYesterday": "Yesterday {time}",
     "noConversations": "No conversations yet",
     "conversationConfig": "Conversation Settings",
+    "conversationConfigDescription": "Settings for this conversation only.",
+    "thinkingEffort": {
+      "title": "Thinking effort",
+      "default": "Default",
+      "none": "Off",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "max": "Max",
+      "on": "On",
+      "hint": "Default lets the model decide; Off explicitly disables thinking. Levels follow what {provider} supports."
+    },
     "systemPrompt": "System Prompt",
     "systemPromptPlaceholder": "e.g., You are a professional programming assistant who excels at answering technical questions...",
     "systemPromptDescription": "The system prompt defines the AI's role and behavior. It is saved independently for each conversation, unaffected by context length limits, and is always sent to the AI model.",

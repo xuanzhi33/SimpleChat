@@ -1,4 +1,4 @@
-import type { Model, ModelKind } from '@/types/chat'
+import type { Conversation, Model, ModelKind } from '@/types/chat'
 
 /** 欢迎弹窗「DeepSeek 官方模式」使用的固定接口地址，官方文档给的 base_url 不带 /v1 */
 export const DEEPSEEK_BASE_URL = 'https://api.deepseek.com'
@@ -22,4 +22,15 @@ export function isApiModel(model: Model): boolean {
 export function modelRequestOptions(model: Model): { model?: string; apiKey?: string } {
   if (!isApiModel(model)) return {}
   return { model: model.model, apiKey: model.apiKey }
+}
+
+/** 对话实际使用的模型：对话自己选的那条 → 找不到就退回默认模型 */
+export function resolveConversationModel(
+  conversation: Conversation | null | undefined,
+  models: Model[],
+  defaultModel: Model | undefined,
+): Model | undefined {
+  const modelId = conversation?.modelId
+  if (!modelId) return defaultModel
+  return models.find((model) => model.id === modelId) ?? defaultModel
 }

@@ -15,6 +15,12 @@ export interface Message {
 
 export type ModelKind = 'api' | 'gate'
 
+/**
+ * 思考档位（统一词汇，见 `lib/thinking.ts`）：none = 明确要求不思考，其余是「想多久」。
+ * 每个服务商支持的子集不同，最高档在发送时映射成它自己的顶档。
+ */
+export type ThinkingLevel = 'none' | 'low' | 'medium' | 'high' | 'max'
+
 export interface Model {
   id: string
   name: string // 展示名，不参与请求
@@ -32,6 +38,8 @@ export interface Conversation {
   messages: Message[]
   modelId?: string // 关联的模型ID
   systemPrompt?: string // 系统提示词
+  /** 思考档位；不设置 = 不发送任何思考参数，由模型自己决定 */
+  thinkingLevel?: ThinkingLevel
   /** 标题由用户手动改过，之后不再让模型自动生成 */
   titleIsManual?: boolean
   createdAt: number
