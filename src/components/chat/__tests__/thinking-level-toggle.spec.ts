@@ -97,6 +97,20 @@ describe('输入框左下角的思考强度', () => {
     expect(lastEmitted(wrapper)).toEqual([undefined])
   })
 
+  it('手动把档位设成「默认」后，切「关」再切回来是「默认」而不是上上次的档位', async () => {
+    const wrapper = mountToggle({ level: 'low' })
+
+    // 用户自己在弹窗里把档位改成了「默认」
+    await wrapper.setProps({ level: undefined })
+
+    await button(wrapper).trigger('click')
+    expect(lastEmitted(wrapper)).toEqual(['none'])
+
+    await wrapper.setProps({ level: 'none' })
+    await button(wrapper).trigger('click')
+    expect(lastEmitted(wrapper)).toEqual([undefined])
+  })
+
   it('切了对话就忘掉上次的档位（没记的 = 默认）', async () => {
     const wrapper = mountToggle({ level: 'high', conversationId: 'c1' })
 

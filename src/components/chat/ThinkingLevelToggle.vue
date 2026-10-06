@@ -41,15 +41,16 @@ const levelClass = computed(() =>
 
 /**
  * 记住上次不是「关」的档位，好在「关」和它之间来回切。
- * 故意不持久化：只活在这轮页面里，切对话（或重新进来）时重新看当前档位，
- * 当前就是「关」或压根没设置过，切回去就落到「默认」。
+ * 「默认」也是一个要记住的档位（用户主动选过），不是「没记住」——所以这里比较的是
+ * 「不是关」而不是「为真」。故意不持久化：只活在这轮页面里，切对话（或重新进来）时
+ * 重新看当前档位，当前就是「关」时切回去就落到「默认」。
  */
 const lastLevel = ref<ThinkingLevel>()
 
 watch(
   () => props.conversationId,
   () => {
-    lastLevel.value = props.level && props.level !== 'none' ? props.level : undefined
+    lastLevel.value = props.level === 'none' ? undefined : props.level
   },
   { immediate: true },
 )
@@ -57,7 +58,7 @@ watch(
 watch(
   () => props.level,
   (level) => {
-    if (level && level !== 'none') lastLevel.value = level
+    if (level !== 'none') lastLevel.value = level
   },
 )
 
