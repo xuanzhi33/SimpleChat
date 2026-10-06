@@ -179,3 +179,54 @@ describe('ChatPanel 发送失败', () => {
     expect(container.scrollTop).toBe(0)
   })
 })
+
+describe('ChatPanel 输入法组字', () => {
+  let pinia: ReturnType<typeof createPinia>
+  let wrapper: VueWrapper
+
+  beforeEach(async () => {
+    localStorage.clear()
+    sendMessageMock.mockReset()
+    localStorage.setItem(
+      'xuanzhi33-models',
+      JSON.stringify([
+        { id: 'm1', name: 'Test', baseUrl: 'https://example.com', kind: 'api', model: 'x' },
+      ]),
+    )
+    localStorage.setItem('xuanzhi33-default-model-id', 'm1')
+    pinia = createPinia()
+    setActivePinia(pinia)
+    wrapper = mount(ChatPanel, { global: { plugins: [pinia, i18n] } })
+    await nextTick()
+  })
+
+  /** 派发原生事件：isComposing 能放进 init，keyCode 得自己 defineProperty（jsdom 不认） */
+  const pressEnter = async (init: { isComposing?: boolean; keyCode: number }) => {
+    const input = wrapper.get('#chat-main-input')
+    await input.setValue('nihao')
+    const event = new KeyboardEvent('keydown', { key: 'Enter', isComposing: init.isComposing })
+    Object.defineProperty(event, 'keyCode', { value: init.keyCode })
+    input.element.dispatchEvent(event)
+    await nextTick()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  }
+
+  it('组字中的 Enter 只上屏不发送：Chrome 的 isComposing 和 Safari 的 keyCode 229 都挡住', async () => {
+    await pressEnter({ isComposing: true, keyCode: 229 })
+    expect(sendMessageMock).not.toHaveBeenCalled()
+    // 输入框没被清空、也没进会话
+    expect((wrapper.get('#chat-main-input').element as HTMLTextAreaElement).value).toBe('nihao')
+    expect(useChatStore().activeConversation?.messages ?? []).toHaveLength(0)
+
+    // Safari：compositionend 已先发生，只剩 229
+    await pressEnter({ isComposing: false, keyCode: 229 })
+    expect(sendMessageMock).not.toHaveBeenCalled()
+    expect(useChatStore().activeConversation?.messages ?? []).toHaveLength(0)
+  })
+
+  it('普通 Enter 照旧发送（守卫没把正常发送带坏）', async () => {
+    await pressEnter({ isComposing: false, keyCode: 13 })
+    expect(sendMessageMock).toHaveBeenCalledTimes(1)
+    expect(useChatStore().activeConversation!.messages[0]!.content).toBe('nihao')
+  })
+})

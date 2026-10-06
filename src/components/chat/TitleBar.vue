@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useChatStore } from '@/stores/chat'
+import { isImeComposing } from '@/lib/ime'
 import NewChatHint from './NewChatHint.vue'
 
 const { t } = useI18n()
@@ -36,6 +37,12 @@ const saveTitle = () => {
 
 const cancelRename = () => {
   isRenaming.value = false
+}
+
+// 组字中的 Enter 是「上屏」，不该顺手把标题也存了
+const saveTitleOnEnter = (event: KeyboardEvent) => {
+  if (isImeComposing(event)) return
+  saveTitle()
 }
 
 // 换了会话（点列表、快捷键新建）就退出重命名：草稿里还是上一个会话的标题，
@@ -73,7 +80,7 @@ const createNew = () => {
       ref="titleInputRef"
       v-model="titleDraft"
       class="h-7 w-44 rounded-full bg-transparent px-2 text-sm outline-none focus:bg-muted/60"
-      @keydown.enter="saveTitle"
+      @keydown.enter="saveTitleOnEnter"
       @keydown.esc="cancelRename"
       @blur="saveTitle"
     />

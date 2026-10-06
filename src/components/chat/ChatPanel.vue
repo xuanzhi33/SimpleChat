@@ -4,6 +4,7 @@ import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
+import { isImeComposing } from '@/lib/ime'
 import { modelRequestOptions } from '@/lib/model'
 import { pinMessageToTop } from '@/lib/scroll'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
@@ -360,6 +361,8 @@ const cancelEdit = () => {
 
 // 处理键盘事件
 const handleKeyDown = (event: KeyboardEvent) => {
+  // 组字中的 Enter 是「上屏」不是「发送」：直接放行，别抢输入法的活儿
+  if (isImeComposing(event)) return
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault()
     sendMessage()
