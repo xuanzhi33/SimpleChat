@@ -207,55 +207,58 @@ watch(
         </p>
       </template>
 
-      <!-- 时间戳 + 复制 + 编辑：AI 消息流式期间不显示，回答结束才淡入。
+      <!-- 时间戳 + 复制 + 编辑：AI 消息流式期间先占住位置（invisible 就是看不见、点不到、不进无障碍树），
+           回答结束才淡入。先占位而不是事后插入，是因为结束时再撑高一行的话，这 28px 会把工具栏
+           正好顶到输入框盖住的那条带里（外层列表是 -mb-6，底边比输入框顶边低 24px）。
+           附带的好处：实时对话里正文和输入框之间留这一段，比文字贴着输入框更透气。
            AI 这边不能加 px-*：markstream 的段落没有任何水平内边距，一加时间戳就会比正文文字右移 -->
-      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0">
-        <div
-          v-if="!message.isStreaming"
-          class="mt-1 flex items-center gap-1 text-xs text-gray-400"
-          :class="isUser ? 'justify-end px-1' : 'justify-start'"
-        >
-          <TooltipProvider>
-            <!-- 时间戳：悬停看完整日期时间 -->
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <span>{{ formattedTime }}</span>
-              </TooltipTrigger>
-              <TooltipContent>{{ formattedDateTime }}</TooltipContent>
-            </Tooltip>
-            <Tooltip v-if="message.content">
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  class="size-6 text-gray-400 hover:text-foreground"
-                  :aria-label="copied ? t('chat.copied') : t('chat.copy')"
-                  @click="copy()"
-                >
-                  <Check v-if="copied" class="size-3.5" />
-                  <Copy v-else class="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
-            </Tooltip>
-            <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
-            <Tooltip v-if="isUser">
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  class="size-6 text-gray-400 hover:text-foreground"
-                  :aria-label="t('chat.editMessage')"
-                  @click="emit('edit', message.id)"
-                >
-                  <Pencil class="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{{ t('chat.editMessage') }}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </Transition>
+      <div
+        class="mt-1 flex items-center gap-1 text-xs text-gray-400 transition-opacity duration-200"
+        :class="[
+          isUser ? 'justify-end px-1' : 'justify-start',
+          message.isStreaming && 'invisible opacity-0',
+        ]"
+      >
+        <TooltipProvider>
+          <!-- 时间戳：悬停看完整日期时间 -->
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <span>{{ formattedTime }}</span>
+            </TooltipTrigger>
+            <TooltipContent>{{ formattedDateTime }}</TooltipContent>
+          </Tooltip>
+          <Tooltip v-if="message.content">
+            <TooltipTrigger as-child>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                class="size-6 text-gray-400 hover:text-foreground"
+                :aria-label="copied ? t('chat.copied') : t('chat.copy')"
+                @click="copy()"
+              >
+                <Check v-if="copied" class="size-3.5" />
+                <Copy v-else class="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ copied ? t('chat.copied') : t('chat.copy') }}</TooltipContent>
+          </Tooltip>
+          <!-- 编辑：把这条消息写回输入框，发送时从这条开始截断历史 -->
+          <Tooltip v-if="isUser">
+            <TooltipTrigger as-child>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                class="size-6 text-gray-400 hover:text-foreground"
+                :aria-label="t('chat.editMessage')"
+                @click="emit('edit', message.id)"
+              >
+                <Pencil class="size-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ t('chat.editMessage') }}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   </div>
 </template>

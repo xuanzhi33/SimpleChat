@@ -146,18 +146,25 @@ describe('MessageItem 渲染', () => {
     expect(body.textContent).toContain('第二步')
   })
 
-  it('AI 消息的页脚（时间/复制）等回答结束才出现', async () => {
+  it('AI 消息的页脚（时间/复制）流式期间占好位置、看不见，回答结束才淡入', async () => {
     const copyLabel = i18n.global.t('chat.copy')
     const wrapper = mount(MessageItem, {
       props: { message: makeMessage({ content: '正文', isStreaming: true }) },
       global: { plugins: [createPinia(), i18n] },
     })
     await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(wrapper.find(`button[aria-label="${copyLabel}"]`).exists()).toBe(false)
+
+    // 位置先占着（不然回答结束再撑高一行，工具栏会被输入框盖住），但是看不见、点不到
+    const footer = wrapper.get('.mt-1')
+    expect(wrapper.find(`button[aria-label="${copyLabel}"]`).exists()).toBe(true)
+    expect(footer.classes()).toContain('invisible')
+    expect(footer.classes()).toContain('opacity-0')
+    expect(footer.classes()).toContain('transition-opacity')
 
     await wrapper.setProps({ message: makeMessage({ content: '正文', isStreaming: false }) })
     await nextTick()
-    expect(wrapper.find(`button[aria-label="${copyLabel}"]`).exists()).toBe(true)
+    expect(footer.classes()).not.toContain('invisible')
+    expect(footer.classes()).not.toContain('opacity-0')
   })
 
   it('AI 消息里的 HTML 被净化（script / onerror 都进不来）', async () => {
