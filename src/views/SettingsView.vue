@@ -12,13 +12,13 @@ import {
   Settings,
   SunMoon,
   Cpu,
-  Trash2,
+  Trash,
   Database,
   MessageSquare,
   Info,
   GitBranch,
   Bug,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -187,7 +187,7 @@ const clearAllData = async () => {
           <AlertDialog>
             <AlertDialogTrigger as-child>
               <Button variant="destructive" class="gap-2">
-                <Trash2 class="size-4" />
+                <Trash class="size-4" />
                 {{ t('settings.data.clearAllData') }}
               </Button>
             </AlertDialogTrigger>

@@ -22,16 +22,16 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Plus,
-  Trash2,
-  Edit,
+  Trash,
+  SquarePen,
   Check,
   X,
   Star,
   Sparkles,
   Sparkle,
-  Loader2,
+  LoaderCircle,
   ShieldCheck,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { ButtonGroup } from '../ui/button-group'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
@@ -316,7 +316,7 @@ const testModel = async () => {
                 {{ t('settings.models.save') }}
               </Button>
               <Button @click="testModel" variant="outline" class="gap-2" :disabled="isTesting">
-                <Loader2 v-if="isTesting" class="size-4 animate-spin" />
+                <LoaderCircle v-if="isTesting" class="size-4 animate-spin" />
                 <ShieldCheck v-else class="size-4" />
                 {{ isTesting ? t('settings.models.testing') : t('settings.models.test') }}
               </Button>
@@ -378,7 +378,7 @@ const testModel = async () => {
                     size="icon-sm"
                     :disabled="isEditing"
                   >
-                    <Edit />
+                    <SquarePen />
                   </Button>
                   <Button
                     @click="confirmDelete(model.id)"
@@ -386,7 +386,7 @@ const testModel = async () => {
                     size="icon-sm"
                     :disabled="isEditing || models.length <= 1"
                   >
-                    <Trash2 />
+                    <Trash />
                   </Button>
                 </ButtonGroup>
               </div>

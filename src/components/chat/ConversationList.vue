@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useChatStore } from '@/stores/chat'
-import { Trash2 } from 'lucide-vue-next'
+import { Trash } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import { dayDiff } from '@/lib/time'
 import { toast } from 'vue-sonner'
@@ -97,7 +97,7 @@ const formatDate = (timestamp: number) => {
             :aria-label="t('chat.deleteConversation')"
             @click="(e: Event) => deleteConversation(conversation.id, e)"
           >
-            <Trash2 class="size-4" />
+            <Trash class="size-4" />
           </button>
         </SidebarMenuItem>
 

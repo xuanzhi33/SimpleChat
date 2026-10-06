@@ -28,7 +28,7 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
-import { StopCircle, AlertCircle, Bot, Cpu, ArrowUp, Settings, Sliders } from 'lucide-vue-next'
+import { CircleStop, CircleAlert, Bot, Cpu, ArrowUp, Settings, SlidersVertical } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 
@@ -397,7 +397,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
           v-if="!currentModel"
           class="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg"
         >
-          <AlertCircle class="inline-block w-4 h-4 mr-1" />
+          <CircleAlert class="inline-block w-4 h-4 mr-1" />
           {{ t('chat.errors.noModel') }}
         </div>
       </div>
@@ -456,7 +456,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
                   @click="conversationConfigOpen = true"
                   :disabled="isGenerating"
                 >
-                  <Sliders class="size-4" />
+                  <SlidersVertical class="size-4" />
                 </InputGroupButton>
               </TooltipTrigger>
               <TooltipContent>
@@ -520,7 +520,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
             size="icon-xs"
             @click="stopGenerating"
           >
-            <StopCircle class="size-4" />
+            <CircleStop class="size-4" />
             <span class="sr-only">{{ t('chat.stop') }}</span>
           </InputGroupButton>
         </InputGroupAddon>

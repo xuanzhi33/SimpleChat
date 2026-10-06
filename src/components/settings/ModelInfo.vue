@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AudioLines, Boxes, FileText, Image as ImageIcon, Type, Video } from 'lucide-vue-next'
+import { AudioLines, Boxes, FileText, Image as ImageIcon, Type, Video } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { formatContextWindow, type RemoteModel } from '@/lib/models'
 

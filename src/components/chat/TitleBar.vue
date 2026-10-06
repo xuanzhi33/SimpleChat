@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { MessageSquarePlus, Pencil } from 'lucide-vue-next'
+import { MessageSquarePlus, Pencil } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'

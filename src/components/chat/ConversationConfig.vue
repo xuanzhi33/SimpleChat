@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Sliders } from 'lucide-vue-next'
+import { SlidersVertical } from '@lucide/vue'
 
 const { t } = useI18n()
 const chatStore = useChatStore()
@@ -54,7 +54,7 @@ watch(systemPrompt, (newValue) => {
     <DialogContent>
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
-          <Sliders />
+          <SlidersVertical />
           {{ t('chat.conversationConfig') }}
         </DialogTitle>
         <DialogDescription>

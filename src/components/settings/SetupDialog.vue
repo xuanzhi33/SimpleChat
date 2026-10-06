@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ExternalLink, CheckCircle2, Info, Loader2, RefreshCw, ChevronDown } from 'lucide-vue-next'
+import { ExternalLink, CircleCheck, Info, LoaderCircle, RefreshCw, ChevronDown } from '@lucide/vue'
 import type { ModelExtra } from '@/types/chat'
 import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID, DEEPSEEK_MODEL_NAME } from '@/lib/model'
 import { providerList } from '@/configs/providers'
@@ -310,7 +310,7 @@ const handleSkip = () => {
                   :disabled="!canLoadModels"
                   @click="loadModels"
                 >
-                  <Loader2 v-if="isLoadingModels" class="animate-spin" />
+                  <LoaderCircle v-if="isLoadingModels" class="animate-spin" />
                   <RefreshCw v-else />
                   {{ t('setup.api.fetchModels') }}
                 </Button>
@@ -436,7 +436,7 @@ const handleSkip = () => {
           {{ t('setup.skip') }}
         </Button>
         <Button @click="handleComplete">
-          <CheckCircle2 class="h-4 w-4" />
+          <CircleCheck class="h-4 w-4" />
           {{ t('setup.completeSetup') }}
         </Button>
       </DialogFooter>
