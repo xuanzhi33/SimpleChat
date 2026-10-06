@@ -5,7 +5,12 @@ import { useI18n } from 'vue-i18n'
 import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
 import { resolveConversationModel } from '@/lib/model'
-import { thinkingStopIndex, thinkingStops, thinkingStyleOf } from '@/lib/thinking'
+import {
+  thinkingLevelColors,
+  thinkingStopIndex,
+  thinkingStops,
+  thinkingStyleOf,
+} from '@/lib/thinking'
 import { findProviderByUrl } from '@/configs/providers'
 import {
   Dialog,
@@ -44,7 +49,10 @@ const stops = computed(() => thinkingStops(thinkingStyleOf(model.value)))
 
 // 滑块值：本地状态，拖动过程中只动它，松手（valueCommit）才写库
 const levelIndex = ref<number[]>([0])
-const currentStopLabel = computed(() => stops.value[levelIndex.value[0] ?? 0]?.labelKey ?? '')
+const currentStop = computed(() => stops.value[levelIndex.value[0] ?? 0])
+const currentStopLabel = computed(() => currentStop.value?.labelKey ?? '')
+// 档位名和滑轨都按当前档位配色
+const currentColors = computed(() => thinkingLevelColors(currentStop.value?.level))
 
 const syncLevelIndex = () => {
   levelIndex.value = [
@@ -114,7 +122,9 @@ onBeforeUnmount(flushSystemPrompt)
         <div class="flex items-baseline justify-between gap-3">
           <!-- reka 的滑块不给 thumb 传 aria-label，label 就不写 for 了 -->
           <Label>{{ t('chat.thinkingEffort.title') }}</Label>
-          <span class="text-sm font-medium">{{ t(currentStopLabel) }}</span>
+          <span class="text-sm font-medium" :class="currentColors.text">{{
+            t(currentStopLabel)
+          }}</span>
         </div>
 
         <Slider
@@ -122,11 +132,19 @@ onBeforeUnmount(flushSystemPrompt)
           :min="0"
           :max="stops.length - 1"
           :step="1"
+          :class="currentColors.range"
           @value-commit="commitLevel"
         />
 
-        <div class="flex justify-between text-[10px] text-muted-foreground">
-          <span v-for="stop in stops" :key="stop.labelKey">{{ t(stop.labelKey) }}</span>
+        <!-- 刻度：每一格都用自己的颜色 -->
+        <div class="flex justify-between text-[10px]">
+          <span
+            v-for="stop in stops"
+            :key="stop.labelKey"
+            :class="thinkingLevelColors(stop.level).text"
+          >
+            {{ t(stop.labelKey) }}
+          </span>
         </div>
 
         <p class="text-xs text-muted-foreground">

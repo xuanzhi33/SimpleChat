@@ -65,6 +65,52 @@ export function thinkingLevelLabelKey(style: ThinkingStyle, level?: ThinkingLeve
   return `chat.thinkingEffort.${level}`
 }
 
+/** 档位名字和滑块轨道的配色 */
+export interface ThinkingLevelColors {
+  /** 档位名字（弹窗里的当前档位、刻度、输入框外显） */
+  text: string
+  /** 滑块已填充的那段；写成任意变体是因为要打到 Slider 内部元素上（不改 ui/slider） */
+  range: string
+}
+
+/**
+ * 档位配色：关是灰的（明确不想），默认是蓝的（交给模型决定）—— 这两格必须一眼分清；
+ * 其余按「想得越多越烫」排：绿 → 黄 → 橙 → 红。
+ */
+const LEVEL_COLORS: Record<ThinkingLevel, ThinkingLevelColors> = {
+  none: {
+    text: 'text-muted-foreground',
+    range: '[&_[data-slot=slider-range]]:bg-muted-foreground',
+  },
+  low: {
+    text: 'text-emerald-600 dark:text-emerald-400',
+    range: '[&_[data-slot=slider-range]]:bg-emerald-500',
+  },
+  medium: {
+    text: 'text-amber-600 dark:text-amber-400',
+    range: '[&_[data-slot=slider-range]]:bg-amber-500',
+  },
+  high: {
+    text: 'text-orange-600 dark:text-orange-400',
+    range: '[&_[data-slot=slider-range]]:bg-orange-500',
+  },
+  max: {
+    text: 'text-red-600 dark:text-red-400',
+    range: '[&_[data-slot=slider-range]]:bg-red-500',
+  },
+}
+
+/** 「默认」档不发任何字段，给个冷静的蓝 */
+const DEFAULT_COLORS: ThinkingLevelColors = {
+  text: 'text-sky-600 dark:text-sky-400',
+  range: '[&_[data-slot=slider-range]]:bg-sky-500',
+}
+
+/** 档位配色；不传 level = 默认档 */
+export function thinkingLevelColors(level?: ThinkingLevel): ThinkingLevelColors {
+  return level ? LEVEL_COLORS[level] : DEFAULT_COLORS
+}
+
 /**
  * 滑块档位；返回空数组表示这个服务商不支持（界面直接不显示思考强度）。
  * 顺序固定：关 / 默认 / 其余档位（「关」必须在最左边，好让「默认」和真正的档位挤在一起）。

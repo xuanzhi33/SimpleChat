@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { thinkingLevelLabelKey, thinkingStops } from '@/lib/thinking'
+import { thinkingLevelColors, thinkingLevelLabelKey, thinkingStops } from '@/lib/thinking'
 import { InputGroupButton } from '@/components/ui/input-group'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ThinkingStyle } from '@/configs/providers'
@@ -21,23 +21,12 @@ const emit = defineEmits<{
   (e: 'setLevel', value: ThinkingLevel | undefined): void
 }>()
 
-/** 档位颜色按「想得多不多」分档：关/默认是灰的，越往右越烫 */
-const LEVEL_CLASS: Record<ThinkingLevel, string> = {
-  none: 'text-muted-foreground',
-  low: 'text-emerald-600 dark:text-emerald-400',
-  medium: 'text-amber-600 dark:text-amber-400',
-  high: 'text-orange-600 dark:text-orange-400',
-  max: 'text-red-600 dark:text-red-400',
-}
-
 /** 认不出的服务商（LLM Gate / 自定义地址）没有档位可切，整块不渲染 */
 const supported = computed(() => thinkingStops(props.style).length > 0)
 
 const off = computed(() => props.level === 'none')
 const label = computed(() => t(thinkingLevelLabelKey(props.style, props.level)))
-const levelClass = computed(() =>
-  props.level ? LEVEL_CLASS[props.level] : 'text-muted-foreground',
-)
+const levelClass = computed(() => thinkingLevelColors(props.level).text)
 
 /**
  * 记住上次不是「关」的档位，好在「关」和它之间来回切。

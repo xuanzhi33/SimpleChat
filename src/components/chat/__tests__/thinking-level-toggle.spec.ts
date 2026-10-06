@@ -56,17 +56,19 @@ describe('输入框左下角的思考强度', () => {
     expect(wrapper.text()).toContain(i18n.global.t('chat.thinkingEffort.title'))
     expect(levelText(wrapper).text()).toBe(i18n.global.t('chat.thinkingEffort.high'))
     expect(levelText(wrapper).classes()).toContain('text-orange-600')
-    // 没设置过就是「默认」，灰的
+    // 没设置过就是「默认」
     expect(levelText(mountToggle()).text()).toBe(i18n.global.t('chat.thinkingEffort.default'))
-    expect(levelText(mountToggle()).classes()).toContain('text-muted-foreground')
   })
 
-  it('档位越高颜色越烫，关 / 默认保持灰色', () => {
+  it('档位越高颜色越烫，「关」和「默认」也不是同一个颜色', () => {
     expect(levelText(mountToggle({ level: 'low' })).classes()).toContain('text-emerald-600')
     expect(levelText(mountToggle({ level: 'medium' })).classes()).toContain('text-amber-600')
     expect(levelText(mountToggle({ level: 'high' })).classes()).toContain('text-orange-600')
     expect(levelText(mountToggle({ level: 'max' })).classes()).toContain('text-red-600')
+
+    // 关是灰的、默认是蓝的，两个都得能一眼分清
     expect(levelText(mountToggle({ level: 'none' })).classes()).toContain('text-muted-foreground')
+    expect(levelText(mountToggle()).classes()).toContain('text-sky-600')
   })
 
   it('硅基流动的「开」显示成「开」', () => {

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   THINKING_LEVELS,
   completeWithoutThinking,
+  thinkingLevelColors,
   thinkingLevelLabelKey,
   thinkingPayload,
   thinkingStopIndex,
@@ -104,6 +105,19 @@ describe('思考档位', () => {
     expect(thinkingPayload('none', 'high')).toEqual({})
     expect(thinkingPayload('reasoning_effort')).toEqual({})
     expect(thinkingPayload('thinking_effort', 'medium')).toEqual({})
+  })
+
+  it('档位配色：五个档位各不相同，关和默认也不是一个颜色', () => {
+    const levels = ['none', 'low', 'medium', 'high', 'max'] as const
+
+    expect(new Set(levels.map((level) => thinkingLevelColors(level).text)).size).toBe(levels.length)
+    expect(thinkingLevelColors('none').text).not.toBe(thinkingLevelColors().text)
+    expect(thinkingLevelColors().text).toBe('text-sky-600 dark:text-sky-400')
+    // 滑轨色要带选择器（打到 Slider 内部元素上，不改 ui/slider），每档同样不同色
+    expect(thinkingLevelColors('high').range).toBe('[&_[data-slot=slider-range]]:bg-orange-500')
+    expect(new Set(levels.map((level) => thinkingLevelColors(level).range)).size).toBe(
+      levels.length,
+    )
   })
 
   it('换模型后按最近档位吸附，一样近时取更高的那档', () => {

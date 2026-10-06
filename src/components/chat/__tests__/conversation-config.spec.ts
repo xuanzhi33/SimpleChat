@@ -80,10 +80,15 @@ const textarea = (wrapper: VueWrapper) => wrapper.findComponent(Textarea)
 const labelOf = (key: string) => i18n.global.t(`chat.thinkingEffort.${key}`)
 
 /** 滑块下面那行档位刻度，按从左到右的顺序 */
-const tickLabels = () =>
-  Array.from(document.body.querySelectorAll('[class*="text-[10px]"] span')).map((el) =>
-    el.textContent?.trim(),
-  )
+const tickSpans = () => Array.from(document.body.querySelectorAll('[class*="text-[10px]"] span'))
+const tickLabels = () => tickSpans().map((el) => el.textContent?.trim())
+const tickClasses = () => tickSpans().map((el) => el.className)
+
+/** 滑块右上角那个当前档位名（刻度是 text-[10px]，用 text-sm 区分） */
+const currentLevelClass = (label: string) =>
+  Array.from(document.body.querySelectorAll('span.text-sm'))
+    .find((el) => el.textContent?.trim() === label)
+    ?.className.toString()
 
 /** 拖滑块：先 update:modelValue 再 valueCommit（reka 松手才发后一个） */
 const moveSlider = async (wrapper: VueWrapper, index: number) => {
@@ -116,6 +121,32 @@ describe('对话配置弹窗', () => {
     // 0=关、1=默认、2=低、3=高、4=最高
     await moveSlider(wrapper, 3)
     expect(useChatStore().activeConversation?.thinkingLevel).toBe('high')
+  })
+
+  it('档位名和刻度都按档位上色，关和默认不是同一个颜色', async () => {
+    await mountConfig()
+
+    // 刻度从左到右：关 / 默认 / 低 / 高 / 最高
+    const [none, byDefault, low, , max] = tickClasses()
+    expect(none).toContain('text-muted-foreground')
+    expect(byDefault).toContain('text-sky-600')
+    expect(low).toContain('text-emerald-600')
+    expect(max).toContain('text-red-600')
+
+    // 当前档位那个名字跟刻度用同一套颜色
+    expect(currentLevelClass(labelOf('default'))).toContain('text-sky-600')
+  })
+
+  it('滑轨和档位名都跟着当前档位变色', async () => {
+    const { wrapper } = await mountConfig()
+    const rangeClass = () => slider(wrapper).classes().join(' ')
+
+    // 默认档：蓝的
+    expect(rangeClass()).toContain('[&_[data-slot=slider-range]]:bg-sky-500')
+
+    await moveSlider(wrapper, 4)
+    expect(rangeClass()).toContain('[&_[data-slot=slider-range]]:bg-red-500')
+    expect(currentLevelClass(labelOf('max'))).toContain('text-red-600')
   })
 
   it('拖滑块松手后写库（拖动过程中不写）', async () => {
