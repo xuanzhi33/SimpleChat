@@ -60,15 +60,39 @@
     },
     "api": {
       "notice": "In API mode your browser talks to the provider you enter directly, so that provider has to allow cross-origin (CORS) requests — every major provider does. If you are unsure, fill in the fields and test it; if requests keep failing, switch to LLM Gate mode.",
+      "provider": "Provider",
+      "providerCustom": "Custom (OpenAI compatible)",
       "baseUrl": "Endpoint Base URL",
       "baseUrlPlaceholder": "e.g., https://api.deepseek.com/v1",
       "baseUrlDescription": "Usually ends with /v1. SimpleChat appends /chat/completions automatically — do not add it yourself.",
-      "modelId": "Model ID",
-      "modelIdPlaceholder": "e.g., deepseek-chat",
-      "modelIdDescription": "Sent as the `model` field in requests; must match the provider's documentation.",
+      "baseUrlRequired": "Pick a provider, or enter a custom Base URL",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "e.g., sk-xxxxxxxx",
-      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth. The key is sent straight from your browser to the provider you enter — it never passes through any relay."
+      "apiKeyDescription": "Stored only in your browser; leave empty for local endpoints without auth. The key is sent straight from your browser to the provider you enter — it never passes through any relay.",
+      "model": "Model",
+      "modelSource": {
+        "list": "Pick from list",
+        "manual": "Enter model ID"
+      },
+      "fetchModels": "Validate key & fetch models",
+      "modelsEmpty": "The endpoint returned an empty model list.",
+      "modelsFailed": "Failed to fetch the model list.",
+      "modelSelectPlaceholder": "Search or select a model",
+      "modelsNoMatch": "No matching model.",
+      "modelOption": "{name} ({id})",
+      "modelIdRequired": "Select a model, or enter the model ID manually",
+      "modelIdPlaceholder": "e.g., deepseek-chat",
+      "modelIdDescription": "Sent as the `model` field in requests; must match the provider's documentation.",
+      "contextWindow": "Context window",
+      "inputModalities": "Input modalities",
+      "noModelInfo": "This endpoint returned no extra info for the model.",
+      "modalities": {
+        "text": "Text",
+        "image": "Image",
+        "file": "File",
+        "audio": "Audio",
+        "video": "Video"
+      }
     },
     "modelIdRequired": "Please enter the model ID",
     "step1": "Step 1: Download and Install LLM Gate",

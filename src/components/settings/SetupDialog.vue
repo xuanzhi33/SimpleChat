@@ -22,9 +22,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ExternalLink, CheckCircle2, Info } from 'lucide-vue-next'
+import { ExternalLink, CheckCircle2, Info, Loader2, RefreshCw, ChevronDown } from 'lucide-vue-next'
 import type { ModelExtra } from '@/types/chat'
 import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID, DEEPSEEK_MODEL_NAME } from '@/lib/model'
+import { providerList } from '@/configs/providers'
+import { modelDisplayName, type RemoteModel } from '@/lib/models'
+import { useApiModelForm, CUSTOM_PROVIDER_ID } from '@/composables/useApiModelForm'
+import {
+  Combobox,
+  ComboboxAnchor,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '@/components/ui/combobox'
+import ModelInfo from './ModelInfo.vue'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -42,8 +55,25 @@ type SetupMode = 'deepseek' | 'api' | 'gate'
 
 const mode = ref<SetupMode>('deepseek')
 const modelUrl = ref('')
-const modelId = ref('')
-const apiKey = ref('')
+
+// API 模式的表单（服务商 / Base URL / API Key / 模型选择）都在这个 composable 里
+const {
+  providerId,
+  provider: selectedProvider,
+  baseUrl: apiBaseUrl,
+  // apiKey 两个 tab 共用：DeepSeek 预设和 API 模式填的都是同一把 key
+  apiKey,
+  modelSource,
+  manualModelId,
+  selectedModel,
+  selectedModelId,
+  models,
+  isLoadingModels,
+  modelsError,
+  canLoadModels,
+  loadModels,
+  buildApiModel,
+} = useApiModelForm()
 
 const isOpen = computed({
   get: () => props.open,
@@ -87,27 +117,37 @@ const handleComplete = () => {
     return
   }
 
+  // API 模式：校验交给表单，这里只负责报错和落库
+  if (mode.value === 'api') {
+    const draft = buildApiModel()
+    if (!draft.ok) {
+      toast.error(t(draft.errorKey))
+      return
+    }
+
+    finishSetup(draft.name, draft.baseUrl, draft.extra)
+    return
+  }
+
   const url = modelUrl.value.trim()
   if (!url) {
     toast.error(t('setup.urlRequired'))
     return
   }
 
-  const isApi = mode.value === 'api'
-  const modelIdValue = modelId.value.trim()
-  if (isApi && !modelIdValue) {
-    toast.error(t('setup.modelIdRequired'))
-    return
-  }
+  finishSetup(t('setup.defaultModelName'), url, { kind: 'gate' })
+}
 
-  finishSetup(
-    // api 模式用模型 ID 作为展示名
-    isApi ? modelIdValue : t('setup.defaultModelName'),
-    url,
-    isApi
-      ? { kind: 'api', model: modelIdValue, apiKey: apiKey.value.trim() || undefined }
-      : { kind: 'gate' },
-  )
+/** 下拉里展示成「模型名（模型 id）」；接口没给名字（OpenAI / SiliconFlow 都不给）就只显示 id */
+const modelOptionLabel = (model: RemoteModel) => {
+  const name = modelDisplayName(model)
+  return name ? t('setup.api.modelOption', { name, id: model.id }) : model.id
+}
+
+/** 选中后输入框里显示模型名而不是光秃秃的 id */
+const modelDisplayValue = (value: unknown) => {
+  const model = selectedModel.value
+  return model && model.id === value ? modelOptionLabel(model) : ''
 }
 
 const handleSkip = () => {
@@ -208,25 +248,36 @@ const handleSkip = () => {
           </div>
 
           <div class="space-y-2">
+            <Label for="api-provider">{{ t('setup.api.provider') }}</Label>
+            <Select v-model="providerId">
+              <SelectTrigger id="api-provider" class="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="provider in providerList"
+                  :key="provider.name"
+                  :value="provider.name"
+                >
+                  {{ provider.name }}
+                </SelectItem>
+                <SelectItem :value="CUSTOM_PROVIDER_ID">
+                  {{ t('setup.api.providerCustom') }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div class="space-y-2">
             <Label for="api-base-url">{{ t('setup.api.baseUrl') }}</Label>
             <Input
               id="api-base-url"
-              v-model="modelUrl"
+              v-model="apiBaseUrl"
+              :disabled="!!selectedProvider"
               :placeholder="t('setup.api.baseUrlPlaceholder')"
               @keyup.enter="handleComplete"
             />
             <p class="text-xs text-muted-foreground">{{ t('setup.api.baseUrlDescription') }}</p>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="api-model-id">{{ t('setup.api.modelId') }}</Label>
-            <Input
-              id="api-model-id"
-              v-model="modelId"
-              :placeholder="t('setup.api.modelIdPlaceholder')"
-              @keyup.enter="handleComplete"
-            />
-            <p class="text-xs text-muted-foreground">{{ t('setup.api.modelIdDescription') }}</p>
           </div>
 
           <div class="space-y-2">
@@ -238,6 +289,79 @@ const handleSkip = () => {
               @keyup.enter="handleComplete"
             />
             <p class="text-xs text-muted-foreground">{{ t('setup.api.apiKeyDescription') }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label>{{ t('setup.api.model') }}</Label>
+            <Tabs v-model="modelSource" class="gap-3">
+              <TabsList class="h-8 w-full">
+                <TabsTrigger value="list" class="text-xs">
+                  {{ t('setup.api.modelSource.list') }}
+                </TabsTrigger>
+                <TabsTrigger value="manual" class="text-xs">
+                  {{ t('setup.api.modelSource.manual') }}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="list" class="space-y-3">
+                <Button
+                  variant="outline"
+                  class="w-full"
+                  :disabled="!canLoadModels"
+                  @click="loadModels"
+                >
+                  <Loader2 v-if="isLoadingModels" class="animate-spin" />
+                  <RefreshCw v-else />
+                  {{ t('setup.api.fetchModels') }}
+                </Button>
+
+                <p v-if="modelsError" class="text-xs whitespace-pre-line text-destructive">
+                  {{ modelsError }}
+                </p>
+
+                <template v-if="models.length">
+                  <Combobox v-model="selectedModelId" :open-on-click="true">
+                    <ComboboxAnchor
+                      class="border-input focus-within:border-ring focus-within:ring-ring/50 relative flex w-full items-center rounded-md border shadow-xs transition-[color,box-shadow] focus-within:ring-[3px] [&>[data-slot=command-input-wrapper]]:w-full [&>[data-slot=command-input-wrapper]]:border-b-0 [&>[data-slot=command-input-wrapper]]:pr-8"
+                    >
+                      <ComboboxInput
+                        id="api-model-select"
+                        class="h-9 py-1"
+                        :display-value="modelDisplayValue"
+                        :placeholder="t('setup.api.modelSelectPlaceholder')"
+                        @keyup.enter="handleComplete"
+                      />
+                      <ComboboxTrigger class="text-muted-foreground absolute right-2">
+                        <ChevronDown class="size-4" />
+                      </ComboboxTrigger>
+                    </ComboboxAnchor>
+
+                    <ComboboxList
+                      class="w-(--reka-combobox-trigger-width) max-h-60 overflow-y-auto p-1"
+                    >
+                      <ComboboxEmpty>{{ t('setup.api.modelsNoMatch') }}</ComboboxEmpty>
+                      <ComboboxItem v-for="model in models" :key="model.id" :value="model.id">
+                        {{ modelOptionLabel(model) }}
+                      </ComboboxItem>
+                    </ComboboxList>
+                  </Combobox>
+
+                  <ModelInfo v-if="selectedModel" :model="selectedModel" />
+                </template>
+              </TabsContent>
+
+              <TabsContent value="manual" class="space-y-2">
+                <Input
+                  id="api-model-id"
+                  v-model="manualModelId"
+                  :placeholder="t('setup.api.modelIdPlaceholder')"
+                  @keyup.enter="handleComplete"
+                />
+                <p class="text-xs text-muted-foreground">
+                  {{ t('setup.api.modelIdDescription') }}
+                </p>
+              </TabsContent>
+            </Tabs>
           </div>
         </TabsContent>
 

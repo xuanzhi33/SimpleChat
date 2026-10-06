@@ -1,5 +1,5 @@
 import type { Message, ChatCompletionChunk } from '@/types/chat'
-import { HttpError } from '@/lib/errors'
+import { HttpError, readErrorDetail } from '@/lib/errors'
 import type { CompletionMessage } from '@/lib/title'
 
 export interface ChatServiceOptions {
@@ -16,23 +16,6 @@ export interface ChatServiceOptions {
  */
 export function isLikelyCorsError(error: unknown): boolean {
   return error instanceof TypeError
-}
-
-/**
- * 尽量从错误响应体里取出服务端给的提示，供 UI 展示原因。
- * 取不到（空响应、网关的 HTML 错误页）就返回空字符串。
- */
-async function readErrorDetail(response: Response): Promise<string> {
-  const text = await response.text().catch(() => '')
-  if (!text || text.trimStart().startsWith('<')) return ''
-
-  try {
-    const data = JSON.parse(text)
-    const message = data?.error?.message ?? data?.message
-    return typeof message === 'string' ? message : text.slice(0, 200)
-  } catch {
-    return text.slice(0, 200)
-  }
 }
 
 export class ChatService {

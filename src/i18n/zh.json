@@ -60,15 +60,39 @@
     },
     "api": {
       "notice": "API 模式下，浏览器会直接向您填写的提供商发起请求，因此需要该提供商支持跨域（CORS）访问，主流提供商均已支持。如不确定，可先填写并测试是否可用；若请求失败，请改用 LLM Gate 模式。",
+      "provider": "服务商",
+      "providerCustom": "自定义（OpenAI 兼容）",
       "baseUrl": "接口 Base URL",
       "baseUrlPlaceholder": "例如: https://api.deepseek.com/v1",
       "baseUrlDescription": "通常以 /v1 结尾；SimpleChat 会自动在末尾拼接 /chat/completions，无需手动添加。",
-      "modelId": "模型 ID",
-      "modelIdPlaceholder": "例如: deepseek-chat",
-      "modelIdDescription": "将作为请求中的 model 字段发送，需与厂商文档一致。",
+      "baseUrlRequired": "请选择服务商，或填写自定义 Base URL",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "例如: sk-xxxxxxxx",
-      "apiKeyDescription": "仅保存在浏览器本地，本地无鉴权的接口可留空。API Key 会由浏览器直接发送给您填写的提供商，不经过任何中转，请放心使用。"
+      "apiKeyDescription": "仅保存在浏览器本地，本地无鉴权的接口可留空。API Key 会由浏览器直接发送给您填写的提供商，不经过任何中转，请放心使用。",
+      "model": "模型",
+      "modelSource": {
+        "list": "从列表选择",
+        "manual": "手动输入模型 ID"
+      },
+      "fetchModels": "校验 Key 并获取模型列表",
+      "modelsEmpty": "接口返回的模型列表是空的。",
+      "modelsFailed": "获取模型列表失败。",
+      "modelSelectPlaceholder": "搜索或选择模型",
+      "modelsNoMatch": "没有匹配的模型。",
+      "modelOption": "{name}（{id}）",
+      "modelIdRequired": "请选择模型，或手动填写模型 ID",
+      "modelIdPlaceholder": "例如: deepseek-chat",
+      "modelIdDescription": "将作为请求中的 model 字段发送，需与厂商文档一致。",
+      "contextWindow": "上下文长度",
+      "inputModalities": "输入模态",
+      "noModelInfo": "该接口没有返回这个模型的更多信息。",
+      "modalities": {
+        "text": "文本",
+        "image": "图像",
+        "file": "文件",
+        "audio": "音频",
+        "video": "视频"
+      }
     },
     "modelIdRequired": "请输入模型 ID",
     "step1": "步骤 1：下载并安装 LLM Gate",
