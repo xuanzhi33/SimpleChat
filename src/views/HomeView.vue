@@ -30,6 +30,10 @@ const chatStore = useChatStore()
 
 const settingsOpen = ref(false)
 
+// 侧边栏标题左边的 logo 就是站点图标本身（同一份 public/favicon.svg，省得两处各维护一份路径）
+// BASE_URL 跟着 vite 的 base（'./'）走，部署到子目录也不会 404
+const appIconUrl = `${import.meta.env.BASE_URL}favicon.svg`
+
 const createNew = () => {
   chatStore.createConversation(t('chat.newConversation'))
 }
@@ -47,7 +51,10 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
     <!-- 左侧对话列表 -->
     <Sidebar variant="inset">
       <SidebarHeader class="flex items-center justify-between flex-row pt-3">
-        <h1 class="text-lg font-semibold px-2 py-1">{{ t('common.title') }}</h1>
+        <h1 class="flex items-center gap-2 px-2 py-1 text-lg font-semibold">
+          <img :src="appIconUrl" alt="" class="size-6 shrink-0" />
+          {{ t('common.title') }}
+        </h1>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button @click="createNew" size="icon" variant="outline">

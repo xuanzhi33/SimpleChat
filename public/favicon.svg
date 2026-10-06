@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="sc" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3b82f6" />
+      <stop offset="1" stop-color="#8b5cf6" />
+    </linearGradient>
+  </defs>
+  <!-- 对话气泡：圆角方 + 左下角一扫而出的尾巴（尾巴左缘和气泡左边框相切） -->
+  <path
+    fill="url(#sc)"
+    d="M9.4 2.8H22.6A7.6 7.6 0 0 1 30.2 10.4V16.6A7.6 7.6 0 0 1 22.6 24.2H13.4C9.2 24.9 6.2 26.4 4.6 30.6C4.85 26.4 1.8 22.6 1.8 17.2V10.4A7.6 7.6 0 0 1 9.4 2.8Z"
+  />
+  <!-- 四角星：四个尖点用二次曲线连成内凹的边 -->
+  <path
+    fill="#fff"
+    d="M16.1 7.6Q17.09 12.21 21.7 13.2Q17.09 14.19 16.1 18.8Q15.11 14.19 10.5 13.2Q15.11 12.21 16.1 7.6Z"
+  />
+</svg>

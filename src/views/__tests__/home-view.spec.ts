@@ -76,6 +76,18 @@ describe('边栏会话项', () => {
     localStorage.clear()
   })
 
+  it('标题左边是站点图标本身（同一个 favicon.svg）', () => {
+    const { wrapper } = mountHome()
+
+    const logo = wrapper.find('h1 img')
+    expect(logo.exists()).toBe(true)
+    expect(logo.attributes('src')).toBe(`${import.meta.env.BASE_URL}favicon.svg`)
+    // 装饰性图片，标题文字已经说明了是什么
+    expect(logo.attributes('alt')).toBe('')
+
+    wrapper.unmount()
+  })
+
   it('选中项用更深的灰底，且不因为选中而加粗', async () => {
     const { wrapper } = mountHome()
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'j', ctrlKey: true }))
