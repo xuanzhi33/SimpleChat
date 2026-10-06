@@ -1,3 +1,8 @@
+import deepseekLogo from '@/assets/deepseek.svg'
+import openaiLogo from '@/assets/openai.svg'
+import openrouterLogo from '@/assets/openrouter.svg'
+import siliconcloudLogo from '@/assets/siliconcloud.svg'
+
 /**
  * 思考档位（关/低/中/高/强）在请求体里的表达风格（wire format）。
  *
@@ -43,6 +48,10 @@ export interface ProviderPreset {
   keyUrl: string
   /** 思考档位的请求风格，见 ThinkingStyle */
   thinkingStyle: ThinkingStyle
+  /** 服务商 logo（`src/assets/*.svg`），列表和下拉里展示用 */
+  logo: string
+  /** 单色 logo（用 currentColor 画的）在深色模式下要反色才看得见 */
+  logoInvert?: boolean
 }
 
 export const providerList: ProviderPreset[] = [
@@ -51,12 +60,16 @@ export const providerList: ProviderPreset[] = [
     url: 'https://api.openai.com/v1',
     keyUrl: 'https://platform.openai.com/api-keys',
     thinkingStyle: 'reasoning_effort',
+    logo: openaiLogo,
+    // OpenAI 的 mark 是单色的，SVG 里用 currentColor -> 深色底上要反色
+    logoInvert: true,
   },
   {
     name: 'DeepSeek',
     url: 'https://api.deepseek.com',
     keyUrl: 'https://platform.deepseek.com/api_keys',
     thinkingStyle: 'thinking_effort',
+    logo: deepseekLogo,
   },
   {
     name: 'SiliconFlow CN (硅基流动)',
@@ -64,17 +77,33 @@ export const providerList: ProviderPreset[] = [
     keyUrl: 'https://cloud.siliconflow.cn/account/ak',
     // 平台只有开关 + thinking_budget 预算，没有「低/中/高」档，档位只能映射成 token 数
     thinkingStyle: 'enable_thinking',
+    logo: siliconcloudLogo,
   },
   {
     name: 'SiliconFlow Global',
     url: 'https://api.siliconflow.com/v1',
     keyUrl: 'https://cloud.siliconflow.com/account/ak',
     thinkingStyle: 'enable_thinking',
+    logo: siliconcloudLogo,
   },
   {
     name: 'OpenRouter',
     url: 'https://openrouter.ai/api/v1',
     keyUrl: 'https://openrouter.ai/keys',
     thinkingStyle: 'unified_reasoning',
+    logo: openrouterLogo,
   },
 ]
+
+/**
+ * 按 base url 找预设服务商。
+ *
+ * 模型里没存服务商，只能靠地址反推：预设地址是选服务商时原样存进模型的，
+ * 所以去掉末尾斜杠、忽略大小写就能对上；对不上就是用户自己填的地址。
+ */
+export function findProviderByUrl(baseUrl: string): ProviderPreset | undefined {
+  const normalize = (url: string) => url.trim().replace(/\/+$/, '').toLowerCase()
+  const target = normalize(baseUrl)
+  if (!target) return undefined
+  return providerList.find((provider) => normalize(provider.url) === target)
+}

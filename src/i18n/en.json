@@ -103,7 +103,7 @@
     "step3": "Step 3: Paste Model URL",
     "modelUrl": "Model URL",
     "modelUrlPlaceholder": "e.g., http://localhost:11456/model-01/v1",
-    "defaultModelName": "Default Model",
+    "gateModelName": "LLM Gate Model",
     "completeSetup": "Complete Setup",
     "skip": "Skip",
     "urlRequired": "Please enter model URL",

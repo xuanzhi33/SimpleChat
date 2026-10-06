@@ -103,7 +103,7 @@
     "step3": "步驟 3：貼上模型 URL",
     "modelUrl": "模型 URL",
     "modelUrlPlaceholder": "例如: http://localhost:11456/model-01/v1",
-    "defaultModelName": "預設模型",
+    "gateModelName": "LLM Gate 模型",
     "completeSetup": "完成設定",
     "skip": "跳過",
     "urlRequired": "請輸入模型 URL",

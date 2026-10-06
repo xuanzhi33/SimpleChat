@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ExternalLink, Info, LoaderCircle, RefreshCw, ChevronDown } from '@lucide/vue'
+import { ExternalLink, Info, LoaderCircle, RefreshCw, ChevronDown, Plug } from '@lucide/vue'
 import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID, DEEPSEEK_MODEL_NAME } from '@/lib/model'
 import { providerList } from '@/configs/providers'
 import { modelDisplayName, type RemoteModel } from '@/lib/models'
@@ -107,7 +107,7 @@ const buildModel = (): ModelDraft => {
   const url = modelUrl.value.trim()
   if (!url) return { ok: false, errorKey: 'setup.urlRequired' }
 
-  return { ok: true, name: t('setup.defaultModelName'), baseUrl: url, extra: { kind: 'gate' } }
+  return { ok: true, name: t('setup.gateModelName'), baseUrl: url, extra: { kind: 'gate' } }
 }
 
 defineExpose({ buildModel })
@@ -194,9 +194,15 @@ defineExpose({ buildModel })
               :key="provider.name"
               :value="provider.name"
             >
+              <img
+                :src="provider.logo"
+                alt=""
+                :class="['size-4 shrink-0', provider.logoInvert && 'dark:invert']"
+              />
               {{ provider.name }}
             </SelectItem>
             <SelectItem :value="CUSTOM_PROVIDER_ID">
+              <Plug class="size-4" />
               {{ t('setup.api.providerCustom') }}
             </SelectItem>
           </SelectContent>
