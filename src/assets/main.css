@@ -218,6 +218,12 @@
   border-width: 4px;
 }
 
+/* 段间距：markstream 默认 1.5em（正文行高的 1.5 倍，16px 字就是 24px），聊天里读着太松，收到 1em。
+   变量在 .markstream-vue 上，思考块（.thinking-md）的正文小一号，em 会跟着缩，不用另设 */
+.markstream-vue {
+  --ms-flow-paragraph-y: 1em;
+}
+
 /* 思考内容比正文小一号，保留层级（markstream 默认 --ms-text-body: 1rem） */
 .thinking-md.markstream-vue {
   --ms-text-body: 0.875rem;
