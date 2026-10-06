@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Plus,
   Trash,
@@ -31,6 +30,11 @@ import {
   Sparkle,
   LoaderCircle,
   ShieldCheck,
+  Cloud,
+  Server,
+  Cpu,
+  KeyRound,
+  Link,
 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { ButtonGroup } from '../ui/button-group'
@@ -54,7 +58,8 @@ const isEditing = ref(false)
 const editingModelId = ref<string | null>(null)
 const modelName = ref('')
 const modelBaseUrl = ref('')
-const modelMode = ref<ModelKind>('api')
+// 模式（api / gate）在创建时就定了，编辑时只读，所以这里不是可切换的状态
+const editingKind = ref<ModelKind>('api')
 const modelId = ref('')
 const apiKey = ref('')
 const isTesting = ref(false)
@@ -76,7 +81,7 @@ const startEdit = (id: string) => {
     editingModelId.value = id
     modelName.value = model.name
     modelBaseUrl.value = model.baseUrl
-    modelMode.value = modelKind(model)
+    editingKind.value = modelKind(model)
     modelId.value = model.model ?? ''
     apiKey.value = model.apiKey ?? ''
   }
@@ -88,7 +93,7 @@ const cancelEdit = () => {
   editingModelId.value = null
   modelName.value = ''
   modelBaseUrl.value = ''
-  modelMode.value = 'api'
+  editingKind.value = 'api'
   modelId.value = ''
   apiKey.value = ''
 }
@@ -108,14 +113,14 @@ const saveModel = () => {
     return
   }
 
-  const isApi = modelMode.value === 'api'
+  const isApi = editingKind.value === 'api'
   const modelIdValue = modelId.value.trim()
   if (isApi && !modelIdValue) {
     toast.error(t('settings.models.modelIdRequired'))
     return
   }
 
-  // 切回 gate 模式时会显式清掉 api 模式的字段
+  // 只按当前模式补字段：gate 传 { kind: 'gate' } 会清掉 api 专用字段
   const extra = isApi
     ? { kind: 'api' as const, model: modelIdValue, apiKey: apiKey.value.trim() || undefined }
     : { kind: 'gate' as const }
@@ -166,7 +171,7 @@ const testModel = async () => {
     return
   }
 
-  const isApi = modelMode.value === 'api'
+  const isApi = editingKind.value === 'api'
   const modelIdValue = modelId.value.trim()
   if (isApi && !modelIdValue) {
     toast.error(t('settings.models.modelIdRequired'))
@@ -210,6 +215,9 @@ const testModel = async () => {
             <CardTitle class="text-lg flex items-center gap-2">
               <Sparkle />
               {{ t('settings.models.editModel') }}
+              <Badge variant="outline" class="ml-auto">
+                {{ t(`settings.models.kind.${editingKind}`) }}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent class="space-y-4">
@@ -225,41 +233,34 @@ const testModel = async () => {
               </p>
             </div>
 
-            <Tabs v-model="modelMode">
-              <TabsList class="w-full">
-                <TabsTrigger value="api">{{ t('settings.models.kind.api') }}</TabsTrigger>
-                <TabsTrigger value="gate">{{ t('settings.models.kind.gate') }}</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="api" class="space-y-4 pt-2">
-                <div class="space-y-2">
-                  <Label for="model-id">{{ t('settings.models.modelId') }}</Label>
-                  <Input
-                    id="model-id"
-                    v-model="modelId"
-                    :placeholder="t('settings.models.modelIdPlaceholder')"
-                  />
-                  <p class="text-xs text-muted-foreground">
-                    {{ t('settings.models.modelIdDescription') }}
-                  </p>
-                </div>
-                <div class="space-y-2">
-                  <Label for="model-api-key">{{ t('settings.models.apiKey') }}</Label>
-                  <Input
-                    id="model-api-key"
-                    v-model="apiKey"
-                    :placeholder="t('settings.models.apiKeyPlaceholder')"
-                  />
-                  <p class="text-xs text-muted-foreground">
-                    {{ t('settings.models.apiKeyDescription') }}
-                  </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="gate" class="pt-2">
-                <p class="text-xs text-muted-foreground">{{ t('settings.models.gateHint') }}</p>
-              </TabsContent>
-            </Tabs>
+            <!-- 模式创建时就定了，不再给切换入口：api 才要模型 ID / API Key -->
+            <template v-if="editingKind === 'api'">
+              <div class="space-y-2">
+                <Label for="model-id">{{ t('settings.models.modelId') }}</Label>
+                <Input
+                  id="model-id"
+                  v-model="modelId"
+                  :placeholder="t('settings.models.modelIdPlaceholder')"
+                />
+                <p class="text-xs text-muted-foreground">
+                  {{ t('settings.models.modelIdDescription') }}
+                </p>
+              </div>
+              <div class="space-y-2">
+                <Label for="model-api-key">{{ t('settings.models.apiKey') }}</Label>
+                <Input
+                  id="model-api-key"
+                  v-model="apiKey"
+                  :placeholder="t('settings.models.apiKeyPlaceholder')"
+                />
+                <p class="text-xs text-muted-foreground">
+                  {{ t('settings.models.apiKeyDescription') }}
+                </p>
+              </div>
+            </template>
+            <p v-else class="text-xs text-muted-foreground">
+              {{ t('settings.models.gateHint') }}
+            </p>
 
             <div class="space-y-2">
               <Label for="model-name">{{ t('settings.models.modelName') }}</Label>
@@ -296,62 +297,82 @@ const testModel = async () => {
           {{ t('settings.models.addNew') }}
         </Button>
 
-        <!-- 模型列表 -->
-        <div class="space-y-3">
-          <Card v-for="model in models" :key="model.id" class="relative">
-            <CardContent>
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1 space-y-2 min-w-0">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h3 class="font-semibold text-lg">{{ model.name }}</h3>
-                    <Badge v-if="model.id === defaultModelId" variant="default">
-                      {{ t('settings.models.default') }}
-                    </Badge>
-                    <Badge variant="outline">
-                      {{ t(`settings.models.kind.${modelKind(model)}`) }}
-                    </Badge>
-                  </div>
-                  <p class="text-sm text-muted-foreground break-all">{{ model.baseUrl }}</p>
-                  <p
-                    v-if="modelKind(model) === 'api' && model.model"
-                    class="text-sm text-muted-foreground break-all"
-                  >
-                    {{ model.model }}
-                  </p>
-                  <p
-                    v-if="modelKind(model) === 'api' && model.apiKey"
-                    class="text-xs text-muted-foreground font-mono"
-                  >
-                    {{ maskKey(model.apiKey) }}
-                  </p>
-                </div>
-                <ButtonGroup>
-                  <Button
-                    v-if="model.id !== defaultModelId"
-                    @click="setDefaultModel(model.id)"
-                    variant="outline"
-                    size="icon-sm"
-                  >
-                    <Star />
-                  </Button>
-                  <Button
-                    @click="startEdit(model.id)"
-                    variant="outline"
-                    size="icon-sm"
-                    :disabled="isEditing"
-                  >
-                    <SquarePen />
-                  </Button>
-                  <Button
-                    @click="confirmDelete(model.id)"
-                    variant="outline"
-                    size="icon-sm"
-                    :disabled="isEditing || models.length <= 1"
-                  >
-                    <Trash />
-                  </Button>
-                </ButtonGroup>
+        <!-- 模型列表：每张卡片压成两行，竖着能多放几个 -->
+        <div class="space-y-1.5">
+          <Card v-for="model in models" :key="model.id" class="relative gap-0 py-0">
+            <CardContent class="flex items-center gap-3 px-3 py-1.5">
+              <!-- 模式图标：api 走云端接口，gate 走本地网关 -->
+              <div
+                class="flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted/50 text-muted-foreground"
+              >
+                <Cloud v-if="modelKind(model) === 'api'" class="size-4" />
+                <Server v-else class="size-4" />
               </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="truncate text-sm font-medium" :title="model.name">
+                    {{ model.name }}
+                  </span>
+                  <Badge v-if="model.id === defaultModelId" class="h-5 px-2 text-[11px]">
+                    {{ t('settings.models.default') }}
+                  </Badge>
+                  <Badge variant="outline" class="h-5 px-2 text-[11px]">
+                    {{ t(`settings.models.kind.${modelKind(model)}`) }}
+                  </Badge>
+                </div>
+
+                <!-- 第二行：模型 ID · 脱敏 Key · 地址，一律单行截断，鼠标悬停看全 -->
+                <div class="mt-0.5 flex min-w-0 items-center gap-x-3 text-xs text-muted-foreground">
+                  <span
+                    v-if="model.model"
+                    class="flex min-w-0 items-center gap-1"
+                    :title="t('settings.models.modelId')"
+                  >
+                    <Cpu class="size-3 shrink-0" />
+                    <span class="truncate font-mono">{{ model.model }}</span>
+                  </span>
+                  <span
+                    v-if="model.apiKey"
+                    class="flex shrink-0 items-center gap-1"
+                    :title="t('settings.models.apiKey')"
+                  >
+                    <KeyRound class="size-3 shrink-0" />
+                    <span class="font-mono">{{ maskKey(model.apiKey) }}</span>
+                  </span>
+                  <span class="flex min-w-0 flex-1 items-center gap-1" :title="model.baseUrl">
+                    <Link class="size-3 shrink-0" />
+                    <span class="truncate font-mono">{{ model.baseUrl }}</span>
+                  </span>
+                </div>
+              </div>
+
+              <ButtonGroup>
+                <Button
+                  v-if="model.id !== defaultModelId"
+                  @click="setDefaultModel(model.id)"
+                  variant="outline"
+                  size="icon-sm"
+                >
+                  <Star />
+                </Button>
+                <Button
+                  @click="startEdit(model.id)"
+                  variant="outline"
+                  size="icon-sm"
+                  :disabled="isEditing"
+                >
+                  <SquarePen />
+                </Button>
+                <Button
+                  @click="confirmDelete(model.id)"
+                  variant="outline"
+                  size="icon-sm"
+                  :disabled="isEditing || models.length <= 1"
+                >
+                  <Trash />
+                </Button>
+              </ButtonGroup>
             </CardContent>
           </Card>
         </div>
