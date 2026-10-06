@@ -21,6 +21,7 @@
     "format:check": "prettier --check src/"
   },
   "dependencies": {
+    "@lucide/vue": "^1.52.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/vue-table": "^8.21.3",
     "@vueuse/core": "^14.4.0",
