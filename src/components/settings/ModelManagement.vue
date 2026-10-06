@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useSettingsStore } from '@/stores/settings'
@@ -34,6 +34,7 @@ import {
 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { ButtonGroup } from '../ui/button-group'
+import AddModelDialog from './AddModelDialog.vue'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError } from '@/lib/errors'
 import { modelKind } from '@/lib/model'
@@ -45,7 +46,10 @@ const { t } = useI18n()
 const settingsStore = useSettingsStore()
 const { models, defaultModelId } = storeToRefs(settingsStore)
 
-// 新增/编辑模型表单
+// 添加模型走独立弹窗（和欢迎弹窗同一套表单），这里只留编辑
+const addDialogOpen = ref(false)
+
+// 编辑模型表单
 const isEditing = ref(false)
 const editingModelId = ref<string | null>(null)
 const modelName = ref('')
@@ -61,44 +65,8 @@ const modelToDelete = ref<string | null>(null)
 
 // 开始添加新模型
 const startAdd = () => {
-  isEditing.value = true
-  editingModelId.value = null
-  modelName.value = ''
-  modelBaseUrl.value = ''
-  modelMode.value = 'api'
-  modelId.value = ''
-  apiKey.value = ''
+  addDialogOpen.value = true
 }
-
-// 从 URL 推断模型名称
-const inferModelNameFromUrl = (url: string): string => {
-  try {
-    const urlObj = new URL(url)
-    const pathParts = urlObj.pathname.split('/').filter((part) => part.trim() !== '')
-
-    // 过滤掉版本号 (v1, v2, etc.)
-    const nonVersionParts = pathParts.filter((part) => !/^v\d+$/i.test(part))
-
-    // 返回最后一个非版本部分
-    if (nonVersionParts.length > 0) {
-      return nonVersionParts[nonVersionParts.length - 1] || ''
-    }
-  } catch {
-    // URL 解析失败，忽略
-  }
-  return ''
-}
-
-// 监听 URL / 模型 ID 变化，自动填充展示名（仅在添加新模型时）
-watch([modelBaseUrl, modelId], () => {
-  if (editingModelId.value) return
-  // API 模式直接用模型 ID 作为展示名，Gate 模式从 URL 推断
-  const inferred =
-    modelMode.value === 'api' ? modelId.value.trim() : inferModelNameFromUrl(modelBaseUrl.value)
-  if (inferred) {
-    modelName.value = inferred
-  }
-})
 
 // 开始编辑模型
 const startEdit = (id: string) => {
@@ -152,16 +120,10 @@ const saveModel = () => {
     ? { kind: 'api' as const, model: modelIdValue, apiKey: apiKey.value.trim() || undefined }
     : { kind: 'gate' as const }
 
-  if (editingModelId.value) {
-    // 编辑现有模型
-    settingsStore.updateModel(editingModelId.value, name, baseUrl, extra)
-    toast.success(t('settings.models.updateSuccess'))
-  } else {
-    // 添加新模型
-    settingsStore.addModel(name, baseUrl, extra)
-    toast.success(t('settings.models.addSuccess'))
-  }
+  if (!editingModelId.value) return
 
+  settingsStore.updateModel(editingModelId.value, name, baseUrl, extra)
+  toast.success(t('settings.models.updateSuccess'))
   cancelEdit()
 }
 
@@ -247,7 +209,7 @@ const testModel = async () => {
           <CardHeader>
             <CardTitle class="text-lg flex items-center gap-2">
               <Sparkle />
-              {{ editingModelId ? t('settings.models.editModel') : t('settings.models.addModel') }}
+              {{ t('settings.models.editModel') }}
             </CardTitle>
           </CardHeader>
           <CardContent class="space-y-4">
@@ -396,6 +358,9 @@ const testModel = async () => {
       </div>
     </DialogScrollContent>
   </Dialog>
+
+  <!-- 添加模型（和欢迎弹窗同一套表单） -->
+  <AddModelDialog v-model:open="addDialogOpen" />
 
   <!-- 删除确认对话框 -->
   <AlertDialog v-model:open="deleteDialogOpen">

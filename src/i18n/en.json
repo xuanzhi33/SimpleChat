@@ -146,6 +146,8 @@
       "manageDescription": "Configure and manage AI models for conversations",
       "addNew": "Add New Model",
       "addModel": "Add Model",
+      "addDescription": "Pick a provider and fill in the endpoint; the model is appended to the list and your default model stays unchanged.",
+      "add": "Add",
       "editModel": "Edit Model",
       "modelUrl": "Model URL",
       "modelUrlPlaceholder": "e.g., https://api.deepseek.com/v1",

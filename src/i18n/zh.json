@@ -146,6 +146,8 @@
       "manageDescription": "配置和管理对话使用的 AI 模型",
       "addNew": "添加新模型",
       "addModel": "添加模型",
+      "addDescription": "选择服务商并填写接口信息，模型会加到列表末尾，默认模型不变。",
+      "add": "添加",
       "editModel": "编辑模型",
       "modelUrl": "模型 URL",
       "modelUrlPlaceholder": "例如: https://api.deepseek.com/v1",
