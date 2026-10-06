@@ -11,6 +11,9 @@ vi.stubGlobal(
   },
 )
 
+// jsdom 没有实现 pointer capture，reka 的 SelectTrigger 在 pointerdown 里会调它
+Element.prototype.hasPointerCapture = () => false
+
 vi.mock('vue-sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 
 import { mount, enableAutoUnmount, flushPromises, type VueWrapper } from '@vue/test-utils'
@@ -298,5 +301,40 @@ describe('欢迎弹窗 API 模式', () => {
 
     await submit(wrapper)
     expect(useSettingsStore().models[0]).toMatchObject({ model: 'gpt-5', name: 'gpt-5' })
+  })
+})
+
+describe('欢迎弹窗 语言选择', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    document.body.innerHTML = ''
+  })
+
+  it('下拉列出全部语言，选中繁体中文后写进设置', async () => {
+    const { wrapper, settingsStore } = await mountDialog()
+
+    // 弹窗里有两个 Select：语言选择是唯一「值是语言代码」的那个
+    const localeValues: string[] = [...i18n.global.availableLocales]
+    const languageSelect = wrapper
+      .findAllComponents(Select)
+      .find((select) => localeValues.includes(String(select.props('modelValue'))))!
+
+    // reka 的 SelectTrigger 靠 pointerdown 打开
+    const trigger = document.body.querySelector('#language-select') as HTMLElement
+    trigger.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }))
+    await flushTicks()
+
+    const options = Array.from(document.body.querySelectorAll('[role=option]')).map((option) =>
+      option.textContent?.trim(),
+    )
+    expect(options).toEqual(
+      i18n.global.availableLocales.map((locale) =>
+        i18n.global.t(`settings.interface.languageOptions.${locale}`),
+      ),
+    )
+
+    languageSelect.vm.$emit('update:modelValue', 'zh-hant')
+    await flushTicks()
+    expect(settingsStore.language).toBe('zh-hant')
   })
 })

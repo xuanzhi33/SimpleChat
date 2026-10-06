@@ -23,7 +23,7 @@ import {
 import { CircleCheck } from '@lucide/vue'
 import ModelConfigForm from './ModelConfigForm.vue'
 
-const { t } = useI18n()
+const { t, availableLocales } = useI18n()
 const settingsStore = useSettingsStore()
 
 const props = defineProps<{
@@ -81,8 +81,9 @@ const handleSkip = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="zh">{{ t('settings.interface.languageOptions.zh') }}</SelectItem>
-            <SelectItem value="en">{{ t('settings.interface.languageOptions.en') }}</SelectItem>
+            <SelectItem v-for="loc in availableLocales" :key="loc" :value="loc">
+              {{ t(`settings.interface.languageOptions.${loc}`) }}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

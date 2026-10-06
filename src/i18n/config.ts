@@ -2,6 +2,7 @@ import { watch } from 'vue'
 import { createI18n } from 'vue-i18n'
 import en from './en.json'
 import zh from './zh.json'
+import zhHant from './zh-hant.json'
 import { syncMarkstreamI18n } from './markstream'
 
 export const i18n = createI18n({
@@ -10,6 +11,7 @@ export const i18n = createI18n({
   messages: {
     en,
     zh,
+    'zh-hant': zhHant,
   },
   // 时间戳统一走 d()：可见的钟点用语言自己的时制（zh 24 小时制 / en AM-PM），
   // tooltip 里的完整时间交给 Intl 的 dateStyle/timeStyle 按语言排
@@ -31,6 +33,20 @@ export const i18n = createI18n({
       time: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
       date: { year: 'numeric', month: 'numeric', day: 'numeric' },
       // month: 'long' 在 zh 的 CLDR 模式里就是「3月」（不是「三月」），合起来是 2024年3月5日 14:05
+      dateTimeWithYear: {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      },
+      dateTime: { dateStyle: 'full', timeStyle: 'short' },
+    },
+    // 繁体中文与简体同制式：24 小时制 + 「3月」，即 2024年3月5日 14:05
+    'zh-hant': {
+      time: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
+      date: { year: 'numeric', month: 'numeric', day: 'numeric' },
       dateTimeWithYear: {
         year: 'numeric',
         month: 'long',

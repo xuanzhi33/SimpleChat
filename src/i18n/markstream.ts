@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import en from './en.json'
 import zh from './zh.json'
+import zhHant from './zh-hant.json'
 
 /**
  * markstream-vue 内置 UI 文案（代码块按钮、图片占位等）的覆盖表。
@@ -10,7 +11,11 @@ import zh from './zh.json'
  */
 export const markstreamI18n = reactive<Record<string, string>>({})
 
-const tables: Record<string, Record<string, string>> = { en: en.markstream, zh: zh.markstream }
+const tables: Record<string, Record<string, string>> = {
+  en: en.markstream,
+  zh: zh.markstream,
+  'zh-hant': zhHant.markstream,
+}
 
 /** 按当前语言刷新覆盖表 */
 export function syncMarkstreamI18n(locale: string) {
