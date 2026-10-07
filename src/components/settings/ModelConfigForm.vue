@@ -156,7 +156,9 @@ defineExpose({ buildModel })
 
 <template>
   <Tabs v-model="mode" class="gap-4">
-    <TabsList class="w-full">
+    <!-- 窄屏塞不下这三个 tab（会横向溢出）：让 tab 条自己横向滚 —— 手机上用手指划就能看全，
+         别把药丸撑破；滚动条在触摸屏上是浮层，不占高度 -->
+    <TabsList class="w-full overflow-x-auto">
       <TabsTrigger value="deepseek">
         <img :src="deepseekLogo" alt="" class="size-4 shrink-0" />
         {{ t('setup.tabs.deepseek') }}
