@@ -103,6 +103,15 @@ export function modelNameFromId(id: string): string {
 }
 
 /**
+ * 窄屏下模型名只留第一个词：截到第一个空格 / 冒号 / 括号之类的分隔符之前
+ * （`DeepSeek V4 Pro` → `DeepSeek`）。首字符必须是字母或数字 ——
+ * 名字以符号开头（`·GPT-5`）时拿不到词，返回空串，让调用方只留图标。
+ */
+export function modelShortName(name: string): string {
+  return name.trim().match(/^[\p{L}\p{N}][^\s:：|·/()（）\[\]【】，,、]*/u)?.[0] ?? ''
+}
+
+/**
  * 拼成 `${baseUrl}/models` 请求模型列表。
  * 失败时抛 HttpError（HTTP 层错误）或 TypeError（跨域 / 断网，见 isLikelyCorsError）。
  */

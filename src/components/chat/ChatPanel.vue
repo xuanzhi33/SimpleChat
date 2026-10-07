@@ -6,6 +6,7 @@ import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
 import { isImeComposing } from '@/lib/ime'
 import { modelRequestOptions, resolveConversationModel } from '@/lib/model'
+import { modelShortName } from '@/lib/models'
 import { completeWithoutThinking, thinkingPayload, thinkingStyleOf } from '@/lib/thinking'
 import { pinMessageToTop } from '@/lib/scroll'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
@@ -63,6 +64,10 @@ const currentModel = computed(() =>
     settingsStore.defaultModel,
   ),
 )
+
+// 模型选择器上的文案；窄屏用它的第一个词（推不出词就是空串，界面上只留图标）
+const modelLabel = computed(() => currentModel.value?.name || t('chat.selectModel'))
+const modelShortLabel = computed(() => modelShortName(modelLabel.value))
 
 // 更新当前对话的模型
 const updateConversationModel = (modelId: unknown) => {
@@ -460,7 +465,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     <!-- 输入区域：悬浮在底部的卡片，不再用分割线隔开 -->
     <div class="relative z-10 px-4 pb-4">
       <InputGroup
-        class="rounded-3xl bg-background shadow-lg dark:bg-background has-[[data-slot=input-group-control]:focus-visible]:border-foreground/20 has-[[data-slot=input-group-control]:focus-visible]:ring-foreground/10"
+        class="@container rounded-3xl bg-background shadow-lg dark:bg-background has-[[data-slot=input-group-control]:focus-visible]:border-foreground/20 has-[[data-slot=input-group-control]:focus-visible]:ring-foreground/10"
       >
         <InputGroupTextarea
           id="chat-main-input"
@@ -506,7 +511,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
               <DropdownMenuTrigger as-child>
                 <InputGroupButton variant="ghost" class="min-w-0" :disabled="isGenerating">
                   <ModelIcon :model="currentModel" class="mr-1.5" />
-                  <span class="truncate">{{ currentModel?.name || t('chat.selectModel') }}</span>
+                  <!-- 输入框变窄时名字只留第一个词（图标+长名字挤不下），空串就只剩图标 -->
+                  <span class="@md:hidden">{{ modelShortLabel }}</span>
+                  <span class="hidden truncate @md:inline">{{ modelLabel }}</span>
                 </InputGroupButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="end" class="[--radius:0.95rem]">

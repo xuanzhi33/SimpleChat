@@ -5,6 +5,7 @@ import {
   formatContextWindow,
   modelDisplayName,
   modelNameFromId,
+  modelShortName,
   normalizeModelList,
 } from '@/lib/models'
 import { HttpError } from '@/lib/errors'
@@ -126,6 +127,24 @@ describe('modelNameFromId', () => {
   it('推不出东西时退回原 id，不返回空', () => {
     expect(modelNameFromId('vendor/')).toBe('vendor/')
     expect(modelNameFromId('-')).toBe('-')
+  })
+})
+
+describe('modelShortName', () => {
+  it('只取第一个词：空格、冒号、括号之类的分隔符都算边界', () => {
+    expect(modelShortName('DeepSeek V4 Pro')).toBe('DeepSeek')
+    expect(modelShortName('OpenAI: GPT-5')).toBe('OpenAI')
+    expect(modelShortName('Llama-3.1-8B (latest)')).toBe('Llama-3.1-8B')
+    expect(modelShortName('深度求索 DeepSeek')).toBe('深度求索')
+    expect(modelShortName('  gpt-5  ')).toBe('gpt-5')
+  })
+
+  it('名字以符号开头时推不出词，返回空串（调用方就只留图标）', () => {
+    expect(modelShortName('·GPT-5')).toBe('')
+    expect(modelShortName('-gpt-5')).toBe('')
+    expect(modelShortName('（GPT-5）')).toBe('')
+    expect(modelShortName('---')).toBe('')
+    expect(modelShortName('')).toBe('')
   })
 })
 

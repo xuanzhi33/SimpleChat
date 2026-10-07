@@ -71,7 +71,9 @@ describe('ChatPanel 发送失败', () => {
   let pinia: ReturnType<typeof createPinia>
   let wrapper: VueWrapper
 
-  const setup = async (options: { withModel?: boolean; baseUrl?: string } = {}) => {
+  const setup = async (
+    options: { withModel?: boolean; baseUrl?: string; modelName?: string } = {},
+  ) => {
     localStorage.clear()
     // 设置 store 的 setup 里会调 useI18n()，必须先写在 localStorage、再让它在组件 setup 期间创建
     if (options.withModel !== false) {
@@ -80,7 +82,7 @@ describe('ChatPanel 发送失败', () => {
         JSON.stringify([
           {
             id: 'm1',
-            name: 'Test',
+            name: options.modelName ?? 'Test',
             baseUrl: options.baseUrl ?? 'https://example.com',
             kind: 'api',
             model: 'x',
@@ -222,6 +224,33 @@ describe('ChatPanel 发送失败', () => {
 
     expect(wrapper.findComponent(ThinkingLevelToggle).find('button').exists()).toBe(false)
     expect(wrapper.find('[data-slot="input-group-addon"] button').exists()).toBe(true)
+  })
+
+  it('模型选择器：完整名字和窄屏用的第一个词都在，靠容器查询二选一', async () => {
+    await setup({ modelName: 'DeepSeek V4 Pro' })
+    await createConversation()
+
+    const trigger = wrapper.findAllComponents(Button).find((item) => item.text().includes('V4'))!
+    const [short, full] = trigger.findAll('span')
+
+    // 窄屏那份只到第一个空格之前，且没有省略号（不带 truncate）
+    expect(short!.text()).toBe('DeepSeek')
+    expect(short!.classes()).toContain('@md:hidden')
+    expect(short!.classes()).not.toContain('truncate')
+
+    expect(full!.text()).toBe('DeepSeek V4 Pro')
+    expect(full!.classes()).toContain('@md:inline')
+  })
+
+  it('模型名以符号开头时，窄屏那份是空串，只剩图标', async () => {
+    await setup({ modelName: '·GPT-5' })
+    await createConversation()
+
+    const trigger = wrapper.findAllComponents(Button).find((item) => item.text().includes('GPT-5'))!
+    const [short, full] = trigger.findAll('span')
+
+    expect(short!.text()).toBe('')
+    expect(full!.text()).toBe('·GPT-5')
   })
 
   it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {
