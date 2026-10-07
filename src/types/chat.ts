@@ -32,6 +32,13 @@ export interface Model {
 
 export type ModelExtra = Pick<Model, 'kind' | 'model' | 'apiKey'>
 
+/** 系统提示词预设：全局共用（存设置里），不跟对话绑定 */
+export interface SystemPromptPreset {
+  id: string
+  name: string
+  content: string
+}
+
 export interface Conversation {
   id: string
   title: string

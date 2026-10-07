@@ -2,7 +2,7 @@ import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/cor
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Model, ModelExtra } from '@/types/chat'
+import type { Model, ModelExtra, SystemPromptPreset } from '@/types/chat'
 
 export type ColorMode = 'light' | 'dark' | 'system'
 
@@ -73,6 +73,27 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  // 系统提示词预设：全局共用，跨对话（和模型列表一样存 localStorage）
+  const systemPromptPresets = useStorage<SystemPromptPreset[]>(
+    LOCAL_STORAGE_KEY_PREFIX + 'system-prompt-presets',
+    [],
+  )
+
+  // 同一个提示词只留一条：内容完全相同就直接复用已有的，不再存一份
+  const addSystemPromptPreset = (name: string, content: string) => {
+    const existing = systemPromptPresets.value.find((preset) => preset.content === content)
+    if (existing) return existing
+    // 新存的放最前，刚存完就能直接用
+    const preset: SystemPromptPreset = { id: Date.now().toString(), name, content }
+    systemPromptPresets.value.unshift(preset)
+    return preset
+  }
+
+  const deleteSystemPromptPreset = (id: string) => {
+    const index = systemPromptPresets.value.findIndex((preset) => preset.id === id)
+    if (index !== -1) systemPromptPresets.value.splice(index, 1)
+  }
+
   const isDarkMode = computed(() => {
     if (colorMode.value === 'dark') return true
     if (colorMode.value === 'light') return false
@@ -98,6 +119,7 @@ export const useSettingsStore = defineStore('settings', () => {
     contextLength.value = 10
     models.value = []
     defaultModelId.value = ''
+    systemPromptPresets.value = []
     applyColorMode()
     applyLanguage()
   }
@@ -113,6 +135,9 @@ export const useSettingsStore = defineStore('settings', () => {
     addModel,
     updateModel,
     deleteModel,
+    systemPromptPresets,
+    addSystemPromptPreset,
+    deleteSystemPromptPreset,
     applyColorMode,
     applyLanguage,
     resetSettings,

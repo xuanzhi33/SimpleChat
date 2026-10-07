@@ -238,4 +238,20 @@ describe('对话配置弹窗', () => {
       expect.objectContaining({ id: conversationId, systemPrompt: '你是助手' }),
     )
   })
+
+  it('系统提示词旁边有两个预设入口', async () => {
+    await mountConfig()
+
+    const labels = Array.from(document.body.querySelectorAll('button')).map(
+      (b) => b.textContent ?? '',
+    )
+    const presetKeys = ['title', 'save'].map((key) =>
+      i18n.global.t(`chat.systemPromptPresets.${key}`),
+    )
+
+    expect(presetKeys.map((label) => labels.some((text) => text.includes(label)))).toEqual([
+      true,
+      true,
+    ])
+  })
 })

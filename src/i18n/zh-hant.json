@@ -239,6 +239,15 @@
     "systemPrompt": "系統提示詞",
     "systemPromptPlaceholder": "例如：你是一位專業的程式設計助手，擅長解答技術問題...",
     "systemPromptDescription": "系統提示詞用於定義 AI 的角色和行為方式。它對每個對話獨立儲存，不受上下文長度限制影響，始終會發送給 AI 模型。",
+    "systemPromptPresets": {
+      "title": "預設",
+      "save": "儲存為預設",
+      "namePlaceholder": "預設名稱",
+      "confirm": "儲存",
+      "cancel": "取消",
+      "empty": "還沒有預設，填好提示詞後點「儲存為預設」",
+      "delete": "刪除預設"
+    },
     "confirmDelete": "確定要刪除這個對話嗎？",
     "deleted": "對話已刪除",
     "undo": "復原",

@@ -12,6 +12,7 @@ import {
   thinkingStyleOf,
 } from '@/lib/thinking'
 import { findProviderByUrl } from '@/configs/providers'
+import SystemPromptPresets from './SystemPromptPresets.vue'
 import {
   Dialog,
   DialogDescription,
@@ -155,7 +156,10 @@ onBeforeUnmount(flushSystemPrompt)
       <Separator v-if="stops.length" />
 
       <div class="space-y-2">
-        <Label for="system-prompt">{{ t('chat.systemPrompt') }}</Label>
+        <div class="flex items-center justify-between gap-3">
+          <Label for="system-prompt">{{ t('chat.systemPrompt') }}</Label>
+          <SystemPromptPresets v-model="systemPrompt" />
+        </div>
         <Textarea
           id="system-prompt"
           v-model="systemPrompt"

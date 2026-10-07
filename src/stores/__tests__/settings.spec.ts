@@ -46,4 +46,27 @@ describe('settings store', () => {
     expect(store.models[0]?.model).toBeUndefined()
     expect(store.models[0]?.apiKey).toBeUndefined()
   })
+
+  it('系统提示词预设：新存的放最前，内容相同不重复存', () => {
+    const store = useSettingsStore()
+    store.addSystemPromptPreset('A', '内容一')
+    store.addSystemPromptPreset('B', '内容二')
+    expect(store.systemPromptPresets.map((p) => p.name)).toEqual(['B', 'A'])
+
+    // 同一个提示词只留一条（换个名字也不算新的）
+    store.addSystemPromptPreset('B2', '内容二')
+    expect(store.systemPromptPresets).toHaveLength(2)
+    expect(store.systemPromptPresets[0]?.name).toBe('B')
+  })
+
+  it('系统提示词预设：删除；重置设置时一并清空', () => {
+    const store = useSettingsStore()
+    const preset = store.addSystemPromptPreset('A', '内容一')
+    store.deleteSystemPromptPreset(preset.id)
+    expect(store.systemPromptPresets).toHaveLength(0)
+
+    store.addSystemPromptPreset('B', '内容二')
+    store.resetSettings()
+    expect(store.systemPromptPresets).toHaveLength(0)
+  })
 })

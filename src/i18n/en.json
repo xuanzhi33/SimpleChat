@@ -239,6 +239,15 @@
     "systemPrompt": "System Prompt",
     "systemPromptPlaceholder": "e.g., You are a professional programming assistant who excels at answering technical questions...",
     "systemPromptDescription": "The system prompt defines the AI's role and behavior. It is saved independently for each conversation, unaffected by context length limits, and is always sent to the AI model.",
+    "systemPromptPresets": {
+      "title": "Presets",
+      "save": "Save as preset",
+      "namePlaceholder": "Preset name",
+      "confirm": "Save",
+      "cancel": "Cancel",
+      "empty": "No presets yet. Fill in a prompt, then click \"Save as preset\".",
+      "delete": "Delete preset"
+    },
     "confirmDelete": "Are you sure you want to delete this conversation?",
     "deleted": "Conversation deleted",
     "undo": "Undo",
