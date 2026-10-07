@@ -25,6 +25,15 @@ const emit = defineEmits<{
 
 const { t, d } = useI18n()
 const settingsStore = useSettingsStore()
+
+// HTML 代码块预览：允许 iframe 内跑脚本（→ sandbox="allow-scripts"）。
+// 只给 allow-scripts，绝不给 allow-same-origin：srcdoc 文档会继承同源，
+// 那样预览里的脚本就能读到 localStorage（模型列表里存着 apiKey）。
+// HTML 代码块预览：允许 iframe 内跑脚本（→ sandbox="allow-scripts"）。
+// 只给 allow-scripts，绝不给 allow-same-origin：srcdoc 文档会继承同源，
+// 那样预览里的脚本就能读到 localStorage（模型列表里存着 apiKey）。
+// （markstream 没导出 NodeRendererCodeBlockProps 类型，所以这里不做类型标注）
+const codeBlockProps = { htmlPreviewAllowScripts: true }
 const isUser = computed(() => props.message.role === 'user')
 
 // 复制消息原文（AI 消息即 Markdown 源码）；legacy 回退兼容没有 navigator.clipboard 的 http 环境
@@ -167,6 +176,7 @@ watch(
                   :content="message.reasoning_content!"
                   :final="!isThinking"
                   :is-dark="settingsStore.isDarkMode"
+                  :code-block-props="codeBlockProps"
                 />
               </div>
             </div>
@@ -197,6 +207,7 @@ watch(
           :content="message.content"
           :final="!message.isStreaming"
           :is-dark="settingsStore.isDarkMode"
+          :code-block-props="codeBlockProps"
         />
         <p
           v-if="message.error"

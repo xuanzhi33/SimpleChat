@@ -20,6 +20,7 @@
 - **它的界面文案不跟语言走**：库只给“替换文案”的钩子 → 由 `src/i18n/markstream.ts` 灌进 i18n 的 `markstream` 段，改文案时 zh/en 都要动
 - **软换行不吃 `breaks`**（实测怎么设都不出 `<br>`）：靠它自带的 `white-space: pre-wrap` 显示，行尾两个空格才是真换行 —— 所以思考里的单换行不用额外处理
 - **富代码块必须有 `stream-diffs`**：没有它，流式期间有工具栏，块一落定就按设计降级成「只有复制按钮」的 `<pre>`（库拿不到 code-block runtime 就不切回来了）—— 这就是它为什么算硬需求
+- **HTML 预览的脚本执行**：靠 `MessageItem` 给 `MarkdownRender` 传 `codeBlockProps: { htmlPreviewAllowScripts: true }`（→ `sandbox="allow-scripts"`；默认 `sandbox=""` 不跑脚本）；**绝不能加 `allow-same-origin`** —— srcdoc 继承同源，预览脚本就能读到 localStorage 里的 apiKey。预览 iframe + sandbox 实现都在 markstream 的 `CodeBlockNode`，`stream-diffs` 只决定“落定后的富块在不在”，所以它同时是预览入口的前提
 - `mermaid` / `katex` 装了就默认启用（默认 loader 就是 `() => import('mermaid')`），不用调 `enableMermaid()` / `enableKatex()`；但 **katex 的样式库不自带**，得自己 `@import 'katex/dist/katex.min.css'`（已在 `main.css` 的 components 层）
 - 流式观感：默认 `smoothStreaming: 'auto'`（首屏一次吐出，之后平滑推进，可用 `smoothStreamingOptions` 调）；光标只在 `typewriter` 下存在，我们选了 `fade` + 不要光标
 

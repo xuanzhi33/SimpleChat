@@ -12,6 +12,7 @@ vi.stubGlobal(
 )
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import MarkdownRender from 'markstream-vue'
 import MessageItem from '@/components/chat/MessageItem.vue'
 import { i18n } from '@/i18n/config'
 import type { Message } from '@/types/chat'
@@ -260,5 +261,15 @@ describe('MessageItem 渲染', () => {
     const wrapper = await render({ content: '半截回答', error: '连接被中断' })
     expect(wrapper.text()).toContain('半截回答')
     expect(wrapper.get('.text-destructive').text()).toBe('连接被中断')
+  })
+
+  // 预览 iframe 只给 allow-scripts：给了 allow-same-origin 就能读到 localStorage 里的 apiKey
+  it('正文和思考的 markdown 都开了 HTML 预览的脚本执行', async () => {
+    const wrapper = await render({ content: '正文', reasoning_content: '思考' })
+    const renderers = wrapper.findAllComponents(MarkdownRender)
+    expect(renderers.length).toBe(2)
+    for (const renderer of renderers) {
+      expect(renderer.props('codeBlockProps')).toEqual({ htmlPreviewAllowScripts: true })
+    }
   })
 })
