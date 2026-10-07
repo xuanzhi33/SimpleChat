@@ -4,6 +4,7 @@ import {
   fetchModelList,
   formatContextWindow,
   modelDisplayName,
+  modelNameFromId,
   normalizeModelList,
 } from '@/lib/models'
 import { HttpError } from '@/lib/errors'
@@ -106,6 +107,25 @@ describe('modelDisplayName', () => {
     expect(modelDisplayName({ id: 'a', name: 'A' })).toBe('A')
     expect(modelDisplayName({ id: 'a', name: 'a' })).toBe('')
     expect(modelDisplayName({ id: 'a' })).toBe('')
+  })
+})
+
+describe('modelNameFromId', () => {
+  it('丢掉厂商 slug，并把 - 换成空格', () => {
+    expect(modelNameFromId('openai/gpt-5-mini')).toBe('gpt 5 mini')
+    expect(modelNameFromId('gpt-4o')).toBe('gpt 4o')
+    expect(modelNameFromId('claude-3-5-sonnet-20241022')).toBe('claude 3 5 sonnet 20241022')
+  })
+
+  it('只丢最后一段之前的前缀，首尾多余的横线也吃掉', () => {
+    expect(modelNameFromId('meta-llama/Llama-3.1-8B')).toBe('Llama 3.1 8B')
+    expect(modelNameFromId('a/b/c-d')).toBe('c d')
+    expect(modelNameFromId('-deepseek-chat-')).toBe('deepseek chat')
+  })
+
+  it('推不出东西时退回原 id，不返回空', () => {
+    expect(modelNameFromId('vendor/')).toBe('vendor/')
+    expect(modelNameFromId('-')).toBe('-')
   })
 })
 

@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { providerList, type ProviderPreset } from '@/configs/providers'
 import { isLikelyCorsError } from '@/lib/chat-service'
 import { describeError } from '@/lib/errors'
-import { fetchModelList, type RemoteModel } from '@/lib/models'
+import { fetchModelList, modelDisplayName, modelNameFromId, type RemoteModel } from '@/lib/models'
 import type { ModelExtra, ModelKind } from '@/types/chat'
 
 /** Base URL 下拉框里「自定义（OpenAI 兼容）」的取值；其余取值都等于 providerList 里的 name */
@@ -122,8 +122,11 @@ export function useApiModelForm() {
 
     return {
       ok: true,
-      // 列表接口给了展示名就用它，没给（OpenAI / SiliconFlow）就回落成模型 ID
-      name: (modelSource.value === 'list' ? selectedModel.value?.name?.trim() : '') || id,
+      // 列表接口给了展示名就用它；没给（OpenAI / SiliconFlow）或名字就是 id，就按 id 推一个
+      name:
+        (modelSource.value === 'list' && selectedModel.value
+          ? modelDisplayName(selectedModel.value)
+          : '') || modelNameFromId(id),
       baseUrl: url,
       extra: { kind: 'api', model: id, apiKey: apiKey.value.trim() || undefined },
     }

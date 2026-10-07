@@ -88,7 +88,7 @@ describe('模型管理 - 添加模型弹窗', () => {
 
     expect(settingsStore.models).toHaveLength(2)
     expect(settingsStore.models[1]).toMatchObject({
-      name: 'gpt-5-mini',
+      name: 'gpt 5 mini',
       baseUrl: 'https://api.example.com/v1',
       kind: 'api',
       model: 'gpt-5-mini',
@@ -120,7 +120,7 @@ describe('模型管理 - 添加模型弹窗', () => {
     await addButton(wrapper).trigger('click')
 
     expect(settingsStore.models[1]).toMatchObject({
-      name: 'gpt-5-mini',
+      name: 'gpt 5 mini',
       baseUrl: 'https://prefill.example.com/v1',
       kind: 'api',
       model: 'gpt-5-mini',
@@ -153,11 +153,12 @@ describe('模型管理 - 添加模型弹窗', () => {
 
     await inputById(wrapper, 'api-base-url').setValue('https://api.example.com/v1')
     await openTab(/Enter model ID|手动输入模型 ID/)
-    await inputById(wrapper, 'api-model-id').setValue('my-model')
+    await inputById(wrapper, 'api-model-id').setValue('vendor/my-model')
     await inputById(wrapper, 'api-model-id').trigger('keyup.enter')
     await flushTicks(2)
 
-    expect(settingsStore.models[1]).toMatchObject({ model: 'my-model', name: 'my-model' })
+    // 名字由模型 ID 推出来：厂商 slug 丢掉、- 变空格
+    expect(settingsStore.models[1]).toMatchObject({ model: 'vendor/my-model', name: 'my model' })
   })
 
   it('测试连通性：按当前表单发起一次非流式请求', async () => {

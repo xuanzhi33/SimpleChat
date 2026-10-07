@@ -308,7 +308,7 @@ describe('欢迎弹窗 API 模式', () => {
     expect(modelInputValue(wrapper)).toBe('gpt-5')
 
     await submit(wrapper)
-    expect(useSettingsStore().models[0]).toMatchObject({ model: 'gpt-5', name: 'gpt-5' })
+    expect(useSettingsStore().models[0]).toMatchObject({ model: 'gpt-5', name: 'gpt 5' })
   })
 })
 

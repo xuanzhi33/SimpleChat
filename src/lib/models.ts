@@ -93,6 +93,16 @@ export function modelDisplayName(model: RemoteModel): string {
 }
 
 /**
+ * 没名字时用模型 ID 推一个展示名：先丢掉 `厂商slug/` 前缀（取最后一段），
+ * 再把 `-` 换成空格 —— `openai/gpt-5-mini` → `gpt 5 mini`。
+ * 推出来是空就退回原 id，免得名字变成一片空白。
+ */
+export function modelNameFromId(id: string): string {
+  const name = (id.split('/').pop() ?? '').replace(/-/g, ' ').trim()
+  return name || id.trim()
+}
+
+/**
  * 拼成 `${baseUrl}/models` 请求模型列表。
  * 失败时抛 HttpError（HTTP 层错误）或 TypeError（跨域 / 断网，见 isLikelyCorsError）。
  */
