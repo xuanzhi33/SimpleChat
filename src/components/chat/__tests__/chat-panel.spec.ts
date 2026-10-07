@@ -251,6 +251,48 @@ describe('ChatPanel 发送失败', () => {
     expect(label.classes()).toContain('model-name-fade')
   })
 
+  it('模型下拉：管理模型在最上面，每行右侧的收藏按钮点一下就设成默认（默认那颗常亮且不可点）', async () => {
+    await setup({ modelName: 'Test' })
+    await createConversation()
+    const settingsStore = useSettingsStore()
+    // 先清掉默认，验证「点了才亮」
+    settingsStore.defaultModelId = ''
+    await nextTick()
+
+    const trigger = wrapper.findAllComponents(Button).find((item) => item.text().includes('Test'))!
+    await trigger.trigger('click')
+    await nextTick()
+
+    const content = document.getElementById(trigger.attributes('aria-controls')!)!
+    const items = [...content.querySelectorAll('[data-slot="dropdown-menu-item"]')]
+    // 管理模型排在第一，模型列表在它下面
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
+      i18n.global.t('chat.manageModels'),
+      'Test',
+    ])
+
+    const star = items[1]!.querySelector('button')!
+    expect(star.disabled).toBe(false)
+    expect(star.classList.contains('opacity-0')).toBe(true)
+    expect(star.querySelector('svg')!.classList.contains('fill-current')).toBe(false)
+
+    star.click()
+    await nextTick()
+
+    // 设成默认：星点亮 + 常显 + 不可点；菜单没被关掉，当前对话的模型也没被改
+    expect(settingsStore.defaultModelId).toBe('m1')
+    expect(star.disabled).toBe(true)
+    expect(star.classList.contains('opacity-0')).toBe(false)
+    expect(star.classList.contains('opacity-100')).toBe(true)
+    expect(star.querySelector('svg')!.classList.contains('fill-current')).toBe(true)
+    expect(content.querySelectorAll('[data-slot="dropdown-menu-item"]')).toHaveLength(2)
+    // 菜单还开着（收藏按钮的 click 有 .stop，没被当成选中这一行）
+    expect(trigger.attributes('aria-expanded')).toBe('true')
+    expect(useChatStore().activeConversation!.modelId).toBe('m1')
+
+    wrapper.unmount()
+  })
+
   it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {
     await setup()
     const emit = streamWith()

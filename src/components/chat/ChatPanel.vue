@@ -33,7 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import SetupDialog from '@/components/settings/SetupDialog.vue'
 import ModelIcon from '@/components/ModelIcon.vue'
-import { CircleStop, CircleAlert, Bot, ArrowUp, Settings, SlidersVertical } from '@lucide/vue'
+import { CircleStop, CircleAlert, Bot, ArrowUp, Settings, SlidersVertical, Star } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 import type { ThinkingLevel } from '@/types/chat'
@@ -91,6 +91,20 @@ const updateConversationModel = (modelId: unknown) => {
     conversation.updatedAt = Date.now()
   }
 }
+
+// 下拉菜单里的收藏按钮：把某个模型设成默认（新对话用它），不动当前对话已经选好的那个
+const setDefaultModel = (id: string) => {
+  settingsStore.defaultModelId = id
+}
+
+/**
+ * 收藏按钮的显隐：默认模型那颗常亮，其余平时透明，鼠标移上去（或键盘聚焦到这一行）才出现。
+ * 窄屏没有 hover 可用，所以直接常显 —— 不然手机上根本点不到。
+ */
+const starClass = (id: string) =>
+  id === settingsStore.defaultModelId
+    ? 'opacity-100'
+    : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100'
 
 // 输入框左下角外显的思考强度：认不出服务商（LLM Gate / 自定义地址）就整块不显示
 const thinkingStyle = computed(() => thinkingStyleOf(currentModel.value))
@@ -535,18 +549,37 @@ const handleKeyDown = (event: KeyboardEvent) => {
                 </InputGroupButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="end" class="[--radius:0.95rem]">
+                <!-- 管理模型放最上面，模型列表在它下面 -->
+                <DropdownMenuItem @click="modelManagementOpen = true">
+                  <Settings class="size-4 mr-2" />
+                  {{ t('chat.manageModels') }}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   v-for="model in settingsStore.models"
                   :key="model.id"
+                  class="group"
                   @click="updateConversationModel(model.id)"
                 >
                   <ModelIcon :model="model" class="mr-2" />
                   {{ model.name }}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem @click="modelManagementOpen = true">
-                  <Settings class="size-4 mr-2" />
-                  {{ t('chat.manageModels') }}
+                  <!-- 收藏：点一下把它设成默认模型；已经是默认的那颗常亮且不可点 -->
+                  <button
+                    type="button"
+                    class="-mr-1 ml-auto shrink-0 rounded-sm p-0.5 transition-opacity"
+                    :class="starClass(model.id)"
+                    :disabled="model.id === settingsStore.defaultModelId"
+                    :title="t('settings.models.setDefault')"
+                    :aria-label="t('settings.models.setDefault')"
+                    @click.stop="setDefaultModel(model.id)"
+                  >
+                    <Star
+                      class="size-4"
+                      :class="
+                        model.id === settingsStore.defaultModelId && 'fill-current text-amber-500'
+                      "
+                    />
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
