@@ -68,7 +68,8 @@ const currentModel = computed(() =>
 // 模型选择器上的文案
 const modelLabel = computed(() => currentModel.value?.name || t('chat.selectModel'))
 
-// 名字的宽度靠 CSS 限住（窄 150px / 宽 280px），被截掉的部分用遮罩淡出顶替省略号。
+// 名字的宽度靠 CSS 限住（窄 108px / 宽 238px，再算上图标和按钮内边距差不多就是整块 150 / 280px），
+// 被截掉的部分用遮罩淡出顶替省略号。
 // 只有真被截断时才叠那层遮罩 —— 宽度够的时候也叠，短名字最后一两个字会被平白抹掉。
 const labelRef = ref<HTMLElement>()
 const labelClipped = ref(false)
@@ -526,7 +527,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
                   <!-- 名字超宽就截断（不加省略号），截断处靠 .model-name-fade 淡出 -->
                   <span
                     ref="labelRef"
-                    class="max-w-[150px] overflow-hidden whitespace-nowrap @md:max-w-[280px]"
+                    class="max-w-[108px] overflow-hidden whitespace-nowrap @md:max-w-[238px]"
                     :class="labelClipped && 'model-name-fade'"
                   >
                     {{ modelLabel }}

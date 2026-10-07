@@ -227,13 +227,13 @@ describe('ChatPanel 发送失败', () => {
     expect(wrapper.find('[data-slot="input-group-addon"] button').exists()).toBe(true)
   })
 
-  it('模型名按 max-w 截断（窄 150 / 宽 280），溢出时给右侧淡出遮罩而不是省略号', async () => {
+  it('模型名按 max-w 截断（窄 108 / 宽 238），溢出时给右侧淡出遮罩而不是省略号', async () => {
     await setup({ modelName: 'DeepSeek V4 Pro' })
     await createConversation()
 
     const label = wrapper.findAll('span').find((span) => span.text() === 'DeepSeek V4 Pro')!
-    expect(label.classes()).toContain('max-w-[150px]')
-    expect(label.classes()).toContain('@md:max-w-[280px]')
+    expect(label.classes()).toContain('max-w-[108px]')
+    expect(label.classes()).toContain('@md:max-w-[238px]')
     expect(label.classes()).toContain('overflow-hidden')
     expect(label.classes()).toContain('whitespace-nowrap')
     expect(label.classes()).not.toContain('truncate')
@@ -243,7 +243,7 @@ describe('ChatPanel 发送失败', () => {
 
     // 假装截断了：改名字会触发重算（ResizeObserver 在 jsdom 里是空实现）
     Object.defineProperty(label.element, 'scrollWidth', { value: 400 })
-    Object.defineProperty(label.element, 'clientWidth', { value: 280 })
+    Object.defineProperty(label.element, 'clientWidth', { value: 238 })
     useSettingsStore().models[0]!.name = 'claude-3-5-sonnet-20241022'
     await nextTick()
     await nextTick()
