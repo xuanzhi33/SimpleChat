@@ -4,7 +4,7 @@ import { providerList, type ProviderPreset } from '@/configs/providers'
 import { isLikelyCorsError } from '@/lib/chat-service'
 import { describeError } from '@/lib/errors'
 import { fetchModelList, type RemoteModel } from '@/lib/models'
-import type { ModelExtra } from '@/types/chat'
+import type { ModelExtra, ModelKind } from '@/types/chat'
 
 /** Base URL 下拉框里「自定义（OpenAI 兼容）」的取值；其余取值都等于 providerList 里的 name */
 export const CUSTOM_PROVIDER_ID = 'custom'
@@ -16,6 +16,17 @@ export type ModelSource = 'list' | 'manual'
 export type ModelDraft =
   | { ok: true; name: string; baseUrl: string; extra: ModelExtra }
   | { ok: false; errorKey: string }
+
+/**
+ * 「克隆模型」时带进新增表单的预填值，只带新增表单里真正存在的字段。
+ * （编辑表单里的「模型名称」新增表单没有 —— 新模型的名称由模型 ID 推导。）
+ */
+export type ModelPrefill = {
+  kind: ModelKind
+  baseUrl: string
+  modelId?: string
+  apiKey?: string
+}
 
 /**
  * 「一个 API 模型」的表单状态：服务商 / Base URL / API Key / 模型 ID。

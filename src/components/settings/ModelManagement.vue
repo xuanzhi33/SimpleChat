@@ -23,6 +23,7 @@ import {
   Plus,
   Trash,
   SquarePen,
+  CopyPlus,
   Check,
   X,
   Star,
@@ -40,6 +41,7 @@ import ModelIcon from '@/components/ModelIcon.vue'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError } from '@/lib/errors'
 import { modelKind } from '@/lib/model'
+import type { ModelPrefill } from '@/composables/useApiModelForm'
 import type { ModelKind } from '@/types/chat'
 
 const open = defineModel<boolean>('open', { default: false })
@@ -50,6 +52,13 @@ const { models, defaultModelId } = storeToRefs(settingsStore)
 
 // 添加模型走独立弹窗（和欢迎弹窗同一套表单）
 const addDialogOpen = ref(false)
+// 「克隆」带进新增弹窗的预填值；普通添加为 null，免得残留上一次克隆的内容
+const clonePrefill = ref<ModelPrefill | null>(null)
+
+const openAddDialog = () => {
+  clonePrefill.value = null
+  addDialogOpen.value = true
+}
 
 // 编辑是「在卡片里展开」，所以同一时刻只展开一张
 const editingModelId = ref<string | null>(null)
@@ -89,6 +98,19 @@ const cancelEdit = () => {
   editingKind.value = 'api'
   modelId.value = ''
   apiKey.value = ''
+}
+
+/** 克隆当前编辑的模型：收起编辑（两个表单不同时存在），带着这份配置打开新增弹窗 */
+const cloneModel = () => {
+  const isApi = editingKind.value === 'api'
+  clonePrefill.value = {
+    kind: editingKind.value,
+    baseUrl: modelBaseUrl.value.trim(),
+    modelId: isApi ? modelId.value.trim() : undefined,
+    apiKey: isApi ? apiKey.value.trim() : undefined,
+  }
+  cancelEdit()
+  addDialogOpen.value = true
 }
 
 // 保存模型
@@ -203,7 +225,7 @@ const testModel = async () => {
 
       <div class="space-y-4">
         <!-- 添加按钮（展开某个模型编辑时先收起来，避免和保存按钮抢注意力） -->
-        <Button v-if="!isEditing" @click="addDialogOpen = true" class="w-full gap-2">
+        <Button v-if="!isEditing" @click="openAddDialog" class="w-full gap-2">
           <Plus class="size-4" />
           {{ t('settings.models.addNew') }}
         </Button>
@@ -362,7 +384,7 @@ const testModel = async () => {
                       </p>
                     </div>
 
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                       <Button @click="saveModel" class="gap-2">
                         <Check class="size-4" />
                         {{ t('settings.models.save') }}
@@ -381,6 +403,10 @@ const testModel = async () => {
                         <X class="size-4" />
                         {{ t('settings.models.cancel') }}
                       </Button>
+                      <Button @click="cloneModel" variant="outline" class="gap-2">
+                        <CopyPlus class="size-4" />
+                        {{ t('settings.models.clone') }}
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -392,8 +418,8 @@ const testModel = async () => {
     </DialogScrollContent>
   </Dialog>
 
-  <!-- 添加模型（和欢迎弹窗同一套表单） -->
-  <AddModelDialog v-model:open="addDialogOpen" />
+  <!-- 添加模型（和欢迎弹窗同一套表单）；从编辑里克隆时带着 prefill -->
+  <AddModelDialog v-model:open="addDialogOpen" :prefill="clonePrefill" />
 
   <!-- 删除确认对话框 -->
   <AlertDialog v-model:open="deleteDialogOpen">

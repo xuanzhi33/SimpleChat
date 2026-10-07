@@ -12,7 +12,7 @@ vi.mock('vue-sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 
 import { mount, enableAutoUnmount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { Plus, SquarePen, Check, X, Cloud, Lock } from '@lucide/vue'
+import { Plus, SquarePen, CopyPlus, Check, X, Cloud, Lock } from '@lucide/vue'
 import ModelManagement from '@/components/settings/ModelManagement.vue'
 import AddModelDialog from '@/components/settings/AddModelDialog.vue'
 import { Button } from '@/components/ui/button'
@@ -93,6 +93,8 @@ describe('模型管理', () => {
     await flushTicks()
 
     expect(wrapper.findComponent(AddModelDialog).props('open')).toBe(true)
+    // 普通添加不带克隆的预填值
+    expect(wrapper.findComponent(AddModelDialog).props('prefill')).toBeNull()
     expect(inputById(wrapper, 'model-name')).toBeUndefined()
   })
 
@@ -135,6 +137,53 @@ describe('模型管理', () => {
     expect(settingsStore.models[0]).toMatchObject({ name: 'Renamed Gate', kind: 'gate' })
     expect(settingsStore.models[0]!.model).toBeUndefined()
     expect(settingsStore.models[0]!.apiKey).toBeUndefined()
+  })
+
+  it('克隆 api 模型：收起编辑，把当前这份配置带进新增弹窗', async () => {
+    const { wrapper } = await mountManagement()
+
+    await buttonWithIcon(wrapper, SquarePen).trigger('click')
+    await flushTicks()
+    // 带着编辑中的实时值走，不是库里那份
+    await inputById(wrapper, 'model-name')!.setValue('Renamed')
+    await inputById(wrapper, 'model-api-key')!.setValue('sk-changed')
+
+    await buttonWithIcon(wrapper, CopyPlus).trigger('click')
+    await flushTicks()
+
+    // 编辑态收起
+    expect(inputById(wrapper, 'model-id')).toBeUndefined()
+
+    const dialog = wrapper.findComponent(AddModelDialog)
+    expect(dialog.props('open')).toBe(true)
+    expect(dialog.props('prefill')).toMatchObject({
+      kind: 'api',
+      baseUrl: 'https://api.example.com/v1',
+      modelId: 'gpt-5',
+      apiKey: 'sk-changed',
+    })
+
+    // 新增表单里地址 / Key / 模型 ID（手填）都已经填好
+    expect(inputValue(wrapper, 'api-base-url')).toBe('https://api.example.com/v1')
+    expect(inputValue(wrapper, 'api-key')).toBe('sk-changed')
+    expect(inputValue(wrapper, 'api-model-id')).toBe('gpt-5')
+  })
+
+  it('克隆 gate 模型：新增弹窗停在 gate 模式并带上地址', async () => {
+    const { wrapper } = await mountManagement([GATE_MODEL])
+
+    await buttonWithIcon(wrapper, SquarePen).trigger('click')
+    await flushTicks()
+    await buttonWithIcon(wrapper, CopyPlus).trigger('click')
+    await flushTicks()
+
+    expect(wrapper.findComponent(AddModelDialog).props('prefill')).toMatchObject({
+      kind: 'gate',
+      baseUrl: GATE_MODEL.baseUrl,
+    })
+    expect(inputValue(wrapper, 'model-url')).toBe(GATE_MODEL.baseUrl)
+    // gate 不带模型 ID / API Key，也不该停在 API 模式的表单上
+    expect(inputById(wrapper, 'api-base-url')).toBeUndefined()
   })
 
   it('取消收起表单；点另一张卡片的铅笔会收起前一张', async () => {

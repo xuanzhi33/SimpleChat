@@ -15,9 +15,15 @@ import { Check, LoaderCircle, ShieldCheck, X } from '@lucide/vue'
 import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError } from '@/lib/errors'
+import type { ModelPrefill } from '@/composables/useApiModelForm'
 import ModelConfigForm from './ModelConfigForm.vue'
 
 const open = defineModel<boolean>('open', { default: false })
+
+const props = defineProps<{
+  /** 克隆已有模型时带过来的预填值，直接透给表单 */
+  prefill?: ModelPrefill | null
+}>()
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -81,7 +87,12 @@ const handleTest = async () => {
         </DialogDescription>
       </DialogHeader>
 
-      <ModelConfigForm ref="form" default-mode="api" @submit="handleAdd" />
+      <ModelConfigForm
+        ref="form"
+        default-mode="api"
+        :prefill="props.prefill ?? undefined"
+        @submit="handleAdd"
+      />
 
       <DialogFooter>
         <Button @click="handleTest" variant="outline" :disabled="isTesting">

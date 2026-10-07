@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { i18n } from '@/i18n/config'
 import { DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_ID } from '@/lib/model'
 import { useSettingsStore } from '@/stores/settings'
+import type { ModelPrefill } from '@/composables/useApiModelForm'
 
 // 弹窗内容被 teleport 到 body，不卸载的话下一个用例的 DOM 查询会命中上一个用例的残留
 enableAutoUnmount(afterEach)
@@ -27,12 +28,12 @@ const flushTicks = async (times = 4) => {
   for (let i = 0; i < times; i += 1) await nextTick()
 }
 
-const mountDialog = async () => {
+const mountDialog = async (prefill?: ModelPrefill) => {
   vi.stubGlobal('ResizeObserver', FakeResizeObserver)
   const pinia = createPinia()
   setActivePinia(pinia)
   const wrapper = mount(AddModelDialog, {
-    props: { open: true },
+    props: { open: true, prefill },
     global: { plugins: [pinia, i18n] },
   })
   // 弹窗内容要等 useMounted 变 true 之后才渲染出来
@@ -98,6 +99,33 @@ describe('模型管理 - 添加模型弹窗', () => {
     // 添加成功后关掉弹窗
     const events = wrapper.emitted('update:open') ?? []
     expect(events[events.length - 1]).toEqual([false])
+  })
+
+  it('克隆预填：带着 prefill 打开时不用手填就能添加', async () => {
+    const { wrapper, settingsStore } = await mountDialog({
+      kind: 'api',
+      baseUrl: 'https://prefill.example.com/v1',
+      modelId: 'gpt-5-mini',
+      apiKey: 'sk-prefill',
+    })
+
+    // 预填直接落进「手动填写模型 ID」那条路
+    expect(inputById(wrapper, 'api-base-url').element).toHaveProperty(
+      'value',
+      'https://prefill.example.com/v1',
+    )
+    expect(inputById(wrapper, 'api-key').element).toHaveProperty('value', 'sk-prefill')
+    expect(inputById(wrapper, 'api-model-id').element).toHaveProperty('value', 'gpt-5-mini')
+
+    await addButton(wrapper).trigger('click')
+
+    expect(settingsStore.models[1]).toMatchObject({
+      name: 'gpt-5-mini',
+      baseUrl: 'https://prefill.example.com/v1',
+      kind: 'api',
+      model: 'gpt-5-mini',
+      apiKey: 'sk-prefill',
+    })
   })
 
   it('DeepSeek 官方模式：没填 Key 报错，填了就用固定的地址和模型建模型', async () => {

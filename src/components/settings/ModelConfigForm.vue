@@ -27,7 +27,12 @@ import { providerList } from '@/configs/providers'
 import deepseekLogo from '@/assets/deepseek.svg'
 import ModelIcon from '@/components/ModelIcon.vue'
 import { modelDisplayName, type RemoteModel } from '@/lib/models'
-import { useApiModelForm, CUSTOM_PROVIDER_ID, type ModelDraft } from '@/composables/useApiModelForm'
+import {
+  useApiModelForm,
+  CUSTOM_PROVIDER_ID,
+  type ModelDraft,
+  type ModelPrefill,
+} from '@/composables/useApiModelForm'
 import {
   Combobox,
   ComboboxAnchor,
@@ -44,6 +49,8 @@ type ModelConfigMode = 'deepseek' | 'api' | 'gate'
 
 const props = defineProps<{
   defaultMode?: ModelConfigMode
+  /** 克隆已有模型时带过来的预填值；不传＝全新模型，按 defaultMode 起步 */
+  prefill?: ModelPrefill
 }>()
 
 const emit = defineEmits<{
@@ -53,8 +60,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const mode = ref<ModelConfigMode>(props.defaultMode ?? 'deepseek')
-const modelUrl = ref('')
+// 克隆时直接落到被克隆模型的模式；否则按调用方给的默认模式
+const mode = ref<ModelConfigMode>(
+  props.prefill
+    ? props.prefill.kind === 'gate'
+      ? 'gate'
+      : 'api'
+    : (props.defaultMode ?? 'deepseek'),
+)
+const modelUrl = ref(props.prefill?.kind === 'gate' ? props.prefill.baseUrl : '')
 
 // API 模式的表单（服务商 / Base URL / API Key / 模型选择）都在这个 composable 里
 const {
@@ -74,6 +88,22 @@ const {
   loadModels,
   buildApiModel,
 } = useApiModelForm()
+
+// 克隆 API 模型：地址 / Key 照填，模型 ID 走「手动填写」——
+// 列表是空的（没拉过 /models），选不中也就不去为它拉一次列表
+if (props.prefill?.kind === 'api') {
+  const { baseUrl, modelId, apiKey: key } = props.prefill
+  const normalized = (url: string) => url.replace(/\/+$/, '')
+  const preset = providerList.find((item) => normalized(item.url) === normalized(baseUrl))
+
+  // 认得出服务商就选中它（地址跟着预设走），认不出就留在「自定义」并把地址填上
+  if (preset) providerId.value = preset.name
+  else apiBaseUrl.value = baseUrl
+
+  apiKey.value = key ?? ''
+  modelSource.value = 'manual'
+  manualModelId.value = modelId ?? ''
+}
 
 const llmGateUrl = 'https://github.com/xuanzhi33/LLM-Gate'
 

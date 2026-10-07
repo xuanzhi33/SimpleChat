@@ -176,6 +176,7 @@
       "setDefault": "設為預設",
       "save": "儲存",
       "cancel": "取消",
+      "clone": "複製",
       "delete": "刪除",
       "confirmDelete": "確定要刪除這個模型嗎？",
       "confirmDeleteDescription": "刪除後，使用此模型的對話將改用預設模型。",

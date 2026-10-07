@@ -176,6 +176,7 @@
       "setDefault": "Set as Default",
       "save": "Save",
       "cancel": "Cancel",
+      "clone": "Clone",
       "delete": "Delete",
       "confirmDelete": "Delete this model?",
       "confirmDeleteDescription": "Conversations using this model will switch to the default model.",
