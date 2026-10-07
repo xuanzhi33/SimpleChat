@@ -155,10 +155,12 @@ defineExpose({ buildModel })
 </script>
 
 <template>
-  <Tabs v-model="mode" class="gap-4">
-    <!-- 窄屏塞不下这三个 tab（会横向溢出）：让 tab 条自己横向滚 —— 手机上用手指划就能看全，
-         别把药丸撑破；滚动条在触摸屏上是浮层，不占高度 -->
-    <TabsList class="w-full overflow-x-auto">
+  <!-- 窄屏塞不下这三个 tab：让 tab 条自己横向滚（手机上手指划就能看全）。
+       光 overflow-x-auto 不够 —— 上游每一层 flex/grid 项默认 min-width:auto，会被 tab 文字的
+       min-content 宽度顶开（那时容器自己就先变宽了，没得滚）。所以这一串都要 min-w-0：
+       弹窗内容 → 这里的 Tabs → TabsList -->
+  <Tabs v-model="mode" class="min-w-0 gap-4">
+    <TabsList class="w-full min-w-0 overflow-x-auto">
       <TabsTrigger value="deepseek">
         <img :src="deepseekLogo" alt="" class="size-4 shrink-0" />
         {{ t('setup.tabs.deepseek') }}

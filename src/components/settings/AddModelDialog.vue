@@ -79,7 +79,8 @@ const handleTest = async () => {
 
 <template>
   <Dialog v-model:open="open">
-    <DialogScrollContent class="max-w-200">
+    <!-- min-w-0：别让里面的模式 tab 条（窄屏会横向溢出）把弹窗撑宽，溢出交给它自己滚 -->
+    <DialogScrollContent class="max-w-200 min-w-0">
       <DialogHeader>
         <DialogTitle class="text-2xl">{{ t('settings.models.addModel') }}</DialogTitle>
         <DialogDescription>
