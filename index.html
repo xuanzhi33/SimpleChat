@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- 装到桌面/主屏幕时用的是 manifest 里的图标（不是 favicon）；iOS 只认 apple-touch-icon。
-         base 是 './'，所以这些 href 会被 Vite 改写成相对路径，manifest 里的 src 也一律相对 -->
+         base 用 Vite 默认的 '/'（部署在自定义域名根目录），所以这些都是根绝对路径 -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- 跟着系统深浅色走，跟应用内默认的「跟随系统」一致 -->

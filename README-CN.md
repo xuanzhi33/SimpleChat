@@ -4,7 +4,7 @@
 
 [English](./README.md) | **中文**
 
-### ✨ [在线体验](https://gh.xuanzhi33.cn/SimpleChat/)
+### ✨ [在线体验](https://chat.xuanzhi33.cn)
 
 </div>
 

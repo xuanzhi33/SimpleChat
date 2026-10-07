@@ -1,11 +1,9 @@
 {
-  "id": "./",
   "name": "SimpleChat",
   "short_name": "SimpleChat",
-  "description": "SimpleChat is a pure frontend application with all data stored in your browser.",
+  "description": "SimpleChat is a minimalist chat interface for interacting with Large Language Models (LLMs). As a pure frontend application, it runs entirely in your browser with no backend server required.",
   "lang": "en",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "https://chat.xuanzhi33.cn",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",
