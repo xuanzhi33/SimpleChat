@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
+import { useResizeObserver } from '@vueuse/core'
 import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
 import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
 import { isImeComposing } from '@/lib/ime'
 import { modelRequestOptions, resolveConversationModel } from '@/lib/model'
-import { modelFitsInline, modelShortName } from '@/lib/models'
 import { completeWithoutThinking, thinkingPayload, thinkingStyleOf } from '@/lib/thinking'
 import { pinMessageToTop } from '@/lib/scroll'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
@@ -65,13 +65,21 @@ const currentModel = computed(() =>
   ),
 )
 
-// 模型选择器上的文案；窄屏用它的第一个词（推不出词就是空串，界面上只留图标）
+// 模型选择器上的文案
 const modelLabel = computed(() => currentModel.value?.name || t('chat.selectModel'))
-const modelShortLabel = computed(() => modelShortName(modelLabel.value))
-// 宽屏那份：名字太长同样退回短名字，不然只会剩一串省略号
-const modelInlineLabel = computed(() =>
-  modelFitsInline(modelLabel.value) ? modelLabel.value : modelShortLabel.value,
-)
+
+// 名字的宽度靠 CSS 限住（窄 150px / 宽 280px），被截掉的部分用遮罩淡出顶替省略号。
+// 只有真被截断时才叠那层遮罩 —— 宽度够的时候也叠，短名字最后一两个字会被平白抹掉。
+const labelRef = ref<HTMLElement>()
+const labelClipped = ref(false)
+const updateLabelClipped = () => {
+  const el = labelRef.value
+  if (el) labelClipped.value = el.scrollWidth > el.clientWidth
+}
+// 换名字 / 输入框变宽变窄都要重算（ResizeObserver 不覆盖文本变了但盒子没变的情况）；
+// 换名字要等 DOM 落定（flush: 'post'）再量，否则量的还是旧宽度
+watch(modelLabel, updateLabelClipped, { flush: 'post' })
+useResizeObserver(labelRef, updateLabelClipped)
 
 // 更新当前对话的模型
 const updateConversationModel = (modelId: unknown) => {
@@ -515,10 +523,14 @@ const handleKeyDown = (event: KeyboardEvent) => {
               <DropdownMenuTrigger as-child>
                 <InputGroupButton variant="ghost" class="min-w-0" :disabled="isGenerating">
                   <ModelIcon :model="currentModel" class="mr-1.5" />
-                  <!-- 输入框变窄时名字只留第一个词（图标+长名字挤不下），空串就只剩图标；
-                       太长的名字在宽屏上同样走这一份 -->
-                  <span class="@md:hidden">{{ modelShortLabel }}</span>
-                  <span class="hidden truncate @md:inline">{{ modelInlineLabel }}</span>
+                  <!-- 名字超宽就截断（不加省略号），截断处靠 .model-name-fade 淡出 -->
+                  <span
+                    ref="labelRef"
+                    class="max-w-[150px] overflow-hidden whitespace-nowrap @md:max-w-[280px]"
+                    :class="labelClipped && 'model-name-fade'"
+                  >
+                    {{ modelLabel }}
+                  </span>
                 </InputGroupButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="end" class="[--radius:0.95rem]">

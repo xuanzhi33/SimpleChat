@@ -218,6 +218,11 @@
   border-width: 4px;
 }
 
+/* 模型名（输入框右下角）被 max-w 截断时右侧淡出，替掉默认的省略号（见 ChatPanel 的 labelClipped） */
+.model-name-fade {
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+}
+
 /* 段间距：markstream 默认 1.5em（正文行高的 1.5 倍，16px 字就是 24px），聊天里读着太松，收到 1em。
    变量在 .markstream-vue 上，思考块（.thinking-md）的正文小一号，em 会跟着缩，不用另设 */
 .markstream-vue {

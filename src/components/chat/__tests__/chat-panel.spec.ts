@@ -48,6 +48,7 @@ import SetupDialog from '@/components/settings/SetupDialog.vue'
 import { Button } from '@/components/ui/button'
 import { i18n } from '@/i18n/config'
 import { useChatStore } from '@/stores/chat'
+import { useSettingsStore } from '@/stores/settings'
 import { HttpError, describeError } from '@/lib/errors'
 import { toast } from 'vue-sonner'
 
@@ -226,44 +227,28 @@ describe('ChatPanel 发送失败', () => {
     expect(wrapper.find('[data-slot="input-group-addon"] button').exists()).toBe(true)
   })
 
-  it('模型选择器：完整名字和窄屏用的第一个词都在，靠容器查询二选一', async () => {
+  it('模型名按 max-w 截断（窄 150 / 宽 280），溢出时给右侧淡出遮罩而不是省略号', async () => {
     await setup({ modelName: 'DeepSeek V4 Pro' })
     await createConversation()
 
-    const trigger = wrapper.findAllComponents(Button).find((item) => item.text().includes('V4'))!
-    const [short, full] = trigger.findAll('span')
+    const label = wrapper.findAll('span').find((span) => span.text() === 'DeepSeek V4 Pro')!
+    expect(label.classes()).toContain('max-w-[150px]')
+    expect(label.classes()).toContain('@md:max-w-[280px]')
+    expect(label.classes()).toContain('overflow-hidden')
+    expect(label.classes()).toContain('whitespace-nowrap')
+    expect(label.classes()).not.toContain('truncate')
 
-    // 窄屏那份只到第一个空格之前，且没有省略号（不带 truncate）
-    expect(short!.text()).toBe('DeepSeek')
-    expect(short!.classes()).toContain('@md:hidden')
-    expect(short!.classes()).not.toContain('truncate')
+    // jsdom 没有布局：宽度都是 0，算作没截断，这时不该叠遮罩（否则短名字末尾也会被抹）
+    expect(label.classes()).not.toContain('model-name-fade')
 
-    expect(full!.text()).toBe('DeepSeek V4 Pro')
-    expect(full!.classes()).toContain('@md:inline')
-  })
-
-  it('模型名以符号开头时，窄屏那份是空串，只剩图标', async () => {
-    await setup({ modelName: '·GPT-5' })
-    await createConversation()
-
-    const trigger = wrapper.findAllComponents(Button).find((item) => item.text().includes('GPT-5'))!
-    const [short, full] = trigger.findAll('span')
-
-    expect(short!.text()).toBe('')
-    expect(full!.text()).toBe('·GPT-5')
-  })
-
-  it('名字太长时宽屏那份也退回短名字，且长词截到 12 个字符', async () => {
-    await setup({ modelName: 'claude-3-5-sonnet-20241022' })
-    await createConversation()
-
-    const trigger = wrapper
-      .findAllComponents(Button)
-      .find((item) => item.text().includes('claude'))!
-    const [short, full] = trigger.findAll('span')
-
-    expect(short!.text()).toBe('claude-3-5-s')
-    expect(full!.text()).toBe('claude-3-5-s')
+    // 假装截断了：改名字会触发重算（ResizeObserver 在 jsdom 里是空实现）
+    Object.defineProperty(label.element, 'scrollWidth', { value: 400 })
+    Object.defineProperty(label.element, 'clientWidth', { value: 280 })
+    useSettingsStore().models[0]!.name = 'claude-3-5-sonnet-20241022'
+    await nextTick()
+    await nextTick()
+    await nextTick()
+    expect(label.classes()).toContain('model-name-fade')
   })
 
   it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {
