@@ -6,7 +6,7 @@ import { ChatService, isLikelyCorsError } from '@/lib/chat-service'
 import { describeError, summarizeError } from '@/lib/errors'
 import { isImeComposing } from '@/lib/ime'
 import { modelRequestOptions, resolveConversationModel } from '@/lib/model'
-import { modelShortName } from '@/lib/models'
+import { modelFitsInline, modelShortName } from '@/lib/models'
 import { completeWithoutThinking, thinkingPayload, thinkingStyleOf } from '@/lib/thinking'
 import { pinMessageToTop } from '@/lib/scroll'
 import { buildTitlePrompt, cleanTitle } from '@/lib/title'
@@ -68,6 +68,10 @@ const currentModel = computed(() =>
 // 模型选择器上的文案；窄屏用它的第一个词（推不出词就是空串，界面上只留图标）
 const modelLabel = computed(() => currentModel.value?.name || t('chat.selectModel'))
 const modelShortLabel = computed(() => modelShortName(modelLabel.value))
+// 宽屏那份：名字太长同样退回短名字，不然只会剩一串省略号
+const modelInlineLabel = computed(() =>
+  modelFitsInline(modelLabel.value) ? modelLabel.value : modelShortLabel.value,
+)
 
 // 更新当前对话的模型
 const updateConversationModel = (modelId: unknown) => {
@@ -511,9 +515,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
               <DropdownMenuTrigger as-child>
                 <InputGroupButton variant="ghost" class="min-w-0" :disabled="isGenerating">
                   <ModelIcon :model="currentModel" class="mr-1.5" />
-                  <!-- 输入框变窄时名字只留第一个词（图标+长名字挤不下），空串就只剩图标 -->
+                  <!-- 输入框变窄时名字只留第一个词（图标+长名字挤不下），空串就只剩图标；
+                       太长的名字在宽屏上同样走这一份 -->
                   <span class="@md:hidden">{{ modelShortLabel }}</span>
-                  <span class="hidden truncate @md:inline">{{ modelLabel }}</span>
+                  <span class="hidden truncate @md:inline">{{ modelInlineLabel }}</span>
                 </InputGroupButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="end" class="[--radius:0.95rem]">

@@ -4,6 +4,7 @@ import {
   fetchModelList,
   formatContextWindow,
   modelDisplayName,
+  modelFitsInline,
   modelNameFromId,
   modelShortName,
   normalizeModelList,
@@ -145,6 +146,23 @@ describe('modelShortName', () => {
     expect(modelShortName('（GPT-5）')).toBe('')
     expect(modelShortName('---')).toBe('')
     expect(modelShortName('')).toBe('')
+  })
+
+  it('只有一个长词时截到 12 个字符，不会把布局顶开', () => {
+    expect(modelShortName('claude-3-5-sonnet-20241022')).toBe('claude-3-5-s')
+    expect(modelShortName('Supercalifragilistic')).toBe('Supercalifra')
+    // 刚好 12 个就不动
+    expect(modelShortName('deepseek-cha')).toBe('deepseek-cha')
+  })
+})
+
+describe('modelFitsInline', () => {
+  it('24 个字符以内算放得下，超了就交给 modelShortName', () => {
+    expect(modelFitsInline('DeepSeek V4 Pro')).toBe(true)
+    expect(modelFitsInline('  gpt-5  ')).toBe(true)
+    expect(modelFitsInline('a'.repeat(24))).toBe(true)
+    expect(modelFitsInline('a'.repeat(25))).toBe(false)
+    expect(modelFitsInline('claude-3-5-sonnet-20241022')).toBe(false)
   })
 })
 

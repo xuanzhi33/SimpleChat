@@ -253,6 +253,19 @@ describe('ChatPanel 发送失败', () => {
     expect(full!.text()).toBe('·GPT-5')
   })
 
+  it('名字太长时宽屏那份也退回短名字，且长词截到 12 个字符', async () => {
+    await setup({ modelName: 'claude-3-5-sonnet-20241022' })
+    await createConversation()
+
+    const trigger = wrapper
+      .findAllComponents(Button)
+      .find((item) => item.text().includes('claude'))!
+    const [short, full] = trigger.findAll('span')
+
+    expect(short!.text()).toBe('claude-3-5-s')
+    expect(full!.text()).toBe('claude-3-5-s')
+  })
+
   it('流式期间把用户消息钉在列表顶部，用户自己滚过就不再抢', async () => {
     await setup()
     const emit = streamWith()

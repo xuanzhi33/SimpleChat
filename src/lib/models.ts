@@ -92,6 +92,12 @@ export function modelDisplayName(model: RemoteModel): string {
   return model.name && model.name !== model.id ? model.name : ''
 }
 
+/** 短名字最多留几个字符：单个词自己很长时也不会把布局顶开 */
+const SHORT_NAME_MAX_LENGTH = 12
+
+/** 名字超过这个长度就算「太长」：宽屏下也改用短名字 */
+const NAME_MAX_LENGTH = 24
+
 /**
  * 没名字时用模型 ID 推一个展示名：先丢掉 `厂商slug/` 前缀（取最后一段），
  * 再把 `-` 换成空格 —— `openai/gpt-5-mini` → `gpt 5 mini`。
@@ -103,12 +109,19 @@ export function modelNameFromId(id: string): string {
 }
 
 /**
- * 窄屏下模型名只留第一个词：截到第一个空格 / 冒号 / 括号之类的分隔符之前
+ * 模型名只留第一个词：窄屏（或名字太长）时用它，截到第一个空格 / 冒号 / 括号之类的分隔符之前
  * （`DeepSeek V4 Pro` → `DeepSeek`）。首字符必须是字母或数字 ——
  * 名字以符号开头（`·GPT-5`）时拿不到词，返回空串，让调用方只留图标。
+ * 单个词自己也很长（`claude-3-5-sonnet-20241022`）时最多留 12 个字符，别让它把布局顶开。
  */
 export function modelShortName(name: string): string {
-  return name.trim().match(/^[\p{L}\p{N}][^\s:：|·/()（）\[\]【】，,、]*/u)?.[0] ?? ''
+  const word = name.trim().match(/^[\p{L}\p{N}][^\s:：|·/()（）\[\]【】，,、]*/u)?.[0] ?? ''
+  return word.length > SHORT_NAME_MAX_LENGTH ? word.slice(0, SHORT_NAME_MAX_LENGTH) : word
+}
+
+/** 宽屏上这个名字还短到能整段显示吗；超了（24 个字符）就也退回 `modelShortName`，省得只剩省略号 */
+export function modelFitsInline(name: string): boolean {
+  return name.trim().length <= NAME_MAX_LENGTH
 }
 
 /**
