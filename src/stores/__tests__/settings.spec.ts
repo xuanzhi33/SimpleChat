@@ -4,6 +4,7 @@ import { ref } from 'vue'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ locale: ref('en'), t: (k: string) => k }) }))
 
+import { THEME_COLOR_DARK, THEME_COLOR_LIGHT } from '@/lib/theme-color'
 import { useSettingsStore } from '@/stores/settings'
 
 describe('settings store', () => {
@@ -45,6 +46,26 @@ describe('settings store', () => {
     expect(store.models[0]?.kind).toBe('gate')
     expect(store.models[0]?.model).toBeUndefined()
     expect(store.models[0]?.apiKey).toBeUndefined()
+  })
+
+  it('默认跟随系统，切换主题时同步 theme-color', () => {
+    const store = useSettingsStore()
+    expect(store.colorMode).toBe('system')
+
+    document.head.innerHTML = '<meta name="theme-color" content="" />'
+    store.colorMode = 'dark'
+    store.applyColorMode()
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe(
+      THEME_COLOR_DARK,
+    )
+
+    store.colorMode = 'light'
+    store.applyColorMode()
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe(
+      THEME_COLOR_LIGHT,
+    )
   })
 
   it('系统提示词预设：新存的放最前，内容相同不重复存', () => {

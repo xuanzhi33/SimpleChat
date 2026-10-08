@@ -2,6 +2,7 @@ import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/cor
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { applyThemeColor } from '@/lib/theme-color'
 import type { Model, ModelExtra, SystemPromptPreset } from '@/types/chat'
 
 export type ColorMode = 'light' | 'dark' | 'system'
@@ -102,6 +103,8 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const applyColorMode = () => {
     document.documentElement.classList.toggle('dark', isDarkMode.value)
+    // 地址栏 / 已安装应用的标题栏跟着应用内主题走，不看系统（用 meta 覆盖 manifest 的静态值）
+    applyThemeColor(isDarkMode.value)
   }
 
   watch(isDarkMode, applyColorMode)

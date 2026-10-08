@@ -7,9 +7,10 @@
          base 用 Vite 默认的 '/'（部署在自定义域名根目录），所以这些都是根绝对路径 -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- 跟着系统深浅色走，跟应用内默认的「跟随系统」一致 -->
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+    <!-- 地址栏 / 已安装应用的标题栏着色：这里先按系统深浅色各给一个（JS 跑之前用得上），
+         跑起来后由 src/lib/theme-color.ts 统一改成跟应用内主题一致（深浅都取边栏背景色） -->
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
     <!-- iOS ≤ 16.3 靠这两个 meta 才会以独立窗口打开、用固定名字（更新的版本读 manifest） -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="SimpleChat" />
